@@ -1,0 +1,1019 @@
+/*! HTML5 Boilerplate v5.3.0 | MIT License | https://html5boilerplate.com/ */
+
+/*
+ * What follows is the result of much research on cross-browser styling.
+ * Credit left inline and big thanks to Nicolas Gallagher, Jonathan Neal,
+ * Kroc Camen, and the H5BP dev community and team.
+ */
+
+/* ==========================================================================
+   Base styles: opinionated defaults
+   ========================================================================== */
+/*@import 'https://fonts.googleapis.com/css?family=Lato';*/
+@import 'https://fonts.googleapis.com/css?family=Istok+Web';
+html {
+    color: #222;
+    font-size: 1em;
+    line-height: 1.4;
+}
+
+/*
+ * Remove text-shadow in selection highlight:
+ * https://twitter.com/miketaylr/status/12228805301
+ *
+ * These selection rule sets have to be separate.
+ * Customize the background color to match your design.
+ */
+
+::-moz-selection {
+    background: #b3d4fc;
+    text-shadow: none;
+}
+
+::selection {
+    background: #b3d4fc;
+    text-shadow: none;
+}
+
+/*
+ * A better looking default horizontal rule
+ */
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+}
+
+/*
+ * Remove the gap between audio, canvas, iframes,
+ * images, videos and the bottom of their containers:
+ * https://github.com/h5bp/html5-boilerplate/issues/440
+ */
+
+audio,
+canvas,
+iframe,
+img,
+svg,
+video {
+    vertical-align: middle;
+}
+
+/*
+ * Remove default fieldset styles.
+ */
+
+fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/*
+ * Allow only vertical resizing of textareas.
+ */
+
+textarea {
+    resize: vertical;
+}
+
+/*Efecto Advertencia en la Tienda*/
+@import url(https://fonts.googleapis.com/css?family=Lato:900);
+*, *:before, *:after{
+  box-sizing:border-box;
+}
+body{
+  font-family: 'Lato', sans-serif;
+}
+div.foo{
+  width: 100%;
+  margin: 100px 0 0 0;
+  text-align: center;
+}
+.letter{
+  display: inline-block;
+  font-weight: 900;
+  font-size: 5em;
+  margin: 0.2em;
+  position: relative;
+  color: #00B4F1;
+  transform-style: preserve-3d;
+  perspective: 400;
+  z-index: 1;
+}
+.letter:before, .letter:after{
+  position:absolute;
+  content: attr(data-letter);
+  transform-origin: top left;
+  top:0;
+  left:0;
+}
+.letter, .letter:before, .letter:after{
+  transition: all 0.3s ease-in-out;
+}
+.letter:before{
+  color: #fff;
+  text-shadow: 
+    -1px 0px 1px rgba(255,255,255,.8),
+    1px 0px 1px rgba(0,0,0,.8);
+  z-index: 3;
+  transform:
+    rotateX(0deg)
+    rotateY(-15deg)
+    rotateZ(0deg);
+}
+.letter:after{
+  color: rgba(0,0,0,.11);
+  z-index:2;
+  transform:
+    scale(1.08,1)
+    rotateX(0deg)
+    rotateY(0deg)
+    rotateZ(0deg)
+    skew(0deg,1deg);
+}
+.letter:hover:before{
+  color: #fafafa;
+  transform:
+    rotateX(0deg)
+    rotateY(-40deg)
+    rotateZ(0deg);
+}
+.letter:hover:after{
+  transform:
+    scale(1.08,1)
+    rotateX(0deg)
+    rotateY(40deg)
+    rotateZ(0deg)
+    skew(0deg,22deg);
+}
+
+/* ==========================================================================
+   Browser Upgrade Prompt
+   ========================================================================== */
+
+.browserupgrade {
+    margin: 0.2em 0;
+    background: #ccc;
+    color: #000;
+    padding: 0.2em 0;
+}
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+/* NOTE:
+  1.- If you want test divs for dashboard: [tag]nav, [class]side-nav and page-wrapper
+  2.- If you want to change some element and affect only on intranet, use id: wrapper and other selector; that change only affected on intranet
+
+*/
+
+body, html {
+  font-family: 'Istok Web', 'Helvetica', arial;
+}
+
+a {
+  color: black;
+}
+
+footer {
+  bottom: 0;
+  display: block !important;
+  font-size: 11px;
+  height: 5%;
+  padding-top: .7%;
+  position:fixed;
+  text-align: center;
+  width:100%;
+  z-index: 5;
+}
+
+input[type="number"]:not([size]) { 
+width: 6em;
+text-align: center;
+font-weight: bold;
+color: #17ABA0;
+background-color: white;
+text-align: center;
+}
+
+/*Tipo Radio*/
+
+/*Fin Tipo Radio*/
+
+#content-product {
+  /*background-color: red;*/
+  /*height: auto !important;*/
+}
+
+#information {
+  /*background-color: green;*/
+  margin-bottom: 3.5%;
+}
+
+#containerShoppingCar span {
+  cursor: pointer;
+}
+
+#page-wrapper {
+  background-color: #f5f5f5 !important;
+  min-height: 100% !important;
+}
+
+#resultPublicOrderCode .table-striped>tbody>tr>td {
+  background-color: #f9f9f9;
+}
+
+#resultPublicOrderCode .row label {
+  background-color: #f9f9f9;
+  padding: 0.2em;
+}
+
+/* section div */
+#wrapper nav {
+  /*background-color: red !important;*/
+  background-color: white !important;
+  -webkit-box-sizing: border-box !important;
+  box-sizing: border-box !important;
+}
+
+
+/* Last element from nav menu vertical*/
+#wrapper .navbar-collapse ul:last-child li:last-child {
+  bottom: 0 !important;
+  font-size: 10px !important;
+  position: absolute !important;
+  text-align: center;
+  width: 100%;
+}
+
+#wrapper .navbar-collapse {
+  background-color: steelblue !important;
+  background-image: url('../img/letras.png') !important;
+  background-repeat: no-repeat;
+  background-size: 250px 50px;
+  background-position: 2% 0%;
+}
+
+#wrapper .dropdown-toggle  {
+  color: white !important;
+}
+
+#wrapper .navbar-header h4 {
+  color: white !important;
+}
+
+.aviso {
+  font-size: 30px;
+  font-weight: bold;
+  font-family: sans-serif;
+  padding-top: 20px;
+}
+.banner-aviso {
+  background-color: rgba(255,87,51,0.8);
+  color: white;
+  margin: 90px 0 0 0;
+}
+
+.btn-secondary {
+  color: white;
+  background-color: #FF682C !important;
+}
+
+.background-img-pedidos {
+  background-image: url('../img/img-pedidos.jpg') !important;
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  height: 644px;
+}
+
+.background-img-carrito {
+  background-image: url('../img/img-carrito.jpg') !important;
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  height: 644px;
+}
+
+.content-img {
+  /*background: black;*/
+  width: 100%;
+}
+
+.content-img img {
+  display: inline-block;
+  height: 200px;
+  max-width: 100%;
+}
+
+.content-main {
+  /*background: orange;*/
+}
+
+.fondo {
+  background-color: red;
+  height: auto;
+  padding-top: 120px;
+}
+
+.fondo2 {
+  background-color: green;
+  height: auto;
+  padding-top: 120px;
+}
+
+.fondo3 {
+  background-color: yellow;
+  height: auto;
+  padding-top: 120px;
+}
+
+.img-full {
+  max-width: 100%;
+}
+
+
+/* for navbar-collapse on mobile #C3C2C2 */
+.icon-bar {
+  background-color:#413F3F !important;
+}
+
+.nav-stacked li a {
+  color: black;
+  height: 100%;
+}
+
+/* for sheet active */
+.nav-stacked li a:hover,
+.nav-stacked li a:focus {
+  color: black;
+}
+
+.cerrar:hover{
+  background-color: #f5f5f5 !important;
+}
+/* end nav intranet*/
+
+/* for show img logo on mobile*/
+.navbar-brand {
+  padding: 0px !important;
+}
+
+.navbar-brand>img {
+  height: 100% !important;
+  padding: 1px 5px !important;
+  width: auto !important;
+}
+
+/* for sheet active */
+.navbar-nav a:hover,
+.navbar-nav a:focus {
+  color: black;
+  background: #E3E3E3 !important;
+}
+
+@keyframes loading{
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: -100% 0;
+    }
+}
+/* End animate backround-image */
+
+
+/* style for products */
+.row {
+  background-color: #f5f5f5 !important;
+  /*height: auto !important;*/
+}
+
+.side-nav {
+  background-color: lightslategray;
+}
+
+/* For all elements from nav menu vertical, set backgroun ferremayoristas */
+.side-nav > li a:hover, .side-nav > li a:focus, .side-nav > li a:active {
+  background-color: black !important;
+}
+
+.top-nav>li>a, .top-nav> .open>a {
+  background-color: black;
+}
+
+/* for active sheet nav top set color ferremayoristas*/
+.top-nav>li>a:hover, .top-nav>li>a:focus,
+  .top-nav>.open>a, .top-nav>.open>a:hover,
+  .top-nav>.open>a:focus {
+    background-color: maroon !important;
+}
+
+
+/* ==========================================================================
+   Login Modal
+   ========================================================================== */
+
+.loginmodal-container {
+  padding: 30px;
+  max-width: 350px;
+  width: 100% !important;
+  background-color: #F7F7F7;
+  margin: 0 auto;
+  border-radius: 2px;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.loginmodal-container h1 {
+  text-align: center;
+  font-size: 1.8em;
+}
+
+.loginmodal-container input[type=submit] {
+  width: 100%;
+  display: block;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.loginmodal-container input[type=text], input[type=password] {
+  height: 44px;
+  font-size: 16px;
+  width: 100%;
+  margin-bottom: 10px;
+  -webkit-appearance: none;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-top: 1px solid #c0c0c0;
+  /* border-radius: 2px; */
+  padding: 0 8px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+.loginmodal-container input[type=text]:hover, input[type=password]:hover {
+  border: 1px solid #b9b9b9;
+  border-top: 1px solid #a0a0a0;
+  -moz-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+  -webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.loginmodal {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  height: 36px;
+  padding: 0 8px;
+/* border-radius: 3px; */
+/* -webkit-user-select: none;
+  user-select: none; */
+}
+
+.loginmodal-submit {
+  /* border: 1px solid #3079ed; */
+  border: 0px;
+  color: #fff;
+  text-shadow: 0 1px rgba(0,0,0,0.1);
+  /* background-color: #4d90fe; */
+  padding: 17px 0px;
+  font-size: 14px;
+  /* background-image: -webkit-gradient(linear, 0 0, 0 100%,   from(#4d90fe), to(#4787ed)); */
+}
+
+.loginmodal-submit:hover {
+  /* border: 1px solid #2f5bb7; */
+  border: 0px;
+  text-shadow: 0 1px rgba(0,0,0,0.3);
+  /* background-color: #357ae8; */
+  /* background-image: -webkit-gradient(linear, 0 0, 0 100%,   from(#4d90fe), to(#357ae8)); */
+}
+
+.loginmodal-container a {
+  text-decoration: none;
+  color: #666;
+  font-weight: 400;
+  text-align: center;
+  display: inline-block;
+  opacity: 0.6;
+  transition: opacity ease 0.5s;
+}
+
+.login-help{
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   Product style
+   ========================================================================== */
+
+   /*Se mete scroll en el panel de Buscar Producto y Pedidos Realizados en la Intranet*/
+   .fixed-panel {
+    height: auto;
+    overflow-y: scroll;
+   }
+
+   /*Se mete scroll en el panel de Buscar Producto y Pedidos Realizados en la Intranet*/
+   .fixed-panel2 {
+    height: auto;
+    overflow-y: auto;
+   }
+
+   .fixed-panel3 {
+    height: auto;
+    overflow-y: auto;
+   }
+
+   .fixed-panel4 {
+    height: auto;
+    overflow-y: auto;
+   }
+
+   .flex-container {
+     display: -webkit-box;
+     display: -moz-box;
+     display: -ms-flexbox;
+     display: -webkit-flex;
+     display: flex;
+     margin: 0;
+     padding: 0;
+     -webkit-flex-flow: row wrap;
+     justify-content: space-around;
+   }
+
+   .flex-item {
+     /*background-color: red;*/
+     height: 280px;
+     margin: 10px;
+     padding: 5px;
+     text-align: center;
+     width: 20%;
+   }
+
+   .flex-item2 {
+     /*background-color: red;*/
+     height: 280px;
+     margin: 10px;
+     padding: 5px;
+     text-align: center;
+     width: 200PX;
+   }
+
+   .category {
+    /*background-color: #DCDCDC;*/
+    background-color: white;
+    list-style:none;
+    font-family: 'Istok Web', 'Helvetica', arial;
+    padding-bottom: 5px;
+   }
+
+   .marca {
+    /*background-color: #DCDCDC;*/
+    background-color: white;
+    list-style:none;
+    font-family: 'Istok Web', 'Helvetica', arial;
+   }
+
+   .productos {
+    font-family: 'Istok Web', 'Helvetica', arial;
+    margin-top: -10px;
+   }
+
+   .color {
+    color: #08BDA4;
+    font-weight: bold;
+    font-size: 15px;
+   }
+
+   .color2 {
+    color: #08BDA4;
+    font-weight: bold;
+    font-size: 17px;
+   }
+
+   .btn-agregar {
+    border: none;
+    background: #08BDA4;
+    color: #f2f2f2;
+    padding: 10px;
+    margin: 10px 50px 0 0;
+    font-size: 30px;
+    border-radius: 5px;
+    position: relative;
+    box-sizing: border-box;
+    transition: all 500ms ease;
+   }
+
+   .btn-agregar:hover {
+    background: rgba(0,0,0,0);
+    box-shadow: inset 0 0 0 3px #08BDA4;
+    color: #08BDA4;
+   }
+
+   .quitar {
+    background-image: initial;
+    background-repeat: initial;
+    background-position: initial;
+    -webkit-border-radius: initial;
+    -moz-border-radius: initial;
+    border-radius: initial;
+    border-style: initial;
+    border-width: initial;
+    border-color: initial;
+    background-color: initial;
+   }
+
+   .lista {
+    text-decoration:none;
+   }
+
+   .lista:hover {
+    text-decoration: none;
+   }
+
+   .seleccion {
+    margin: 50;
+   }
+
+   .seleccion:hover {
+    background-color: #F7F5F5;
+    border-radius: 5px;
+    text-decoration: none;
+   }
+
+   .hr {
+    margin: 0;
+    height: 0;
+   }
+
+   .main {
+    padding-top: 90px;
+    padding-bottom: 50px;
+   }
+
+   /*Scroll en Categoria y Marcas*/
+
+   .scroll-cate {
+    height: 550px;
+    overflow-y: scroll;
+   }
+
+   .scroll-pro {
+    height: 545px;
+    overflow-y: scroll;
+   }
+
+   .scroll-marc {
+    height: 500px;
+    overflow-y: scroll;
+   }
+    
+    ::-webkit-scrollbar {
+      width: 0;
+    }
+  /*Fin Scroll*/
+
+   .titulos{
+    /*background-color: #15D1CC;*/
+    background-color: #2C3030;
+    color:white !important;
+    border-radius: 4px 4px 0 0;
+    list-style:none;
+    font-family: 'Istok Web', 'Helvetica', arial;
+    padding-top: 10px;
+    padding-bottom: 10px;
+   }
+
+   .titulos2{
+    /*background-color: #15D1CC;*/
+    background-color: #2C3030;
+    color:white !important;
+    border-radius: 4px 4px 0 0;
+    list-style:none;
+    font-family: 'Istok Web', 'Helvetica', arial;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-bottom: 10px;
+   }
+
+   .marcas{
+    /*background-color: #f0713a;*/
+    /*background-color: #15D1CC;*/
+    background-color: #2C3030;
+    border-radius: 4px 4px 0 0;
+    color: white;
+    list-style:none;
+    font-family: 'Istok Web', 'Helvetica', arial;
+    padding-top: 10px;
+    padding-bottom: 10px;
+   }
+
+   #titulos {
+    color: white !important;
+    text-decoration:none;
+   }
+
+   #titulos:hover {
+    color: black !important;
+   }
+
+    .product-image img {
+     max-width: 100%;
+     max-height: 100%;
+     width: 150px;
+     height: 150px;
+     border-radius: 5px;
+   }
+
+   .product-image2 img{
+     width: 100px;
+     height: 100px;
+   }
+
+   .product-image-20 {
+     text-align: center;
+     margin: 0 auto;
+   }
+
+   .product-image-20 img {
+     /padding: 1%;
+     width: 100%;
+   }
+
+   .product-info label {
+     display: block;
+   }
+   
+/*Efecto ZOOM*/
+  .zoom{
+        /* Aumentamos la anchura y altura durante 2 segundos */
+        transition: width 2s, height 2s, transform 2s;
+        -moz-transition: width 2s, height 2s, -moz-transform 2s;
+        -webkit-transition: width 2s, height 2s, -webkit-transform 2s;
+        -o-transition: width 2s, height 2s,-o-transform 2s;
+    }
+    .zoom:hover{
+        /* tranformamos el elemento al pasar el mouse por encima al doble de
+           su tama単o con scale(2). */
+        transform : scale(2);
+        -moz-transform : scale(2);      /* Firefox */
+        -webkit-transform : scale(2);   /* Chrome - Safari */
+        -o-transform : scale(2);        /* Opera */
+        z-index: 999;
+    }
+
+/* ==========================================================================
+   Helper classes
+   ========================================================================== */
+
+/*
+ * Hide visually and from screen readers
+ */
+
+.hidden {
+    display: none !important;
+}
+
+/*
+ * Hide only visually, but have it available for screen readers:
+ * http://snook.ca/archives/html_and_css/hiding-content-for-accessibility
+ */
+
+.visuallyhidden {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+/*
+ * Extends the .visuallyhidden class to allow the element
+ * to be focusable when navigated to via the keyboard:
+ * https://www.drupal.org/node/897638
+ */
+
+.visuallyhidden.focusable:active,
+.visuallyhidden.focusable:focus {
+    clip: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    position: static;
+    width: auto;
+}
+
+/*
+ * Hide visually and from screen readers, but maintain layout
+ */
+
+.invisible {
+    visibility: hidden;
+}
+
+/*
+ * Clearfix: contain floats
+ *
+ * For modern browsers
+ * 1. The space content is one way to avoid an Opera bug when the
+ *    `contenteditable` attribute is included anywhere else in the document.
+ *    Otherwise it causes space to appear at the top and bottom of elements
+ *    that receive the `clearfix` class.
+ * 2. The use of `table` rather than `block` is only necessary if using
+ *    `:before` to contain the top-margins of child elements.
+ */
+
+.clearfix:before,
+.clearfix:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+}
+
+.clearfix:after {
+    clear: both;
+}
+
+.color-ferremayorista {
+  background-color: #FF682C !important;
+}
+.font-size-1 {
+  font-size: 1.5em;
+}
+
+.margin-top {
+  margin-top: 5%;
+}
+
+.margin-top-1 {
+  margin-top: 1%;
+}
+
+input[type=number]{
+  width: 100%;
+}
+
+/*button[type=button]{
+  width: 28%;
+}*/
+
+#contenedor, #cajatext, #botonagre{
+  position: static;
+}
+
+.margin-top-1 {
+  margin-top: 2%;
+}
+
+.margin-top-3 {
+  margin-top: 3%;
+}
+
+.margin-top-10 {
+  margin-top: 10%;
+}
+
+.margin-top-13 {
+  margin-top: 13%;
+}
+
+.margin-top-20 {
+  margin-top: 20%;
+}
+
+.margin-left-2 {
+  margin-left: 2%;
+}
+
+.glyphicon-bigger-20 {
+    font-size: 20px;
+}
+.glyphicon-bigger {
+    font-size: 30px;
+}
+
+.width-50 {
+  width: 50%;
+}
+
+/* ==========================================================================
+   EXAMPLE Media Queries for Responsive Design.
+   These examples override the primary ('mobile first') styles.
+   Modify as content requires.
+   ========================================================================== */
+
+@media only screen and (min-width: 768px) {
+    .navbar-header{display: none;}
+}
+
+@media (max-width: 740px) and (min-width: 300px){
+  footer{display: none !important;}
+  #content-find-product-home {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 767px){
+  .flex-item {
+    /*background: green;*/
+    height: auto;
+    width: 80%;
+  }
+  .product-image img {
+    max-width: 100%;
+  }
+}
+
+@media print,
+       (-webkit-min-device-pixel-ratio: 1.25),
+       (min-resolution: 1.25dppx),
+       (min-resolution: 120dpi) {
+    /* Style adjustments for high resolution devices */
+}
+
+/* ==========================================================================
+   Print styles.
+   Inlined to avoid the additional HTTP request:
+   http://www.phpied.com/delay-loading-your-print-css/
+   ========================================================================== */
+
+@media print {
+    *,
+    *:before,
+    *:after,
+    *:first-letter,
+    *:first-line {
+        background: transparent !important;
+        color: #000 !important; /* Black prints faster:
+                                   http://www.sanbeiji.com/archives/953 */
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    a,
+    a:visited {
+        text-decoration: underline;
+    }
+
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
+
+    /*
+     * Don't show links that are fragment identifiers,
+     * or use the `javascript:` pseudo protocol
+     */
+
+    a[href^="#"]:after,
+    a[href^="javascript:"]:after {
+        content: "";
+    }
+
+    pre,
+    blockquote {
+        border: 1px solid #999;
+        page-break-inside: avoid;
+    }
+
+    /*
+     * Printing Tables:
+     * http://css-discuss.incutio.com/wiki/Printing_Tables
+     */
+
+    thead {
+        display: table-header-group;
+    }
+
+    tr,
+    img {
+        page-break-inside: avoid;
+    }
+
+    img {
+        max-width: 100% !important;
+    }
+
+    p,
+    h2,
+    h3 {
+        orphans: 3;
+        widows: 3;
+    }
+
+    h2,
+    h3 {
+        page-break-after: avoid;
+    }
+}

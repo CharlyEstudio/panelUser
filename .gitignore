@@ -1,0 +1,8 @@
+.vscode/
+img/
+intranet/
+css/font-awesome
+.DS_Store
+php/classes/PHPMailer
+php/classes/fpdf
+libs/

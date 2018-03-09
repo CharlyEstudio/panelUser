@@ -1,0 +1,141 @@
+Error No: 1054 - MySQL error: Unknown column 'pr.publico' in 'field list'
+Query: SELECT p.id as productoID, p.*, pr.publico as precio, img.*
+                        FROM productos p
+                        JOIN precios pr ON pr.codigo = p.codigo
+                        JOIN imagenes img ON img.valorRelacion = p.id
+                        WHERE img.tipo = 'productos' AND img.seccion = 'catalogo' LIMIT 0, 16
+#0 /opt/lampp/htdocs/fmo/tienda/php/class.database.php(48): Database->showAndWriteError('SELECT p.id as ...')
+#1 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(232): Database->Query('SELECT p.id as ...')
+#2 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(14): Product->getProducts(Array)
+#3 /opt/lampp/htdocs/fmo/tienda/php/product/product.php(47): Product->getterGetProducts(Array)
+#4 {main}
+2017-06-14 00:45:05
+######################################################################
+Error No: 1054 - MySQL error: Unknown column 'pr.publico' in 'field list'
+Query: SELECT p.id as productoID, p.*, pr.publico as precio, img.*
+                        FROM productos p
+                        JOIN precios pr ON pr.codigo = p.codigo
+                        JOIN imagenes img ON img.valorRelacion = p.id
+                        WHERE img.tipo = 'productos' AND img.seccion = 'catalogo' LIMIT 0, 16
+#0 /opt/lampp/htdocs/fmo/tienda/php/class.database.php(48): Database->showAndWriteError('SELECT p.id as ...')
+#1 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(232): Database->Query('SELECT p.id as ...')
+#2 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(14): Product->getProducts(Array)
+#3 /opt/lampp/htdocs/fmo/tienda/php/product/product.php(47): Product->getterGetProducts(Array)
+#4 {main}
+2017-06-14 00:47:05
+######################################################################
+Error No: 1064 - MySQL error: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'AND img.tipo = 'productos' AND img.seccion = 'catalogo'' at line 6
+Query: SELECT pro.codigo as productoCD, pro.*, pre.*, img.*
+                    FROM productos pro
+                      JOIN precios pre ON pre.codigo = pro.codigo
+                      JOIN imagenes img ON img.valorRelacion = pro.codigo
+                      WHERE pro.codigo = 
+                      AND img.tipo = 'productos' AND img.seccion = 'catalogo' 
+#0 /opt/lampp/htdocs/fmo/tienda/php/class.database.php(48): Database->showAndWriteError('SELECT pro.codi...')
+#1 /opt/lampp/htdocs/fmo/tienda/php/classes/class.queries.php(23): Database->Query('SELECT pro.codi...')
+#2 /opt/lampp/htdocs/fmo/tienda/php/classes/class.queries.php(6): Queries->executeGeneralQuery(Array)
+#3 /opt/lampp/htdocs/fmo/tienda/php/functions/dml.php(232): Queries->getterExecuteGeneralQuery(Array)
+#4 /opt/lampp/htdocs/fmo/tienda/php/product/product.php(74): Dml->drawModalProduct(Array)
+#5 {main}
+2017-06-14 12:24:42
+######################################################################
+Error No: 1054 - MySQL error: Unknown column 'p.productoID' in 'on clause'
+Query: SELECT * FROM productos p
+                        JOIN imagenes img ON img.valorRelacion = p.productoID
+                        JOIN precios pre ON pre.precioID = p.productoID
+                        WHERE img.tipo = 'productos' AND img.seccion = 'catalogo' AND pre.mayorista > 0
+#0 /opt/lampp/htdocs/fmo/tienda/php/class.database.php(48): Database->showAndWriteError('SELECT * FROM p...')
+#1 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(197): Database->Query('SELECT * FROM p...')
+#2 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(14): Product->getProducts(Array)
+#3 /opt/lampp/htdocs/fmo/tienda/php/product/product.php(46): Product->getterGetProducts(Array)
+#4 {main}
+2017-07-02 22:10:38
+######################################################################
+Error No: 1054 - MySQL error: Unknown column 'p.productoID' in 'on clause'
+Query: SELECT * FROM productos p
+                        JOIN imagenes img ON img.valorRelacion = p.productoID
+                        JOIN precios pre ON pre.precioID = p.productoID
+                        WHERE img.tipo = 'productos' AND img.seccion = 'catalogo' AND pre.mayorista > 0
+#0 /opt/lampp/htdocs/fmo/tienda/php/class.database.php(48): Database->showAndWriteError('SELECT * FROM p...')
+#1 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(197): Database->Query('SELECT * FROM p...')
+#2 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(14): Product->getProducts(Array)
+#3 /opt/lampp/htdocs/fmo/tienda/php/product/product.php(46): Product->getterGetProducts(Array)
+#4 {main}
+2017-07-02 22:10:51
+######################################################################
+Error No: 1054 - MySQL error: Unknown column 'p.productoID' in 'on clause'
+Query: SELECT * FROM productos p
+                        JOIN imagenes img ON img.valorRelacion = p.productoID
+                        JOIN precios pre ON pre.precioID = p.productoID
+                        WHERE img.tipo = 'productos' AND img.seccion = 'catalogo' AND pre.mayorista > 0
+#0 /opt/lampp/htdocs/fmo/tienda/php/class.database.php(48): Database->showAndWriteError('SELECT * FROM p...')
+#1 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(197): Database->Query('SELECT * FROM p...')
+#2 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(14): Product->getProducts(Array)
+#3 /opt/lampp/htdocs/fmo/tienda/php/product/product.php(46): Product->getterGetProducts(Array)
+#4 {main}
+2017-07-02 22:12:30
+######################################################################
+Error No: 1054 - MySQL error: Unknown column 'p.productoID' in 'on clause'
+Query: SELECT * FROM productos p
+                        JOIN imagenes img ON img.valorRelacion = p.productoID
+                        JOIN precios pre ON pre.precioID = p.productoID
+                        WHERE img.tipo = 'productos' AND img.seccion = 'catalogo' AND pre.mayorista > 0
+#0 /opt/lampp/htdocs/fmo/tienda/php/class.database.php(48): Database->showAndWriteError('SELECT * FROM p...')
+#1 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(197): Database->Query('SELECT * FROM p...')
+#2 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(14): Product->getProducts(Array)
+#3 /opt/lampp/htdocs/fmo/tienda/php/product/product.php(46): Product->getterGetProducts(Array)
+#4 {main}
+2017-07-02 22:12:35
+######################################################################
+Error No: 1054 - MySQL error: Unknown column 'img.productID' in 'on clause'
+Query: SELECT p.id as productoID, p.*, pr.mayorista as precio, img.*
+                        FROM productos p
+                        JOIN precios pr ON pr.productoID = p.id
+                        JOIN imagenes img ON img.productID = p.id
+                        WHERE img.tipo = 'productos' AND img.seccion = 'catalogo' LIMIT 0, 8
+#0 /opt/lampp/htdocs/fmo/tienda/php/class.database.php(48): Database->showAndWriteError('SELECT p.id as ...')
+#1 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(225): Database->Query('SELECT p.id as ...')
+#2 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(14): Product->getProducts(Array)
+#3 /opt/lampp/htdocs/fmo/tienda/php/product/product.php(46): Product->getterGetProducts(Array)
+#4 {main}
+2017-07-03 22:40:58
+######################################################################
+Error No: 1054 - MySQL error: Unknown column 'img.productID' in 'on clause'
+Query: SELECT p.id as productoID, p.*, pr.mayorista as precio, img.*
+                        FROM productos p
+                        JOIN precios pr ON pr.productoID = p.id
+                        JOIN imagenes img ON img.productID = p.id
+                        WHERE img.tipo = 'productos' AND img.seccion = 'catalogo' LIMIT 0, 8
+#0 /opt/lampp/htdocs/fmo/tienda/php/class.database.php(48): Database->showAndWriteError('SELECT p.id as ...')
+#1 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(225): Database->Query('SELECT p.id as ...')
+#2 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(14): Product->getProducts(Array)
+#3 /opt/lampp/htdocs/fmo/tienda/php/product/product.php(46): Product->getterGetProducts(Array)
+#4 {main}
+2017-07-03 22:42:06
+######################################################################
+Error No: 1054 - MySQL error: Unknown column 'img.productoID' in 'on clause'
+Query: SELECT p.id as productoID, p.*, pr.mayorista as precio, img.*
+                        FROM productos p
+                        JOIN precios pr ON pr.productoID = p.id
+                        JOIN imagenes img ON img.productoID = p.id
+                        WHERE img.tipo = 'productos' AND img.seccion = 'catalogo' LIMIT 0, 8
+#0 /opt/lampp/htdocs/fmo/tienda/php/class.database.php(48): Database->showAndWriteError('SELECT p.id as ...')
+#1 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(225): Database->Query('SELECT p.id as ...')
+#2 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(14): Product->getProducts(Array)
+#3 /opt/lampp/htdocs/fmo/tienda/php/product/product.php(46): Product->getterGetProducts(Array)
+#4 {main}
+2017-07-03 22:46:02
+######################################################################
+Error No: 1054 - MySQL error: Unknown column 'img.productoID' in 'on clause'
+Query: SELECT p.id as productoID, p.*, pr.mayorista as precio, img.*
+                        FROM productos p
+                        JOIN precios pr ON pr.productoID = p.id
+                        JOIN imagenes img ON img.productoID = p.id
+                        WHERE img.tipo = 'productos' AND img.seccion = 'catalogo' LIMIT 0, 8
+#0 /opt/lampp/htdocs/fmo/tienda/php/class.database.php(48): Database->showAndWriteError('SELECT p.id as ...')
+#1 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(225): Database->Query('SELECT p.id as ...')
+#2 /opt/lampp/htdocs/fmo/tienda/php/classes/class.product.php(14): Product->getProducts(Array)
+#3 /opt/lampp/htdocs/fmo/tienda/php/product/product.php(46): Product->getterGetProducts(Array)
+#4 {main}
+2017-07-03 22:46:45
+######################################################################
