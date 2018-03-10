@@ -803,7 +803,7 @@ CONFIRMATION;
 	$rol = $paramDb->SecureInput($session["rol"]);
 	$clienteID = $paramDb->SecureInput($session["username"]);
 	$id = $_SESSION["data"]["id"];
-	/*$id = 4;*/
+	// $id = 3631;
 	$username = $_SESSION["data"]["name"];
 	$rfc = $_SESSION["data"]["rfc"];
 	$saldo = $_SESSION["data"]["saldo"];
@@ -851,9 +851,10 @@ CONFIRMATION;
 			break;
 	}
 
-	$date=new DateTime();
-	$fechaActualDia = $date->format('d');
-	$fechaActualMes = $date->format('m');
+	$year = date("Y");
+
+	$fechaActualDia = date('d');
+	$fechaActualMes = date('m');
 
 	$UltimaComp = strtotime($ultimacompra);
 	$diasUltimaCompra = idate('d' ,$UltimaComp);
@@ -966,213 +967,214 @@ CONFIRMATION;
 		$nextMes = 0;
 	}
 
-	if($pas2==''){
-		echo 	'<div id="myLargeModalLabel" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-					<div class="modal-dialog modal-lg">
-						<div class="modal-content">
-							<div class="modal-header text-center">
-								<p class="lead">Bienvenido a su Escritorio Virtual FMO, este es su primer inicio de sesión y le invitamos a realizar el cambio de su contraseña; si no lo realiza, no podrá accesar nuevamente a su escritorio hasta que termine el mes, <b>ya que su contraseña se resetea cada inicio de mes.</b></p>
-							</div>
-							<div class="modal-body" style="display:flex; align-items: center; justify-content: center;">
-								<form>
-									<div class="form-group" style="text-align: center;">
-										<input style="width:300px;" class="form-control text-center" id="usuario" name="usuario" value="'.$clienteID.'" type="text" readonly="readonly">
-									</div>
-									<div class="form-group" style="text-align: center;display:;">
-										<input style="width:300px;" class="form-control text-center" id="email" name="email" value="'.$correo.'" type="email" readonly="readonly">
-									</div>
-									<div class="form-group">
-										<input autofocus style="width:300px;" class="form-control text-center" id="passwordNew" name="password" onChange="verificarPassword()" placeholder="Nuevo Password" type="text" autocomplete="off" required>
-										<p id="pasAnt" style="display:none;">'.$pasAnt.'</p>
-									</div>
-									<script>
-										function verificarPassword(){
-											var pasAnt 	= document.getElementById("pasAnt").innerHTML;
-											var pasNew 	= document.getElementById("passwordNew").value;
-											var usuario = document.getElementById("usuario").value;
-											var email 	= document.getElementById("email").value;
-											console.log(pasAnt, pasNew, usuario, email);
-											if(pasAnt === pasNew){
-												alert("El nuevo password debe ser diferente.");
-											} else {
-												$.post("../php/classes/cambiarpass.php", {usuario: usuario, password: pasNew, emial: email});
-												alert("Su contraseña se cambio correctamente, debe de inciar sesión con los nuevos datos. Gracias!.");
-												Session.Clear();
-												Session.Abandon();
-											}
-										}
-									</script>
-									<div id="mensajePas"></div>
-									<div class="form-group text-center" id="botonEnviar" style="display: none;">
-										<button class="btn btn-danger pull-center" type="submit">Enviar</button>
-									</div>
-								</form>
-								<!-- <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button> -->
-							</div>
-						</div>
-					</div>
-				</div>
-				<script>$(document).ready(function(){$("#myLargeModalLabel").modal("show");});</script>';
-	}
-
-	$print =	'<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-					<div class="content-wrapper row" style="margin-top: 40px;">
-						<!-- Content Header (Page header) -->
-						<section class="content-header col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-							<span style="font-size: 1.5em;font-weight:bold;color:red;">Versión &beta;eta | Última actualización: '.$actualizacion.'</span>
-							<h1>
-								<span style="font-weight:bold;">#'.$clienteID.'</span> - '.$username.'
-								<small>'.$rol.'</small>
-							</h1>
-						</section>
-						<!-- Main content -->
-						<section class="content col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-							<!-- Info boxes -->
-							<div class="row">
-								<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">
-									<div class="info-box">
-										<span class="info-box-icon bg-red"><i class="fas fa-dollar-sign" aria-hidden="true"></i></span>
-										<div class="info-box-content">
-											<span class="info-box-text">Saldo en la Cuenta</span>
-											<span class="info-box-number" style="font-size: 1.7em !important;">$ '.$formatoSaldo.'</span>
-										</div>
-										<!-- /.info-box-content -->
-									</div>
-									<!-- /.info-box -->
-								</div>
-								<!-- /.col -->
-								<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">
-									<div class="info-box">
-										<span class="info-box-icon bg-aqua"><i class="fa fa-credit-card" aria-hidden="true"></i></span>
-										<div class="info-box-content">
-											<span class="info-box-text">Saldo Disponible</span>
-											<span class="info-box-number" style="font-size: 1.7em !important;">$ '.$dispo.'</span>
-										</div>
-										<!-- /.info-box-content -->
-									</div>
-									<!-- /.info-box -->
-								</div>
-								<!-- /.col -->
-								<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">
-									<div class="info-box">
-										<span class="info-box-icon bg-green"><i class="fa fa-lock" aria-hidden="true"></i></span>
-										<div class="info-box-content">
-											<span class="info-box-text">Limite de Crédito</span>
-											<span class="info-box-number" style="font-size: 1.7em !important;">$ '.$formatoLimite.'</span>
-										</div>
-										<!-- /.info-box-content -->
-									</div>
-									<!-- /.info-box -->
-								</div>
-							</div>
-							<!-- /.row -->
-							<div class="row">
-								<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">
-									<div class="info-box">
-										<span class="info-box-icon bg-yellow"><i class="fas fa-stopwatch" aria-hidden="true"></i></span>
-										<div class="info-box-content">
-											<span class="info-box-text">Días de Crédito</span>
-											<span class="info-box-number" style="font-size: 1.7em !important;">'.$diascredito.'</span>
-										</div>
-										<!-- /.info-box-content -->
-									</div>
-									<!-- /.info-box -->
-								</div>
-								<!-- /.col -->
-								<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">
-									<div class="info-box">
-										<span class="info-box-icon bg-fuchsia"><i class="far fa-calendar-plus" aria-hidden="true"></i></span>
-										<div class="info-box-content">
-											<span class="info-box-text">Última Compra</span>
-											<span class="info-box-number" style="font-size: 1.7em !important;">'.$compraReciente.'</span>
-										</div>
-										<!-- /.info-box-content -->
-									</div>
-									<!-- /.info-box -->
-								</div>
-								<!-- /.col -->
-								<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">
-									<div class="info-box">
-										<span class="info-box-icon bg-maroon"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></span>
-										<div class="info-box-content">
-											<span class="info-box-text">Próximo Vencimiento</span>
-											<span class="info-box-number" style="font-size: 1.7em !important;">'.$fechaLimite.'</span>
-										</div>
-										<!-- /.info-box-content -->
-									</div>
-									<!-- /.info-box -->
-								</div>
-								<!-- /.col -->
-							</div>
-							<!-- /.row -->
-							<div class="row">
-								<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-									<div class="box">
-										<div class="box-header with-border">';
-
 	$trim1 = "<strong>Compras: 01 Enero, ".date("Y")." - 31 Marzo, ".date("Y")."</strong>";
 	$trim2 = "<strong>Compras: 01 Abril, ".date("Y")." - 30 Junio, ".date("Y")."</strong>";
 	$trim3 = "<strong>Compras: 01 Julio, ".date("Y")." - 30 Septiembre, ".date("Y")."</strong>";
 	$trim4 = "<strong>Compras: 01 Octubre, ".date("Y")." - 31 Diciembre, ".date("Y")."</strong>";
 
-	$newMesActual = new DateTime();
-	$MesActual = $newMesActual->format('m');
-	
-	if($MesActual < 4){
-		$periodo		= '1er. Periodo';
-		$print .=							'<h3 class="box-title">'.$periodo.' Trimestral del '.date("Y").'</h3>
+	if($pas2==''){
+		echo '<div id="myLargeModalLabel" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+				<div class="modal-dialog modal-lg">
+					<div class="modal-content">
+						<div class="modal-header text-center">
+							<p class="lead">Bienvenido a su Escritorio Virtual FMO, este es su primer inicio de sesión y le invitamos a realizar el cambio de su contraseña; si no lo realiza, no podrá accesar nuevamente a su escritorio hasta que termine el mes, <b>ya que su contraseña se resetea cada inicio de mes.</b></p>
+						</div>
+						<div class="modal-body" style="display:flex; align-items: center; justify-content: center;">
+							<form>
+								<div class="form-group" style="text-align: center;">
+									<input style="width:300px;" class="form-control text-center" id="usuario" name="usuario" value="'.$clienteID.'" type="text" readonly="readonly">
+								</div>
+								<div class="form-group" style="text-align: center;display:;">
+									<input style="width:300px;" class="form-control text-center" id="email" name="email" value="'.$correo.'" type="email" readonly="readonly">
+								</div>
+								<div class="form-group">
+									<input autofocus style="width:300px;" class="form-control text-center" id="passwordNew" name="password" onChange="verificarPassword()" placeholder="Nuevo Password" type="text" autocomplete="off" required>
+									<p id="pasAnt" style="display:none;">'.$pasAnt.'</p>
+								</div>
+								<script>
+									function verificarPassword(){
+										var pasAnt 	= document.getElementById("pasAnt").innerHTML;
+										var pasNew 	= document.getElementById("passwordNew").value;
+										var usuario = document.getElementById("usuario").value;
+										var email 	= document.getElementById("email").value;
+										console.log(pasAnt, pasNew, usuario, email);
+										if(pasAnt === pasNew){
+											alert("El nuevo password debe ser diferente.");
+										} else {
+											$.post("../php/classes/cambiarpass.php", {usuario: usuario, password: pasNew, emial: email});
+											alert("Su contraseña se cambio correctamente, debe de inciar sesión con los nuevos datos. Gracias!.");
+											Session.Clear();
+											Session.Abandon();
+										}
+									}
+								</script>
+								<div id="mensajePas"></div>
+								<div class="form-group text-center" id="botonEnviar" style="display: none;">
+									<button class="btn btn-danger pull-center" type="submit">Enviar</button>
+								</div>
+							</form>
+							<!-- <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button> -->
+						</div>
+					</div>
+				</div>
+			</div>
+			<script>$(document).ready(function(){$("#myLargeModalLabel").modal("show");});</script>';
+	}
+
+	$getFotoVen = "SELECT v.nombre, v.tel, v.foto
+						FROM vendedores v
+						JOIN cli c ON c.vendedorid = v.vendedorid
+						WHERE c.clienteid = ".$id."";
+	$FotoVenEnc = mysqli_query($getConnection,$getFotoVen);
+	$filaFoto = mysqli_fetch_row($FotoVenEnc);
+
+	$print = '<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
+				<div class="row">
+					<div class="col-md-12">
+						<span style="font-size: .8em;font-weight:bold;color:red;">Versión &beta;eta | Última actualización: '.$actualizacion.'</span>
+						<div class="row infoCard">
+							<div class="col-md-4">
+								<div class="row">
+									<div class="col-md-12">
+										<h5>
+											<span style="font-weight:bold;">#'.$clienteID.'</span> - '.$username.'
+											<small>'.$rol.'</small>
+										</h5>
+									</div>
+									<div class="col-md-12 text-center">
+										<h5>Vendedor</h5>
+										<div class="row padding">
+											<div class="col-md-3 text-input">
+												<img src="../img/vendedores/'.$filaFoto[2].'" class="img-vendedor" alt="'.$filaFoto[0].'" width="100">
+											</div>
+											<div class="col-md-9">
+												<div class="row">
+													<div class="col-md-12">
+														<div class="row">
+															<div class="col-md-3 text-left">
+																<span>Nombre: </span>
+															</div>
+															<div class="col-md-9">';
+	if($filaFoto[0] == 0){
+		$print .=												'<p class="input-falso">Usuario de oficina</p>';
+	} else {
+		$print .=												'<p class="input-falso">'.$filaFoto[0].'</p>';
+	}
+	$print .=												'</div>
+														</div>
+													</div>
+													<div class="col-md-12">
+														<div class="row">
+															<div class="col-md-3 text-left">
+																<span>Tel.: </span>
+															</div>
+															<div class="col-md-9">';
+	if($filaFoto[1] == 0){
+		$print .=												'<p class="input-falso">(000) 000 0000</p>';
+	} else {
+		$print .=												'<p class="input-falso">'.$filaFoto[1].'</p>';
+	}
+	$print .=												'</div>
+														</div>
+													</div>
+												</div>
+											</div>
 										</div>
-										<!-- /.box-header -->
-										<div class="box-body">
-											<div class="row">
-												<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-													<p class="text-center">';
-	$print .=											$trim1;
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="form-group">
+									<div class="row">
+										<div class="col-md-4 text-input">
+											<span>Saldo en la Cuenta</span>
+										</div>
+										<div class="col-md-8">
+											<input type="number" class="form-control" placeholder="$ '.$formatoSaldo.'" readonly />
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="row">
+										<div class="col-md-4 text-input">
+											<span>Saldo Disponible</span>
+										</div>
+										<div class="col-md-8">
+											<input type="number" class="form-control" placeholder="$ '.$dispo.'" readonly />
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="row">
+										<div class="col-md-4 text-input">
+											<span>Limite de Crédito</span>
+										</div>
+										<div class="col-md-8">
+											<input type="number" class="form-control" placeholder="$ '.$formatoLimite.'" readonly />
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4">
+							<div class="form-group">
+								<div class="row">
+									<div class="col-md-4 text-input">
+										<span>Días de Crédito</span>
+									</div>
+									<div class="col-md-8">
+										<input type="number" class="form-control" placeholder="'.$diascredito.'" readonly />
+									</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="row">
+									<div class="col-md-4 text-input">
+										<span>Última Compra</span>
+									</div>
+									<div class="col-md-8">
+										<input type="number" class="form-control" placeholder="'.$compraReciente.'" readonly />
+									</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="row">
+									<div class="col-md-4 text-input">
+										<span>Próximo Vencimiento</span>
+									</div>
+									<div class="col-md-8">
+										<input type="number" class="form-control" placeholder="'.$fechaLimite.'" readonly />
+									</div>
+								</div>
+							</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>';
+	$print .= '<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12 graficasGeneral">
+				<div class="row">
+					<div class="col-md-12 text-center">';
+	if($fechaActualMes < 4){
+		$print .= 		'<h5>1er. Periodo Trimestral del '.date("Y").'</h5>
+						<p class="text-center">'.$trim1.'</p>';
 		$fechaInicio 	= date("Y-01-01");
 		$fechaFinal 	= date("Y-03-31");
-		
-	} elseif($MesActual < 7){
-		$periodo		= '2do. Periodo';
-		$print .=							'<h3 class="box-title">'.$periodo.' Trimestral del '.date("Y").'</h3>
-										</div>
-										<!-- /.box-header -->
-										<div class="box-body">
-											<div class="row">
-												<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-													<p class="text-center">';
-	$print .=											$trim2;
+	} elseif($fechaActualMes < 7){
+		$print .= 		'<h5>2do. Periodo Trimestral del '.date("Y").'</h5>
+						<p class="text-center">'.$trim2.'</p>';
 		$fechaInicio 	= date("Y-04-01");
 		$fechaFinal 	= date("Y-06-30");
-	} elseif($MesActual < 10){
-		$periodo		= '3er. Periodo';
-		$print .=							'<h3 class="box-title">'.$periodo.' Trimestral del '.date("Y").'</h3>
-										</div>
-										<!-- /.box-header -->
-										<div class="box-body">
-											<div class="row">
-												<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-													<p class="text-center">';
-	$print .=											$trim3;
+	} elseif($fechaActualMes < 10){
+		$print .= 		'<h5>3er. Periodo Trimestral del '.date("Y").'</h5>
+						<p class="text-center">'.$trim3.'</p>';
 		$fechaInicio 	= date("Y-07-01");
 		$fechaFinal 	= date("Y-09-30");
-	} elseif($MesActual > 9){
-		$periodo		= '4to. Periodo';
-		$print .=							'<h3 class="box-title">'.$periodo.' Trimestral del '.date("Y").'</h3>
-										</div>
-										<!-- /.box-header -->
-										<div class="box-body">
-											<div class="row">
-												<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-													<p class="text-center">';
-		$print .=										$trim4;
+	} elseif($fechaActualMes > 9){
+		$print .= 		'<h5>4to. Periodo Trimestral del '.date("Y").'</h5>
+						<p class="text-center">'.$trim4.'</p>';
 		$fechaInicio 	= date("Y-10-01");
 		$fechaFinal 	= date("Y-12-31");
 	}
-
-	$print .=										'</p>
-													<!-- DONUT CHART -->
-													<div clas="row">
-														<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">';
 
 	$getGraphCompras = "SELECT de.desventa, de.descantidad
 			FROM doc d
@@ -1200,10 +1202,8 @@ CONFIRMATION;
 		$total += $importe * $cantidad;
 	}
 
-	$year = date("Y");
-
 	//Semanas del Mes
-	if($MesActual < 4){
+	if($fechaActualMes < 4){
 		$semana1 = "feccap >= '$year-01-01' AND feccap <= '$year-01-07' ";
 		$semana2 = "feccap >= '$year-01-08' AND feccap <= '$year-01-14' ";
 		$semana3 = "feccap >= '$year-01-15' AND feccap <= '$year-01-21' ";
@@ -2132,11 +2132,8 @@ CONFIRMATION;
 			$numComprasMes3Sem4 = 0;
 		}
 	}
-  	
-	// Mes y Días
-	$buscarMes=new DateTime();
-	$mesNum = $buscarMes->format('m');
-	switch ($mesNum) {
+	
+	switch ($fechaActualMes) {
 		case 1:
 			$mes='Enero';
 			$diasMes = 31;
@@ -2186,192 +2183,96 @@ CONFIRMATION;
 			$diasMes = 31;
 			break;
 	}
-
-	$print .=												'<h4 class="text-center">Compras Totales</h4>
-															<p class="text-center">$ 20,000.00 MXN Minimo</p>
-															<p id="total" style="display: none;">'.$total.'</p>
-															<canvas id="comprasTri"></canvas>
-														</div>
-														<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12" id="asignar">
-															<h4 class="text-center">Facturas Vencidas</h4>
-															<p class="text-center">No debe tener ninguna vencida</p>
-															<p style="display:none;" id="faltaVenTota">$faltaVenTota</p>
-															<div class="row">
-																<div class="col-sm-12">
-																	<p style="text-align:center;font-size:10em;font-weight:bold;color: #F02C2C !important; margin-top: 30px;">'.$numeroVeces.'</p>
-																</div>
-																<div style="display:none;">
-																	<canvas id="facturasTri"></canvas>
-																</div>
-															</div>
-														</div>
-														<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">
-															<h4 class="text-center">Compras Semanales</h4>
-															<p id="mesNum" style="display: none;">'.$mesNum.'</p>
-															<p id="numComprasMes1Sem1" style="display:none;">'.$numComprasMes1Sem1.'</p>
-															<p id="numComprasMes1Sem2" style="display:none;">'.$numComprasMes1Sem2.'</p>
-															<p id="numComprasMes1Sem3" style="display:none;">'.$numComprasMes1Sem3.'</p>
-															<p id="numComprasMes1Sem4" style="display:none;">'.$numComprasMes1Sem4.'</p>
-															<p id="numComprasMes2Sem1" style="display:none;">'.$numComprasMes2Sem1.'</p>
-															<p id="numComprasMes2Sem2" style="display:none;">'.$numComprasMes2Sem2.'</p>
-															<p id="numComprasMes2Sem3" style="display:none;">'.$numComprasMes2Sem3.'</p>
-															<p id="numComprasMes2Sem4" style="display:none;">'.$numComprasMes2Sem4.'</p>
-															<p id="numComprasMes3Sem1" style="display:none;">'.$numComprasMes3Sem1.'</p>
-															<p id="numComprasMes3Sem2" style="display:none;">'.$numComprasMes3Sem2.'</p>
-															<p id="numComprasMes3Sem3" style="display:none;">'.$numComprasMes3Sem3.'</p>
-															<p id="numComprasMes3Sem4" style="display:none;">'.$numComprasMes3Sem4.'</p>
-															<canvas id="barChart"></canvas>
-														</div>
-														<script src="../intranet/dist/js/pages/dashboard2.js"></script>
-													</div>
-													<!-- /.box-body -->
-												</div>
-												<!-- /.col -->
-											</div>
-											<!-- /.row -->
-										</div>
-										<!-- ./box-body -->
-										<div class="box-footer">
-											<div class="row">
-												<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">';
-	if($total >= 20000){
-		$print .=				  					'<div class="description-block border-right">
-														<span class="description-percentage text-green"><i class="fa fa-check"></i> Aprobando</span>';
-	} else {
-		$print .=				  					'<div class="description-block border-right">
-														<span class="description-percentage text-yellow"><i class="fa fa-times"></i> Reprobando</span>';
-	}
-
-	$print .=											'<h5 class="description-header">Sus compras trimestrales debe ser mayor o igual a $20,000.00 pesos.</h5>
-														<span class="description-text">No entran códigos que inicien con 8/5/6, pero si entran de la marca Klintek</span>
-							  						</div>
-							  						<!-- /.description-block -->
-												</div>
-												<!-- /.col -->
-												<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">
-								  					<div class="description-block border-right">';
-	if($numeroVeces == 0){
-		$print .=				  						'<span class="description-percentage text-green"><i class="fa fa-check"></i> Aprobando</span>';
-	} else {
-		$print .=				  						'<span class="description-percentage text-yellow"><i class="fa fa-times"></i> Reprobando</span>';
-	}
-	$print .=											'<h5 class="description-header">No tener ninguna factura vencidad antes de que termine el trimestre.</h5>
-														<span class="description-text">Excepto si el último día de pago cae en domingo, se pasa al día siguiente.</span>
-								  					</div>
-								  					<!-- /.description-block -->
-												</div>
-												<!-- /.col -->
-												<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">
-													<div class="description-block border-right">';
-	/*if($numComprasMes1Sem1 >= 2){
-		$print .=				  						'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem1 </span>';
-		if($numComprasMes1Sem2 >= 2){
-			$print .=				  					'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem2 </span>';
-			if($numComprasMes1Sem3 >= 2){
-				$print .=				  				'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem3 </span>';
-				if($numComprasMes1Sem4 >= 2){
-					$print .=				  			'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem4 </span>';
-				} else {
-					$print .=				  			'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem4 </span>';
-				}
-			} else {
-				$print .=				  				'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem3 </span>';
-				if($numComprasMes1Sem4 >= 2){
-					$print .=				  			'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem4 </span>';
-				} else {
-					$print .=				  			'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem4 </span>';
-				}
-			}
-		} else {
-			$print .=				  					'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem2 </span>';
-			if($numComprasMes1Sem3 >= 2){
-				$print .=				  				'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem3 </span>';
-				if($numComprasMes1Sem4 >= 2){
-					$print .=				  			'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem4 </span>';
-				} else {
-					$print .=				  			'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem4 </span>';
-				}
-			} else {
-				$print .=				  				'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem3 </span>';
-				if($numComprasMes1Sem4 >= 2){
-					$print .=				  			'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem4 </span>';
-				} else {
-					$print .=				  			'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem4 </span>';
-				}
-			}
-		}
-	} else {
-		$print .=				  						'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem1 </span>';
-		if($numComprasMes1Sem2 >= 2){
-			$print .=				  					'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem2 </span>';
-			if($numComprasMes1Sem3 >= 2){
-				$print .=				  				'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem3 </span>';
-				if($numComprasMes1Sem4 >= 2){
-					$print .=				  			'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem4 </span>';
-				} else {
-					$print .=				  			'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem4 </span>';
-				}
-			} else {
-				$print .=				  				'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem3 </span>';
-				if($numComprasMes1Sem4 >= 2){
-					$print .=				  			'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem4 </span>';
-				} else {
-					$print .=				  			'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem4 </span>';
-				}
-			}
-		} else {
-			$print .=				  					'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem2 </span>';
-			if($numComprasMes1Sem3 >= 2){
-				$print .=				  				'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem3 </span>';
-				if($numComprasMes1Sem4 >= 2){
-					$print .=				  			'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem4 </span>';
-				} else {
-					$print .=				  			'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem4 </span>';
-				}
-			} else {
-				$print .=				  				'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem3 </span>';
-				if($numComprasMes1Sem4 >= 2){
-					$print .=				  			'<span class="description-percentage text-green"><i class="fa fa-check"></i> Sem4 </span>';
-				} else {
-					$print .=				  			'<span class="description-percentage text-red"><i class="fa fa-times"></i> Sem4 </span>';
-				}
-			}
-		}
-	}*/
-	$print .=											'<h5 class="description-header">Debe de tener registrado por lo menos 2 compras por semana distinita.</h5>
-														<span class="description-text">No se puede registrar 8 compras al principio o al final del mes.</span>
-								  					</div>
-													<!-- /.description-block -->
-												</div>
-												<!-- /.col -->
-											</div>
-											<!-- /.row -->
-											<p class="text-center lead">La información mostrada es de solo carácter informativo y está sujeto a evaluación.</p>
-										</div>
-										<!-- /.box-footer -->
+	$print .=			'<div class="row">
+							<div class="col-md-4">
+								<div class="row">
+									<div class="col-md-12 graficos">
+										<h4 class="text-center">Compras Totales</h4>
+										<p class="text-center">$ 20,000.00 MXN Minimo</p>
+										<p id="total" style="display: none;">'.$total.'</p>
+										<canvas id="comprasTri"></canvas>
 									</div>
-									<!-- /.box -->
+									<div class="col-md-12">';
+	if($total >= 20000){
+		$print .=				  		'<span class="text-green">
+											<i class="fa fa-check"></i> Aprobando
+										</span>';
+	} else {
+		$print .=				  		'<span class="text-yellow">
+											<i class="fa fa-times"></i> Reprobando
+										</span>';
+	}
+	$print .=							'<h5>Sus compras trimestrales debe ser mayor o igual a $20,000.00 pesos.</h5>
+										<span>No entran códigos que inicien con 8/5/6, pero si entran de la marca Klintek</span>
+									</div>
 								</div>
-								<!-- /.col -->
 							</div>
-							<!-- /.row -->
-					<!-- Main row -->
-					<div class="row">
-						<!-- Left col -->
-						<div class="col-sm-12 col-md-12 col-lg-8 col-xs-8 col-12">
-							<div class="row">
-								<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-									<div class="box box-warning direct-chat direct-chat-warning">
-										<div class="box-header with-border">
-											<h3 class="box-title">PROMOTRUPER <b>'.$mes.' '.date('Y').'</b></h3>
-											<div class="box-tools pull-right">
-												<div id="actualizarCarrito"></div>
-								  			</div>
-										</div>
-										<div class="box-body no-padding">
-											<div class="row">
-												<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-													<div class="pad" style="overflow-x:auto; height:360px;">';
+							<div class="col-md-4">
+								<div class="row">
+									<div class="col-sm-12 graficos">
+										<h4 class="text-center">Facturas Vencidas</h4>
+										<p class="text-center">No debe tener ninguna vencida</p>
+										<p style="display:none;" id="faltaVenTota">$faltaVenTota</p>
+										<p class="facvenc">'.$numeroVeces.'</p>
+									</div>
+									<div class="col-md-12">';
+	if($numeroVeces == 0){
+		$print .=				  		'<span class="text-green">
+											<i class="fa fa-check"></i> Aprobando
+										</span>';
+	} else {
+		$print .=				  		'<span class="text-yellow">
+											<i class="fa fa-times"></i> Reprobando
+										</span>';
+	}
+	$print .=							'<h5>No tener ninguna factura vencidad antes de que termine el trimestre.</h5>
+										<span>Excepto si el último día de pago cae en domingo, se pasa al día siguiente.</span>
+									</div>
+									<div style="display:none;">
+										<canvas id="facturasTri"></canvas>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="row">
+									<div class="col-md-12 graficos barchart">
+										<h4 class="text-center">Compras Semanales</h4>
+										<p id="mesNum" style="display: none;">'.$fechaActualMes.'</p>
+										<p id="numComprasMes1Sem1" style="display:none;">'.$numComprasMes1Sem1.'</p>
+										<p id="numComprasMes1Sem2" style="display:none;">'.$numComprasMes1Sem2.'</p>
+										<p id="numComprasMes1Sem3" style="display:none;">'.$numComprasMes1Sem3.'</p>
+										<p id="numComprasMes1Sem4" style="display:none;">'.$numComprasMes1Sem4.'</p>
+										<p id="numComprasMes2Sem1" style="display:none;">'.$numComprasMes2Sem1.'</p>
+										<p id="numComprasMes2Sem2" style="display:none;">'.$numComprasMes2Sem2.'</p>
+										<p id="numComprasMes2Sem3" style="display:none;">'.$numComprasMes2Sem3.'</p>
+										<p id="numComprasMes2Sem4" style="display:none;">'.$numComprasMes2Sem4.'</p>
+										<p id="numComprasMes3Sem1" style="display:none;">'.$numComprasMes3Sem1.'</p>
+										<p id="numComprasMes3Sem2" style="display:none;">'.$numComprasMes3Sem2.'</p>
+										<p id="numComprasMes3Sem3" style="display:none;">'.$numComprasMes3Sem3.'</p>
+										<p id="numComprasMes3Sem4" style="display:none;">'.$numComprasMes3Sem4.'</p>
+										<canvas id="barChart"></canvas>
+									</div>
+									<div class="col-md-12">
+										<h5>Debe de tener registrado por lo menos 2 compras por semana distinita.</h5>
+										<span>No se puede registrar 8 compras al principio o al final del mes.</span>
+									</div>
+								</div>
+							</div>
+							<script src="../intranet/js/dashboard2.js"></script>
+						</div>
+					</div>
+				</div>
+			</div>';
+	$print .= '<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
+				<div class="row">
+					<div class="col-md-12">
+						<div class="row infoCard">
+							<div class="col-md-12 text-center">
+								<h5>PROMOTRUPER <b>'.$mes.' '.date('Y').'</b></h5>
+							</div>
+							<div class="col-md-12">
+								<div class="row">
+									<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12 promo">';
 	if($rol == "DISTRIBUIDOR"){
 		$numPrecio = 1;
 	} elseif ($rol == "SUBDISTRIBUIDOR"){
@@ -2386,9 +2287,8 @@ CONFIRMATION;
 							AND pre.nprecio = $numPrecio
 						ORDER BY i.clvprov";
 	$allNumPromo = mysqli_query($getConnection,$getNumPromo);
-	// $totalNumberPromo = mysqli_num_rows($allNumPromo);
-
-	if($allNumPromo > 0) {
+	$NumPromo = mysqli_num_rows($allNumPromo);
+	if($NumPromo > 0) {
 		$getPromo = "SELECT i.articuloid, i.clave, i.clvprov, img.imagen, i.descripcio, i.unibasid, pre.nprecio, pre.precio, pre.pimpuesto, i.fecaltart, i.invdescuento
 						FROM enl
 							JOIN inv i ON i.ARTICULOID = enl.articuloID
@@ -2401,9 +2301,6 @@ CONFIRMATION;
 		$numRowPromo = $paramDb->NumRows();
 		$rows = $paramDb->Rows();
 		if($numRowPromo > 0) {
-			// $headersPromo = ["Clave", "Código", "Descripción", "Precio", "Descuento", "Precio Promoción", "Agregar"];
-			// $classPerColumnPromo = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
-
 			$headersPromo = ["Clave", "Código", "Imagen", "Descripción", "Precio", "Descuento", "Precio Promoción", "Agregar"];
 			$classPerColumnPromo = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
 
@@ -2431,284 +2328,50 @@ CONFIRMATION;
 								"divResultID"=>"content-shoppingCar-partner",
 								"msgSuccess"=>"Producto agregado correctamente",
 								"msgError"=>"Error al agregar producto al carrito");
-				$paramsSendPromo = json_encode($paramsPromo);				
-
+				$paramsSendPromo = json_encode($paramsPromo);
 				if($precio > 0){
-					$print .= 								"<tr>";
-					$print .= 									"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-																	$clave
-																</td>";
-					$print .= 									"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-																	$codigo
-																</td>";
-					$print .= 									"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-																	<img src='../img/img_pro/img/".$imagen."' width='100'/>
-																</td>";
-					$print .= 									"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-																	$titulo
-																</td>";
-					$print .= 									"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-																	MX$ $precioFormato
-																</td>";
-					$print .= 									"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-																	<img src='../img/iconos/".$numDesc."porciento2000x763.png' width='100'/>
-																</td>";
-					$print .= 									"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-																	<p style='font-weight:bold; color: red;'>MX$ $preDescFomrato</p>
-																</td>";
-					$print .=   								"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>";
-					$print .=     									"<button type='button' class='btn btn-success btnOk' onclick='generalFunctionToRequest($paramsSendPromo)'><i class='fa fa-plus' aria-hidden='true'></i></button>";
-					$print .=   								"</td>
-															</tr>";
-				}
-			}
-			$print .= 									'</table>';
-		} else {
-			$print .= 				"<h4>No hay PROMOTRUPER este mes.</h4>";
-		}
-	}
-
-	$print .=										'</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- MAP & BOX PANE -->
-							<div class="box box-success">
-								<div class="box-header with-border">
-									<h3 class="box-title">Historial</h3>
-									<div class="box-tools pull-right">
-										<!--<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
-										<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>-->
-						  			</div>
-								</div>
-								<!-- /.box-header -->
-								<div class="box-body no-padding">
-									<div class="row">
-										<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-											<div class="pad" style="overflow-x:auto; height:360px;">';
-	$getAllOrders = "SELECT clienteid FROM doc WHERE clienteid = $id";
-	$allNumOrders = mysqli_query($getConnection,$getAllOrders);
-	$numOrders = mysqli_fetch_row($allNumOrders);
-
-	if($numOrders > 0) {
-		$getorders = "SELECT docid, numero, tipo, fecha, total, totalpagado, impuesto, nota, clienteid
-		FROM doc
-		WHERE (
-				tipo = 'F'
-				OR tipo = 'R'
-			)
-			AND clienteid = $id
-		ORDER BY fecha DESC";
-
-		$executeQuery = $paramDb->Query($getorders);
-		$numRow = $paramDb->NumRows();
-		$rows = $paramDb->Rows();
-		if($numRow > 0) {
-			$headers = ["No. Pedido", "Fecha", "Documento", "Monto", "Pagado", "Saldo", "", "", "Detalles"];
-			$classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
-
-			$print .= $paramFunctions->drawTableHeader($headers, $classPerColumn);
-			foreach($rows as $row) {
-				$pedidoID = $row["docid"];
-				$fecha = $row["fecha"];
-				$referencia = $row["tipo"];
-				$saldo = $row["total"];
-				$formatoSaldo = number_format($saldo, 2);
-				$pagado = $row["totalpagado"];
-				$formatoPagado = number_format($pagado, 2);
-				$falta = $pagado - $saldo;
-
-				if($falta >= 0){
-					$restante = 'Liquidada';
-				} elseif($falta < 0){
-					$restante = "MX$ ".number_format($falta, 2, '.', ',');
-				}
-
-				if($referencia == "F"){
-					$referencia = "FACTURA";
-				} elseif($referencia == "N") {
-					$referencia = "REMISION";
-				} elseif ($referencia == "R"){
-					$referencia = "NOTA DE CREDITO";
-				}
-
-				if($saldo > 0){
 					$print .= 				"<tr>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$pedidoID</td>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$fecha</td>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$referencia</td>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>MX$ $formatoSaldo</td>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>MX$ $formatoPagado</td>";
-					$docID = $row["docid"];
-					$pedidoIDPrueba = 1;
-					if($restante == 'Liquidada'){
-						$print .= 				"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$restante</td>";
-						$print .= 				"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-													<a href='../php/classes/factura.php?f=$docID&n=$id&u=$clienteID&r=$referencia'>
-														<i class='fas fa-file-alt' style='font-size:25px!important;'></i>
-													</a>
+					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
+													$clave
 												</td>";
-						$print .= 				"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-													<a href='../php/classes/xml.php?f=$docID'>
-														<i class='far fa-file-code' style='font-size:25px!important;'></i>
-													</a>
-												</td>
-												<script defer src='https://use.fontawesome.com/releases/v5.0.8/js/all.js'></script>";
-						// $print .= 				"<td class='text-center' style='vertical-align:middle; font-weight:bold;'></td>";
-						// $print .= 				"<td class='text-center' style='vertical-align:middle; font-weight:bold;'></td>";
-					} else {
-						$print .= 				"<td class='text-center' style='vertical-align:middle; font-weight:bold; color: white; background-color: #F88686;'>$restante</td>";
-						$print .= 				"<td class='text-center' style='vertical-align:middle; font-weight:bold;'><a href='../php/classes/factura.php?f=$docID&n=$id&u=$clienteID&r=$referencia'><i class='fa fa-file-pdf-o fa-2x' aria-hidden='true'></i></a></td>";
-						$print .= 				"<td class='text-center' style='vertical-align:middle; font-weight:bold;'><a href='../php/classes/xml.php?f=$docID'><i class='fa fa-file-code-o fa-2x' aria-hidden='true'></i></a></td>";
-					}
-					$print .= 					"<td class='text-center'>
-													<a href='#' onclick='showDetail($docID)'>
-														<span class='fa fa-list-alt fa-2x' aria-didden='true'></span>
-													</a>
+					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
+													$codigo
 												</td>";
-					$print .= 				"</tr>";
+					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
+													<img src='https://www.ferremayoristas.com.mx/tienda/img/img_pro/img/".$imagen."' width='100'/>
+												</td>";
+					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
+													$titulo
+												</td>";
+					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
+													MX$ $precioFormato
+												</td>";
+					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
+													<img src='https://www.ferremayoristas.com.mx/tienda/img/iconos/".$numDesc."porciento2000x763.png' width='100'/>
+												</td>";
+					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
+													<p style='font-weight:bold; color: red;'>MX$ $preDescFomrato</p>
+												</td>";
+					$print .=   				"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>";
+					$print .=     					"<button type='button' class='btn btn-success btnOk' onclick='generalFunctionToRequest($paramsSendPromo)'><i class='fa fa-plus' aria-hidden='true'></i></button>";
+					$print .=   				"</td>
+											</tr>";
 				}
 			}
-			$print .= 				'</table>';
+			$print .= 					'</table>';
 		} else {
-			$print .= 				"<h4>No tienes ningún pedido</h4>";
+			$print .= 					"<h4>No hay PROMOTRUPER este mes.</h4>";
 		}
-	} // end validation num row > 0, do something if doesn't exist order
-	$print .=					'</div>
-								<!-- Map will be created here
-								<div id="world-map-markers" style="height: 325px;"></div> -->
-							</div>
-						</div>
-						<!-- /.row -->
-					</div>
-					<!-- /.box-body -->
-				</div>
-				<!-- /.box -->
-				<div class="box box-info">
-					<div class="box-header with-border">
-						<h3 class="box-title">En Ruta</h3>
-					</div>
-					<!-- /.box-body -->
-				</div>
-				<!-- /.box -->
-			</div>
-			<!-- /.col -->
-			<div class="col-sm-12 col-md-12 col-lg-4 col-xs-4 col-12">
-				<div class="box box-success">
-					<div class="box-header with-border">
-						<h3 class="box-title">Pedidos Realizados</h3>
-					</div>
-					<div class="box-body no-padding">
-						<div class="row">
-							<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-								<div class="pad" style="overflow-x:auto; height:200px;">';
-
-	$buscarPedidosRealizados = ("SELECT id, fechaPedido, status, folio FROM pedidos WHERE clienteid = $id and status NOT LIKE 'terminado'");
-	$queryPedidosRealizados = $getConnection->query($buscarPedidosRealizados);
-	$rowsEncontrados = $queryPedidosRealizados->num_rows;
-	$montototal = 0;
-	if($rowsEncontrados > 0){
-		$headers = ["ID", "FOLIO", "FECHA DEL PEDIDO", "ESTATUS", "DETALLES"];
-		$classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center"];
-		$print .= $paramFunctions->drawTableHeader($headers, $classPerColumn);
-		while($filaPedidosRealizados = $queryPedidosRealizados->fetch_array()){
-			$idPedido = $filaPedidosRealizados[0];
-			$fechaDelPedido = $filaPedidosRealizados[1];
-			$statusPedido = $filaPedidosRealizados[2];
-			$folioPedido = $filaPedidosRealizados[3];
-			$print .=						"<tr>
-												<td class='text-center' style='vertical-align:middle; font-weight:bold;'>".$idPedido."</td>
-												<td class='text-center' style='vertical-align:middle; font-weight:bold;'>".$folioPedido."</td>
-												<td class='text-center' style='vertical-align:middle; font-weight:bold;'>".$fechaDelPedido."</td>
-												<td class='text-center' style='vertical-align:middle; font-weight:bold;'>".$statusPedido."</td>
-												<td class='text-center'>
-													<a href='#' onclick='showDetailOrder($idPedido, $numPrecio)'>
-													<span class='fa fa-list-alt fa-2x' aria-didden='true'></span>
-													</a>
-												</td>
-											</tr>";
-		}
-	} else {
-			$print .=						"<tr><p><b>Sin pedidos encontrados</b></p></tr>";
 	}
-
-	$print .=						'</table>
+	$print .=						'</div>
 								</div>
 							</div>
 						</div>
 					</div>
-				</div>';
-
-	$inicioFechaCompMesActual = date("Y-m-01");
-	$finFechaCompMesActual = date("Y-m-$diasMes");
-	$buscarMonto=("SELECT subtotal2 FROM doc
-			where clienteid = $id
-				AND (
-						feccap >= '$inicioFechaCompMesActual'
-                		AND feccap <= '$finFechaCompMesActual'
-                	)
-                AND tipo = 'F'
-            ORDER BY docid");
-	$queryMonto = $getConnection->query($buscarMonto);
-	$montototal = 0;
-	while($filaMonto = $queryMonto->fetch_array()){
-		$monto = $filaMonto['subtotal2'];
-		$montototal += $monto;
-	}
-	$montoTri = 20000;
-	$montoMes = ($montoTri / 3) * 2;
-	$porcentaje = ($montototal * 100) / $montoMes;
-
-	$print .=	'<!-- Info Boxes Style 2 -->
-				<div class="info-box bg-yellow">
-					<span class="info-box-icon"><i class="ion ion-ios-pricetag-outline"></i></span>
-					<div class="info-box-content">
-						<span class="info-box-text">Compras del Mes</span>
-						<span class="info-box-number">$ '.number_format($montototal,2,".",",").'</span>
-						<div class="progress">
-							<div class="progress-bar" style="width: '.$porcentaje.'%"></div>
-						</div>
-						<span class="progress-description">
-							Total de tus compras en este mes
-						</span>
-					</div>
-					<!-- /.info-box-content -->
 				</div>
-				<!-- /.info-box -->
-				<div class="box box-default">
-					<div class="box-header with-border">
-						<h3 class="box-title">Facebook</h3>
-					</div>
-					<div class="box-body">
-						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-							<iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FFerremayoristasOlvera%2F&tabs=timeline&height=500&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId=279354469090128" width="100%" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>
-						</div>
-					</div>
-				</div>
-				<!-- /.box -->
-			</div>
-			<!-- /.row -->
-		</section>
-		<!-- /.content -->
-	</div>
-	<!-- /.content-wrapper -->
-	</div>
-	<!--<script>
-		var facturasVencidas = document.getElementById("numeroVeces").innerHTML;
-		var veces = 0;
-
-		if(veces === 0){
-			if(facturasVencidas > 0){
-			  alert("Tiene facturas vencidas, favor de realizar los pagos correspondientes para que no afecte su historial con nosotros. Gracias");
-			  veces = 1;
-			}
-		}
-	</script>-->'; // End div row
-	 echo $print;
-	 $getConnection->close();
+			</div>';
+	echo $print;
+	$getConnection->close();
   }
 
 private function saveOrderPartner() {

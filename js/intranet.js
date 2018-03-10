@@ -2,7 +2,6 @@ $(document).ready(load);
 
 // NOTE public access to functions on js/validations/validation
 function load() {
-  $('[data-toggle="tooltip"]').tooltip();
   findProductByEnter();
   showInformation('home'); // the home page depend of kind user, it's validate on php
 }

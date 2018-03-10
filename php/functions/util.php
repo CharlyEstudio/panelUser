@@ -60,8 +60,7 @@ class Util {
   public function drawNavMenu($result, $disponible, $saldo, $diasRestantesNewMes, $vendedor, $ignorasuspender, $activo, $user) {
     $nav = "";
     // Mes y A単o
-    $buscarMes=new DateTime();
-    $mesNum = $buscarMes->format('m');
+    $mesNum = date('m');
     switch ($mesNum) {
       case 1:
         $mes='Enero';
@@ -108,9 +107,9 @@ class Util {
         $parametro = $row["parametro"];
         $clase = $row["clase"];
         $linkFunction = $funcion . "('$parametro')"; // make link for function javascript and pass parameter
-        $nav .='<li class="active" role="'.$seccion.'">';
-        $nav .=  '<a href="#" onclick="'.$linkFunction.'">';
-        $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+        $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+        $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+        $nav .=    '<i class="'.$clase.'"></i>';
         $nav .=    '<span class="pull-right-container" style="display:none;">
                       <i class="'.$clase.' pull-right"></i>
                     </span>
@@ -125,18 +124,18 @@ class Util {
         $clase = $row["clase"];
         $linkFunction = $funcion . "('$parametro')"; // make link for function javascript and pass parameter
         if($seccion == "PROMOTRUPER"){
-          $nav .='<li class="active">';
-          $nav .=  '<a href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
-          $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+          $nav .='<li class="nav-item" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+          $nav .=  '<a class="nav-link" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
+          $nav .=    '<i class="'.$clase.'"></i>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>
                       </span>
                     </a>
                   </li>';
         } else {
-          $nav .='<li class="active" role="'.$seccion.'">';
-          $nav .=  '<a href="#" onclick="'.$linkFunction.'">';
-          $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+          $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+          $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+          $nav .=    '<i class="'.$clase.'"></i>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>
                       </span>
@@ -157,18 +156,18 @@ class Util {
 
         if($activo == "S" || $ignorasuspender >= $fechaActual){
           if($seccion == "PROMOTRUPER"){
-            $nav .='<li class="active">';
-            $nav .=  '<a href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
-            $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+            $nav .='<li class="nav-item" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+            $nav .=  '<a class="nav-link" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
+            $nav .=    '<i class="'.$clase.'"></i>';
             $nav .=    '<span class="pull-right-container" style="display:none;">
                           <i class="'.$clase.' pull-right"></i>
                         </span>
                       </a>
                     </li>';
           } elseif($parametro == "edocta" || $parametro == "facturas" || $parametro == "notcred" || $parametro == "order" || $parametro == "dashboard"){
-            $nav .='<li class="active" role="'.$seccion.'">';
-            $nav .=  '<a href="#" onclick="'.$linkFunction.'">';
-            $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+            $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+            $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+            $nav .=    '<i class="'.$clase.'"></i>';
             $nav .=    '<span class="pull-right-container" style="display:none;">
                           <i class="'.$clase.' pull-right"></i>
                         </span>
@@ -176,18 +175,18 @@ class Util {
                     </li>';
           } elseif($saldo > 0){
             if($diasRestantesNewMes < 0){
-              $nav .='<li class="active" role="'.$seccion.'">';
-              $nav .=  '<a href="#">';
-              $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+              $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+              $nav .=  '<a class="nav-link" href="#">';
+              $nav .=    '<i class="'.$clase.'"></i>';
               $nav .=    '<span class="pull-right-container" style="display:none;">
                             <i class="'.$clase.' pull-right"></i>
                           </span>
                         </a>
                       </li>';
             } else {
-              $nav .='<li class="active" role="'.$seccion.'">';
-              $nav .=  '<a href="#" onclick="'.$linkFunction.'">';
-              $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+              $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+              $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+              $nav .=    '<i class="'.$clase.'"></i>';
               $nav .=    '<span class="pull-right-container" style="display:none;">
                             <i class="'.$clase.' pull-right"></i>
                           </span>
@@ -195,9 +194,9 @@ class Util {
                       </li>';
             }
           } else {
-            $nav .='<li class="active" role="'.$seccion.'">';
-            $nav .=  '<a href="#" onclick="'.$linkFunction.'">';
-            $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+            $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+            $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+            $nav .=    '<i class="'.$clase.'"></i>';
             $nav .=    '<span class="pull-right-container" style="display:none;">
                           <i class="'.$clase.' pull-right"></i>
                         </span>
@@ -206,27 +205,27 @@ class Util {
           }
         } else {
           if($seccion == "PROMOTRUPER"){
-              $nav .='<li class="active">';
-              $nav .=  '<a href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
-              $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+              $nav .='<li class="nav-item" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+              $nav .=  '<a class="nav-link" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
+              $nav .=    '<i class="'.$clase.'"></i>';
               $nav .=    '<span class="pull-right-container" style="display:none;">
                             <i class="'.$clase.' pull-right"></i>
                           </span>
                         </a>
                       </li>';
           } elseif($parametro == "edocta" || $parametro == "facturas" || $parametro == "notcred" || $parametro == "order" || $parametro == "dashboard"){
-            $nav .='<li class="active" role="'.$seccion.'">';
-            $nav .=  '<a href="#" onclick="'.$linkFunction.'">';
-            $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+            $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+            $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+            $nav .=    '<i class="'.$clase.'"></i>';
             $nav .=    '<span class="pull-right-container" style="display:none;">
                           <i class="'.$clase.' pull-right"></i>
                         </span>
                       </a>
                     </li>';
           } else {
-            $nav .='<li class="active" role="'.$seccion.'">';
-            $nav .=  '<a href="#">';
-            $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+            $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+            $nav .=  '<a class="nav-link" href="#">';
+            $nav .=    '<i class="'.$clase.'"></i>';
             $nav .=    '<span class="pull-right-container" style="display:none;">
                           <i class="'.$clase.' pull-right"></i>
                         </span>
@@ -244,35 +243,36 @@ class Util {
         $linkFunction = $funcion . "('$parametro')"; // make link for function javascript and pass parameter
 
         if($parametro == "promotruper"){
-          $nav .='<li class="active">';
-          $nav .=  '<a href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
-          $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+          $nav .='<li class="nav-item" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+          $nav .=  '<a class="nav-link" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
+          $nav .=    '<i class="'.$clase.'"></i>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>
                       </span>
                     </a>
                   </li>';
         } elseif($parametro == "edocta" || $parametro == "facturas" || $parametro == "notcred" || $parametro == "order" || $parametro == "dashboard"){
-          $nav .='<li class="active" role="'.$seccion.'">';
-          $nav .=  '<a href="#" onclick="'.$linkFunction.'">';
-          $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+          $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+          $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+          $nav .=    '<i class="'.$clase.'"></i>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>
                       </span>
                     </a>
+                    <span>'.$seccion.'</span>
                   </li>';
         } elseif($diasRestantesNewMes < 0) {
-          $nav .='<li class="active" role="'.$seccion.'">';
-          $nav .=  '<a href="#">';
-          $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
+          $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+          $nav .=  '<a class="nav-link" href="#">';
+          $nav .=    '<i class="'.$clase.'"></i>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>
                       </span>
                     </a>
                   </li>';
         } /*else {
-          $nav .='<li class="active" role="'.$seccion.'">';
-          $nav .=  '<a href="#" onclick="'.$linkFunction.'">';
+          $nav .='<li class="nav-item" role="'.$seccion.'">';
+          $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
           $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>

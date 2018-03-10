@@ -74,9 +74,9 @@ body {
   /*background-color: #D0CDCD;*/
   background-image: url("../img/fer.jpg");
   background-repeat: no-repeat;
-  background-size: 100%;
-  /* background-position: 50% 50%; */
-  background-position: bottom;
+  background-size: 2000px;
+  background-position: 50% 50%;
+  /* background-position: bottom; */
   font-family: 'Jura', sans-serif !important;
   font-size: 15px;
 }
