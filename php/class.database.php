@@ -4,37 +4,21 @@ class Database {
 	protected $_result;
 	protected $_numRows;
 
-	/*private $_host = "67.227.237.109";
-	private $_username = "zizaram1_fUser";
-	private $_password = ",[uJz^WP6q;U";
-	private $_database = "zizaram1_ferre";*/
-
-	/*private $_host = "67.227.237.109";
-	private $_username = "zizaram1_FmoQroU";
-	private $_password = "z}3,4+@O]Fee";
-	private $_database = "zizaram1_ferrum";*/
-
-	// private $_username = "kodebmx_ferre";
-	// private $_password = "F3rrema_yoristas";
-	// private $_database ="kodebmx_ferremayoristas";
-
-	/*private $_host = "localhost";
-	private $_username = "root";
-	private $_password = "";
-	private $_database = "datosa";*/
-
-	/*private $_host = "192.168.1.250";
+	private $_host = "192.168.1.250";
+	// private $_port = 60033;
+	private $_port = 3306;
 	private $_username = "web";
 	private $_password = "webfmolvera17";
-	private $_database = "datosa";*/
+	private $_database = "datosa";
 
-	private $_host = "67.227.237.109";
+	/*private $_host = "67.227.237.109";
 	private $_username = "zizaram1_datosaF";
 	private $_password = "dwzyGskl@@.W";
-	private $_database = "zizaram1_datosa";
+	private $_database = "zizaram1_datosa";*/
 
 	// Establish connection to database, when class is instantiated
 	public function __construct() {
+		// $this->_link = new mysqli($this->_host, $this->_username, $this->_password, $this->_database, $this->port);
 		$this->_link = new mysqli($this->_host, $this->_username, $this->_password, $this->_database);
 		$this->_link->set_charset("utf8");
 

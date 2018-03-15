@@ -2,6 +2,7 @@ $(document).ready(load);
 
 // NOTE public access to functions on js/validations/validation
 function load() {
+  $('[data-toggle="tooltip"]').tooltip();
   findProductByEnter();
   showInformation('home'); // the home page depend of kind user, it's validate on php
 }
@@ -32,15 +33,10 @@ function deleteProductShoppinCarPartner(productID) {
     productID: parseInt(productID)
   };
 
-  var carritoNav = parseInt(document.getElementById('carritoNav').innerHTML);
-
-  var aumentarProducto = carritoNav - 1;
-
-  //console.log(aumentarProducto);
-
-  $('#carritoNav').html(aumentarProducto);
-
-  alert('Se elimino correctamente el producto a su lista de pedidos.');
+  bootbox.alert({
+    message: "Se elimino correctamente el producto <b>#"+productID+"</b> a su lista de pedidos.",
+    backdrop: true
+  });
 
   $.ajax({
     type: 'post',
@@ -76,7 +72,10 @@ function deleteShoppinCarPartner() {
 
   $('#carritoNav').html(aumentarProducto);
 
-  alert('Se elimino toda la lista correctamente.');
+  bootbox.alert({
+    message: "Se elimino <b>toda</b> la lista correctamente.",
+    backdrop: true
+  });
 
   $.ajax({
     type: 'post',
@@ -121,7 +120,6 @@ function findProductByEnter() {
 
 // add param location and call generalFunctionToRequest to process request
 function findElementByGeneral(inputID) {
-  console.log("Aqui entramos")
   if(typeof inputID === 'undefined') return false;
 
   var findElementBy = $('#' + inputID);
@@ -221,16 +219,10 @@ function generalFunctionToRequest(params) {
       dataSend.data = 'empty';
       dataSend.location = params.location;
       dataSend.productID = params.productoID;
-
-      var carritoNav = parseInt(document.getElementById('carritoNav').innerHTML);
-
-      var aumentarProducto = carritoNav + 1;
-
-      //console.log(aumentarProducto);
-
-      $('#carritoNav').html(aumentarProducto);
-
-      alert('Se agrego correctamente el producto a su lista de pedidos.');
+      bootbox.alert({
+        message: "Se agrego correctamente el producto <b># "+ params.productoID +"</b> a su lista de pedidos.",
+        backdrop: true
+      });
       break;
     case 'find-productBy-crud':
       dataSend.data = 'empty';
@@ -957,7 +949,7 @@ function showInformation(location) {
       }
       else if(location == 'shopping') {
         // NOTE first load script confirmation and then load response ajax, because use confirmation like this on php file (data-toggle="confirmation).confirmation({});
-        var url = '//cdnjs.cloudflare.com/ajax/libs/bootstrap-confirmation/1.0.5/bootstrap-confirmation.min.js';
+        var url = '//cdnjs.cloudflare.com/ajax/libs/bootstrap-confirmation/1.0.7/bootstrap-confirmation.min.js';
         $.getScript(url)
           .done(function(script, textStatus) {
             $('#page-wrapper').html(data);

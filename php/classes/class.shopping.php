@@ -94,12 +94,6 @@ class Shopping {
 					$price = $row["precio"];
 					$codigo = $row["clvprov"];
 
-					$getImg = "SELECT imagen
-						  FROM imagenes
-						  WHERE codigo = $codigo";
-					$resImg = mysqli_query($getConnection,$getImg);
-					$filaImg = mysqli_fetch_array($resImg);
-					$imagen = $filaImg[0];
 
 					// add elements to array
 					$product = array(
@@ -107,7 +101,6 @@ class Shopping {
 						"productCode" => $productCode,
 						"product" => $product,
 						"price" => $price,
-						"imagen" => $imagen,
 						"quantity" => 1
 					);
 					if(!isset($_SESSION["shoppingCarPartner"])) {
@@ -138,6 +131,8 @@ class Shopping {
 	 $array = $_SESSION["shoppingCarPartner"];
 	 $_SESSION["shoppingCarPartner"] = [];
 
+	 var_dump($_SESSION["shoppingCarPartner"]);
+
 	 // NOTE unset element inside function; return array to loop and push session
 	 $resultArray = $paramFunctions->deleteElementArray($array, $productID);
 	 foreach ($resultArray as $array) {
@@ -149,23 +144,23 @@ class Shopping {
 	 unset($_SESSION["shoppingCarPartner"]);
   }
 
-  // TODO buscar en carrito
-  private function findProduct($findProductBy) {
-	 $paramDb = new Database();
-	 $paramFunctions = new Util();
-	 $getConnection = $paramDb->GetLink();
-	 $findProductBy = $paramDb->SecureInput($findProductBy);
-	 $rol = $_SESSION["data"]["rol"];
+	// TODO buscar en carrito
+	private function findProduct($findProductBy) {
+		$paramDb = new Database();
+		$paramFunctions = new Util();
+		$getConnection = $paramDb->GetLink();
+		$findProductBy = $paramDb->SecureInput($findProductBy);
+		$rol = $_SESSION["data"]["rol"];
 
-	 if($rol == "DISTRIBUIDOR"){
-	 	$lista = 1;
-	 } else if($rol == "SUBDISTRIBUIDOR"){
-	 	$lista = 2;
-	 } else if($rol == "MAYOREO"){
-	 	$lista = 3;
-	 }
+		if($rol == "DISTRIBUIDOR"){
+		$lista = 1;
+		} else if($rol == "SUBDISTRIBUIDOR"){
+		$lista = 2;
+		} else if($rol == "MAYOREO"){
+		$lista = 3;
+		}
 
-	 $getproducts = "SELECT i.articuloid, i.clave, i.clvprov, i.descripcio, p.precio FROM inv i
+		$getproducts = "SELECT i.articuloid, i.clave, i.clvprov, i.descripcio, p.precio FROM inv i
 	 					JOIN precios p ON p.articuloid = i.articuloid
                         JOIN alm a ON a.articuloid = i.articuloid
 						WHERE
@@ -184,52 +179,38 @@ class Shopping {
 								ELSE 2
 								END, i.clave";
 
-	 $exeQuGetPagination = $paramDb->Query($getproducts);
-	  if($exeQuGetPagination === false) {
-		echo "error-query";
-		return false;
-	  }
+		$exeQuGetPagination = $paramDb->Query($getproducts);
+		if($exeQuGetPagination === false) {
+			echo "error-query";
+			return false;
+		}
 
-	  $numRow = $paramDb->NumRows();
-	  $rows = $paramDb->Rows();
+		$numRow = $paramDb->NumRows();
+		$rows = $paramDb->Rows();
 
-	 $headers = ["Imagen", "Clave", "Código", "Producto", "Precio", "Agregar"];
-	 $classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
-
-	 // NOTE draw table header, only print header, the body it's on loop
-	 $print = $paramFunctions->drawTableHeader($headers, $classPerColumn);
-	 if($numRow > 0) {
+		// NOTE draw table header, only print header, the body it's on loop
+		$print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 promo">
+			<div class="row">';
+		if($numRow > 0) {
 		foreach($rows as $row) {
-		  $id = $row["articuloid"];
-		  $clave = $row["clave"];
-		  $codigo = $row["clvprov"];
-		  $producto = $row["descripcio"];
-		  $precio = number_format($row["precio"], 2, ".", ",");
+			$id = $row["articuloid"];
+			$clave = $row["clave"];
+			$codigo = $row["clvprov"];
+			$producto = $row["descripcio"];
+			$precio = number_format($row["precio"], 2, ".", ",");
 
-		  $getImagen = "SELECT imagen
-						FROM imagenes
-						WHERE codigo = $codigo";
-		  $resultImg = mysqli_query($getConnection,$getImagen);
-		  $filaImg = mysqli_fetch_array($resultImg);
-		  $imagen = $filaImg[0];
-
-		  /*$imagen = "product.gif";*/
-
-		  // TODO display image, depend size, get and show url
-		  //$imagen = "imagen" . $id;
-		  //$imagen = $codigo;
-		  // send JSON to get on js and process it request
-		  $params = array("productoID"=>$codigo,
+			// send JSON to get on js and process it request
+			$params = array("productoID"=>$codigo,
 								"location"=>"addProduct-to-shoppingcart-partner",
 								"url"=>"../php/shopping/shopping.php",
 								"booleanResponse"=>true,
 								"divResultID"=>"content-shoppingCar-partner",
 								"msgSuccess"=>"Producto agregado correctamente",
 								"msgError"=>"Error al agregar producto al carrito");
-		  $paramsSend = json_encode($params);
+			$paramsSend = json_encode($params);
 
-		  // JSON to show modal when user will see description and images about product
-		  $paramsModal = array("productID"=>$id,
+			// JSON to show modal when user will see description and images about product
+			$paramsModal = array("productID"=>$id,
 								"location"=>"showModalProductRegisteredUser",
 								"section"=>"productRegisteredUser",
 								"url"=>"../php/product/product.php",
@@ -237,592 +218,507 @@ class Shopping {
 								"divResultID"=>"resultModalProduct",
 								"msgSuccess"=>"Ok!",
 								"msgError"=>"Error mostrar informacion del producto");
-		  $paramsModalSend = json_encode($paramsModal);
-
-		  $print .= "<tr>";
-		  $print .=   "<td class='text-center' style='width:200px;'>";
-		  $print .=     "<img class='img-fluid' src='../img/img_pro/img/".$imagen."' alt='$producto' width='100'/>";
-		  $print .=    "</td>";
-
-		  $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$clave</td>";
-		  $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$codigo</td>";
-		  $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$producto</td>";
-		  $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$ $precio</td>";
-		  $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>";
-		  $print .=     "<button type='button' class='btn btn-success btnOk' onclick='generalFunctionToRequest($paramsSend)'><i class='fa fa-plus' aria-hidden='true'></i></button>";
-		  $print .=   "</td>";
-		  $print .= "</tr>";
+			$paramsModalSend = json_encode($paramsModal);
+			$print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 text-center producto">
+					<div class="row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 altura-def">
+							<h5>'.$producto.'</h5>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+							<div class="row">
+								<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+									<p>Clave: '.$clave.'</p>
+								</div>
+								<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+									<p>Código: '.$codigo.'</p>
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+							<p class="text-tomato"><b>$ '.$precio.'</b></p>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">';
+			$print .=		"<button type='button' class='btn btn-outline-success btn-lg btn-block' onclick='generalFunctionToRequest($paramsSend)'>
+								Agregar al pedido
+							</button>";
+			$print .=	'</div>
+					</div>
+				</div>';
 		}
-		$print .= "</table>";
+		$print .= '</div>
+		</div>';
 		echo $print;
-	 } else {
-	 	echo "<h4>No se encontro nada en la busqueda, por favor intente con otro nombre, código o clave. Gracias</h4>";
-	 }
-	 $getConnection->close();
+	} else {
+		echo "<h4>No se encontro nada en la busqueda, por favor intente con otro nombre, código o clave. Gracias</h4>";
+	}
+	$getConnection->close();
   }
 
 
-  // general function to print data table, call in others functions from here
-function getTableShoppingCarPartner() {
-	$paramFunctions = new Util();
-	$shopping = $_SESSION["shoppingCarPartner"];
-	$length = count($shopping);
+	// general function to print data table, call in others functions from here
+	function getTableShoppingCarPartner() {
+		$paramFunctions = new Util();
+		$paramDb = new Database();
+		$getConnection = $paramDb->GetLink();
+		$shopping = $_SESSION["shoppingCarPartner"];
+		$length = count($shopping);
 
-	if($length > 0) {
-		$headers = ["PROMOTRUPER", "Clave", "Producto", "Imagen", "Precio", "Inner", "Cantidad", "Subtotal", "Eliminar"];
-		$classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
+		// var_dump($shopping);
 
-		$print = "<div style='overflow-x:hidden;'>";
-		// NOTE draw table header, only print header, the body it's on loop
-		$print .= $paramFunctions->drawTableHeader($headers, $classPerColumn);
-		$subtotal = 0;
-		$total = 0;
+		if($length > 0) {
+			$headers = ["PROMOTRUPER", "Clave", "Producto", "Precio", "Inner", "Cantidad", "Subtotal", "Eliminar"];
+			$classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
 
-		for ($i=0; $i < $length; $i++) {
-			if(isset($shopping[$i])) {
-				$productID = $shopping[$i]["productID"];
-				$productCode = $shopping[$i]["productCode"];
-				$product = $shopping[$i]["product"];
-				$imagen = $shopping[$i]["imagen"];
-				$quantity = $shopping[$i]["quantity"];
+			$print = "<div>";
+			// NOTE draw table header, only print header, the body it's on loop
+			$print .= $paramFunctions->drawTableHeader($headers, $classPerColumn);
+			$subtotal = 0;
+			$total = 0;
 
-				$params = array("productID" => $productID,
-								"location" => "deleteProductShoppingCarPartner");
-				$paramsSendDelete = json_encode($params);
+			for ($i=0; $i < $length; $i++) {
+				if(isset($shopping[$i])) {
+					$productID = $shopping[$i]["productID"];
+					$productCode = $shopping[$i]["productCode"];
+					$product = $shopping[$i]["product"];
+					$quantity = $shopping[$i]["quantity"];
 
-				$paramDb = new Database();
-				$getConnection = $paramDb->GetLink();
+					$getCant = "SELECT invdescuento
+									FROM inv
+									WHERE clave = '$productCode'";
+					$resCant = mysqli_query($getConnection,$getCant);
+					$filaCant = mysqli_fetch_row($resCant);
+					$desc = $filaCant[0];
 
-				$getCant = "SELECT ca.unitario, ca.caja, ca.master, i.invdescuento
-								FROM cantidades ca
-									JOIN inv i ON i.clvprov = ca.codigo
-								WHERE i.clave = '$productCode'";
-				$resCant = mysqli_query($getConnection,$getCant);
-				$filaCant = mysqli_fetch_array($resCant);
-				$unitario = $filaCant[0];
-				$caja = $filaCant[1];
-				$master = $filaCant[2];
-				$desc = $filaCant[3];
+					$price = $shopping[$i]["price"];
+					$price = ($price * 0.16) + $price;
 
-				$price = $shopping[$i]["price"];
-				$price = ($price * 0.16) + $price;
+					if($desc > 0){
+						$des = $desc / 100;
+						$priceAnt = $price;
+						$priceFormatAnt = number_format($priceAnt, 2);
+						$price = $price - ($price * $des);
+					}
+					$priceFormat = number_format($price, 2);
 
-				if($desc > 0){
-					$des = $desc / 100;
-					$priceAnt = $price;
-					$priceFormatAnt = number_format($priceAnt, 2);
-					$price = $price - ($price * $des);
+					$subtotal =  $quantity * ((double)$price);
+					$subtotalFormat = number_format($subtotal, 2);
+
+					$total += $subtotal;
+					$totalFormat = number_format($total, 2);
+
+					$params2 = array("productoID" => $productID);
+					$paramsSend2 = json_encode($params2);
+
+					$print .= 	"<tr>
+								<td class='text-center' style='font-weight:bold;vertical-align:middle;'>";
+					if($desc > 0){
+						$promocion = number_format($desc);
+						$print .= 	"<img class='img-fluid' src='../img/iconos/".$promocion."porciento2000x763.png' width='100' alt='($product)'/>";
+					} else {
+						$print .= 	"<p>SIN PROMO</p>";
+					}
+					$print .= 	"</td>
+								<td class='text-center' style='font-weight:bold;vertical-align:middle;'>$productCode</td>
+								<td class='text-center' style='font-weight:bold;vertical-align:middle;'>$product</td>";
+					if($desc > 0){
+						$print .="<td class='text-center' style='font-weight:bold;vertical-align:middle;'>
+									<p Style='text-decoration:line-through;'>MX$ $priceFormatAnt</p>
+									<p style='font-weight:bold;color:red; font-size: 1.2em;'>MX$ $priceFormat</p>
+								</td>";
+					} else {
+						$print .="<td class='text-center' style='font-weight:bold;vertical-align:middle;'>
+									<p style='font-weight:bold;'>MX$ $priceFormat</p>
+								</td>";
+					}
+					$print .=	"<td class='text-center' style='font-weight:bold;vertical-align:middle;'>
+									<!--<p>Mínimo: </p>
+									<p>Caja: </p>
+									<p>Master: </p>-->
+									<!--<select name='inner' id='inner$productID' onChange='calculatePiezas($paramsSend2)'>
+										<option value=''>Seleccione...</option>
+										<option value=''>Unitario</option>
+										<option value=''>Caja</option>
+										<option value=''>Master</option>
+									</select>-->
+								</td>
+								<td class='text-center' style='vertical-align:middle;' width='8%'' id='actualizarQuantity$productID'>
+									<input type='number' class='form-control text-center' style='vertical-align:middle; font-weight:bold;' id='quantity$productID' min=1 value='$quantity' onChange='calculatePiezas($paramsSend2)'/>
+								</td>
+								<td class='text-center' style='vertical-align:middle;' id='actualizarPrice".$productID."'><b style='display:none' id='price$productID'>$price</b><b>MX$ $subtotalFormat<b></td>
+								<td class='text-center' style='vertical-align:middle;'>
+									<button class='btn btn-outline-danger btn-lg btn-block' onClick='deleteProductShoppinCarPartner($productID)'>
+										Eliminar
+									</button>
+								</td>
+								<!--<td class='text-center' style='vertical-align:middle'>
+									<button type='button' class='btn btn-primary'
+										onclick='saveQuantityShoppinCarPartner($productID)'
+										data-toggle='tooltip' title='Actualiza/Guarda todos los cambios!!'>
+										Actualizar
+										<span class='fa fa-floppy-o' aria-hidden='true'></span>
+									</button>
+								</td>-->
+							</tr>";
 				}
-				$priceFormat = number_format($price, 2);
-
-				$subtotal =  $quantity * ((double)$price);
-				$subtotalFormat = number_format($subtotal, 2);
-
-				$total += $subtotal;
-				$totalFormat = number_format($total, 2);
-
-				$params2 = array("productoID" => $productID);
-				$paramsSend2 = json_encode($params2);
-
-				$print .= 	"<tr>
-							<td class='text-center' style='font-weight:bold;vertical-align:middle;'>";
-				if($desc > 0){
-					$promocion = number_format($desc);
-					$print .= 	"<img class='img-fluid' src='../img/iconos/".$promocion."porciento2000x763.png' width='100' alt='($product)'/>";
-				} else {
-					$print .= 	"<p>SIN PROMO</p>";
-				}
-				$print .= 	"</td>
-							<td class='text-center' style='font-weight:bold;vertical-align:middle;'>$productCode</td>
-							<td class='text-center' style='font-weight:bold;vertical-align:middle;'>$product</td>
-							<td class='text-center' width='15%'><img class='img-fluid' src='../img/img_pro/img/".$imagen."' width='100' alt='($product)'/></td>";
-				if($desc > 0){
-					$print .="<td class='text-center' style='font-weight:bold;vertical-align:middle;'>
-								<p Style='text-decoration:line-through;'>MX$ $priceFormatAnt</p>
-								<p style='font-weight:bold;color:red; font-size: 1.2em;'>MX$ $priceFormat</p>
-							</td>";
-				} else {
-					$print .="<td class='text-center' style='font-weight:bold;vertical-align:middle;'>
-								<p style='font-weight:bold;'>MX$ $priceFormat</p>
-							</td>";
-				}
-				$print .=	"<td class='text-center' style='font-weight:bold;vertical-align:middle;'>
-								<p>Mínimo: $unitario</p>
-								<p>Caja: $caja</p>
-								<p>Master: $master</p>
-								<!--<select name='inner' id='inner$productID' onChange='calculatePiezas($paramsSend2)'>
-									<option value=''>Seleccione...</option>
-									<option value='$unitario'>Unitario</option>
-									<option value='$caja'>Caja</option>
-									<option value='$master'>Master</option>
-								</select>-->
-							</td>
-							<td class='text-center' style='vertical-align:middle;' width='8%'' id='actualizarQuantity$productID'>
-								<input type='number' class='form-control text-center' style='vertical-align:middle; font-weight:bold;' id='quantity$productID' min=1 value='$quantity' onChange='calculatePiezas($paramsSend2)'/>
-							</td>
-							<td class='text-center' style='vertical-align:middle;' id='actualizarPrice".$productID."'><b style='display:none' id='price$productID'>$price</b><b>MX$ $subtotalFormat<b></td>
-							<td class='text-center' style='vertical-align:middle;'>
-								<button type='button' class='btn btn-danger'
-									data-toggle='confirmation' data-placement='top'
-									data-title='¿Eliminar?'
-									data-btn-ok-icon='icon-like'
-									data-btn-ok-label='Sí'
-									data-btn-cancel-icon='icon-close'
-									data-btn-cancel-label='No'
-									data-sendparameter='$paramsSendDelete'>
-									<i class='fa fa-trash-o' aria-hidden='true'></i>
-								</button>
-							</td>
-							<!--<td class='text-center' style='vertical-align:middle'>
-								<button type='button' class='btn btn-primary'
-									onclick='saveQuantityShoppinCarPartner($productID)'
-									data-toggle='tooltip' title='Actualiza/Guarda todos los cambios!!'>
-									Actualizar
-									<span class='fa fa-floppy-o' aria-hidden='true'></span>
-								</button>
-							</td>-->
-						</tr>";
 			}
-		}
-		$print .=		"<tr>
-							<!--<td colspan='7'>
-								<a href='#' class='btn btn-primary' onclick='saveAllQuantityShoppinCarPartner()'>Actualizar Todo</a>
-							</td>-->
-							<td colspan='9' style='text-align:right;'>
-								<label style='font-size: 1.5em;' id='total'>Total $ <b>$totalFormat</b></label>
-								<p>Precio con I.V.A.</p>
-							</td>
-						</tr>";
-		$print .=	"</table>";
-		$print .="</div>"; // overflow-x:auto
+			$print .=		"<tr>
+								<!--<td colspan='7'>
+									<a href='#' class='btn btn-primary' onclick='saveAllQuantityShoppinCarPartner()'>Actualizar Todo</a>
+								</td>-->
+								<td colspan='9' style='text-align:right;'>
+									<label style='font-size: 1.5em;' id='total'>Total $ <b>$totalFormat</b></label>
+									<p>Precio con I.V.A.</p>
+								</td>
+							</tr>";
+			$print .=	"</table>";
+			$print .= "</div>"; // overflow-x:auto
 
-	if(isset($_SESSION["shoppingCarPartner"]) && (count($_SESSION["shoppingCarPartner"])) > 0) {
-	  // button to delete shopping car (session), and button to save on table
-	  // pedidos loop products on session and save on table descripcionPedido
-	  $print .=
-			"<div class='row'>
-			  <div class='col-md-6'>
-				 <button type='button' class='btn btn-danger pull-left'
-				  onclick='deleteShoppinCarPartner()'
-				  data-toggle='tooltip' title='Eliminar todos los productos!'>
-					Vaciar Carrito
-					</span>
-				 </button>
-			  </div>
-			  <div class='col-md-6'>";
-	  // params to send general generalFunctionToRequest to proccess order
-	  $params = array("url" => "../php/shopping/shopping.php",
-						"location" => "saveorderpartner",
-						"booleanResponse" => true, // params to know if the response it's success or print html
-						"msgSuccess" => "Su pedido ha sido Enviado",
-						"msgError" => "Problemas al enviar pedido");
-	  $paramsSend = json_encode($params);
+			if(isset($_SESSION["shoppingCarPartner"]) && (count($_SESSION["shoppingCarPartner"])) > 0) {
+				// button to delete shopping car (session), and button to save on table
+				// pedidos loop products on session and save on table descripcionPedido
+				$print .= "<div class='row'>
+						<div class='col-md-6'>
+							<button type='button' class='btn btn-outline-danger btn-lg btn-block' onclick='deleteShoppinCarPartner()' data-toggle='tooltip' title='Eliminar todos los productos!'>
+								Vaciar Carrito
+							</button>
+						</div>
+						<div class='col-md-6'>";
+						// params to send general generalFunctionToRequest to proccess order
+						$params = array("url" => "../php/shopping/shopping.php",
+										"location" => "saveorderpartner",
+										"booleanResponse" => true, // params to know if the response it's success or print html
+										"msgSuccess" => "Su pedido ha sido Enviado",
+										"msgError" => "Problemas al enviar pedido");
+						$paramsSend = json_encode($params);
 
-	  $print .=
-			"<button type='button' class='btn btn-success pull-right'
-				onclick='generalFunctionToRequest($paramsSend)'
-				title='Procesar pedido!'>
-					Procesar Pedido
-				 </button>
-			  </div>
+						$print .="<button type='button' class='btn btn-outline-success btn-lg btn-block' onclick='generalFunctionToRequest($paramsSend)' title='Procesar pedido!'>
+								Procesar Pedido
+							</button>
+						</div>
+					</div>";
+			}
+		} else {  // validate length of array
+			$print ="<div class='row'>
+				<div class='col-md-12'>
+					<h4 style='font-weight:bold; color:red;'>Nada Solicitado</h4>
+				</div>
 			</div>";
-	}
-
-	// NOTE print after all files js, because there is a conflict
-	echo <<<CONFIRMATION
-	  <script>
-		 $('[data-toggle="confirmation"]').confirmation({
-			onConfirm: function(event, result) {
-			  event.preventDefault();
-			  // console.log($(this));
-			  var jsonParameter = $(this)[0].sendparameter;
-			  deleteProductShoppinCarPartner(jsonParameter.productID);
-			},
-			onCancel: function() {
-			  // do something when user cancel
-			}
-		 });
-	  </script>
-CONFIRMATION;
-	} else {  // validate length of array
-	 $print =
-		"<div class='row'>
-		  <div class='col-md-12'>
-			 <h4 style='font-weight:bold; color:red;'>Nada Solicitado</h4>
-		  </div>
-		</div>";
-	}
-
-	 return $print;
+		}
+		return $print;
 	}
 
   private function getShoppingCarPublic($data) {
-	 if($data != "false") {
+	if($data != "false") {
 		$total = 0;
 		$result = json_decode($data, true);
 		$contentProducts = [];
 		echo "<div style='overflow-x:hidden;'>";
-		echo "<div class='col-md-12' style='margin:0 0 0 10px;padding:0;'>";
-		echo "<div class='col-md-10' style='margin:20px 0 20px 0;padding:0 5px 0 0;'>";
-		echo "<div class='panel panel-default' style='margin:0;'>";
-		echo "<div class='panel-heading'>";
-		echo "<h4>CARRITO DE COMPRAS</h4>";
-		echo "</div>";
-		echo "<div class='panel-body'>";
-		echo "<table class='table table-responsive table-ondensed' id='containerShoppingCar' style='margin:10px 10px 10px 0;'>";
-		  echo "<thead>";
-		  echo    "<tr>
-						<th class='text-center' style='vertical-align:middle; font-weight:bold'>
-						  Producto
-						</th>
-						<th class='text-center' style='vertical-align:middle; font-weight:bold'>
-						  Contenido
-						</th>
-						<th class='text-center'style='vertical-align:middle; font-weight:bold'>
-						  No. Piezas
-						</th>
-						<th class='text-center' style='vertical-align:middle; font-weight:bold'>
-						  Cantidad
-						</th>
-						<th class='text-center' style='vertical-align:middle; font-weight:bold'>
-						  Precio
-						</th>
-						<th class='text-center' style='vertical-align:middle; font-weight:bold'>
-						  Total
-						</th>
-						<th class='text-center' style='vertical-align:middle; font-weight:bold'>
-						  Eliminar
-						</th>
-						<th>
-						</th>
-					 </tr>";
-		  echo "</thead>";
+		echo 	"<div class='col-md-12'>";
+		echo 		"<div class='col-md-10'>";
+		echo 			"<div class=''>";
+		echo 				"<div class=''>";
+		echo 					"<h4>CARRITO DE COMPRAS</h4>";
+		echo 				"</div>";
+		echo 				"<div class=''>";
+		echo 					"<table class='table table-responsive table-ondensed' id='containerShoppingCar'>";
+		echo 						"<thead>";
+		echo    						"<tr>
+											<th class='text-center' style='vertical-align:middle; font-weight:bold'>
+												Producto
+											</th>
+											<th class='text-center' style='vertical-align:middle; font-weight:bold'>
+												Contenido
+											</th>
+											<th class='text-center'style='vertical-align:middle; font-weight:bold'>
+												No. Piezas
+											</th>
+											<th class='text-center' style='vertical-align:middle; font-weight:bold'>
+												Cantidad
+											</th>
+											<th class='text-center' style='vertical-align:middle; font-weight:bold'>
+												Precio
+											</th>
+											<th class='text-center' style='vertical-align:middle; font-weight:bold'>
+												Total
+											</th>
+											<th class='text-center' style='vertical-align:middle; font-weight:bold'>
+												Eliminar
+											</th>
+										</tr>";
+		echo 						"</thead>";
 		for($i = 0; $i < count($result); $i++) {
-		  $id = $result[$i]["product"];
-		  $title = $result[$i]["title"];
-		  $quantity = $result[$i]["quantity"];
-		  $type = $result[$i]["type"];
-		  $price = $result[$i]["price"];
-		  $piece = $result[$i]["piece"];
+			$id = $result[$i]["product"];
+			$title = $result[$i]["title"];
+			$quantity = $result[$i]["quantity"];
+			$type = $result[$i]["type"];
+			$price = $result[$i]["price"];
+			$piece = $result[$i]["piece"];
 
-		  $precioPorCaja = $price * $piece;
-		  $subtotal = $precioPorCaja * $quantity;
+			$precioPorCaja = $price * $piece;
+			$subtotal = $precioPorCaja * $quantity;
 
-		  /*$price = str_replace(',', '', $price);*/
-		  /*$subt = $price * ((double)$price);*/
-		  /*$subtotal = $piece * ((double)$subt);*/
-		  
+			/*$price = str_replace(',', '', $price);*/
+			/*$subt = $price * ((double)$price);*/
+			/*$subtotal = $piece * ((double)$subt);*/
+			
 
-		  $total = ((double)$total) + ((double)$subtotal);
+			$total = ((double)$total) + ((double)$subtotal);
 
 
-		  // formating number
-		  $priceFormat = number_format($price, 2);
-		  $subtotalFormat = number_format($subtotal, 2);
-		  $totalFormat = number_format($total, 2);
+			// formating number
+			$priceFormat = number_format($price, 2);
+			$subtotalFormat = number_format($subtotal, 2);
+			$totalFormat = number_format($total, 2);
 
-		  $iva = 0.16;
+			$iva = 0.16;
 
-		  $calculoIva = $total * $iva;
-		  $formatoIva = number_format($calculoIva, 2);
+			$calculoIva = $total * $iva;
+			$formatoIva = number_format($calculoIva, 2);
 
-		  $calculoFinal = $total + $calculoIva;
-		  $formatoTotal = number_format($calculoFinal, 2);
+			$calculoFinal = $total + $calculoIva;
+			$formatoTotal = number_format($calculoFinal, 2);
 
-		  // NOTE if you want to send title, check because it has simple quotes ('), then remove and construc then send.
-		  // construct array for each product, then send as a JSON
-		  $title = str_replace("'", "", $title); // remove semi quotes
-		  $arrayProduct = array("productID" => $id,
+			// NOTE if you want to send title, check because it has simple quotes ('), then remove and construc then send.
+			// construct array for each product, then send as a JSON
+			$title = str_replace("'", "", $title); // remove semi quotes
+			$arrayProduct = array("productID" => $id,
 										"quantity"  => $quantity,
 										"title"     => $title,
 										"price"     => $price,
 										"piece"     => $piece,
 										"type"      => $type);
-		  array_push($contentProducts, $arrayProduct);
+			array_push($contentProducts, $arrayProduct);
 
-		  // construc params to send for each product
-		  $params = array("productID"   => $id,
+			// construc params to send for each product
+			$params = array("productID"   => $id,
 							"location"    => "deleteProductShoppingCarPublic");
-		  $paramsSendDelete = json_encode($params);
+			$paramsSendDelete = json_encode($params);
 
-		  $print = "<tr>
-						  <td style='vertical-align:middle; font-weight:bold;'><p id='titulo$id'>$title</p>
-						  </td>
-						  <td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-							 <p id='type$id'>$type</p>
-						  </td>
-						  <td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-							 <p>$quantity</p>
-						  </td>
-						  <td width='5%' class='text-center' style='vertical-align:middle; font-weight:bold;'>
-							 <input type='number' id='quanshop$id' min='1' class='form-control'>
-						  </td>
-						  <td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-							 <p id='precio$id'>$$priceFormat</p>
-						  </td>
-						  <td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-							 <p>$$subtotalFormat</p>
-						  </td>
-						  <td class='text-center' style='vertical-align:middle; font-weight:bold;'>";
-		  $print .=     "<a href='#'>";
-		  $print .=
-						  "   <span class='fa fa-trash fa-2x' aria-hidden='true' 
-								  data-toggle='confirmation'
-								  data-placement='top'
-								  data-title='¿Elminar?'
-								  data-btn-ok-icon='icon-like'
-								  data-btn-ok-label='Sí'
-								  data-btn-cancel-icon='icon-close'
-								  data-btn-cancel-label='No'
-								  data-sendparameter='$paramsSendDelete'>
-								</span>
-							 </a>
-						  </td>
-						  <td style='text-align: center'>
-							 <a href='#' class='btn btn-primary' onclick='saveAllQuantityShoppingCartPublic(event)'>Actualizar</a>
-						  </td>
-						</tr>";
-		  echo $print;
+			$print =					"<tr>
+						  					<td><p id='titulo$id'>$title</p>
+										</td>
+										<td class='text-center'>
+											<p id='type$id'>$type</p>
+										</td>
+										<td class='text-center'>
+											<p>$quantity</p>
+										</td>
+										<td width='5%' class='text-center'>
+											<input type='number' id='quanshop$id' min='1' class='form-control'>
+										</td>
+										<td class='text-center'>
+											<p id='precio$id'>$$priceFormat</p>
+										</td>
+										<td class='text-center'>
+											<p>$$subtotalFormat</p>
+										</td>
+						  				<td class='text-center'>";
+			$print .=						"<button class='btn btn-large btn-danger'
+												data-toggle='confirmation'
+												data-btn-ok-label='Si'
+												data-btn-ok-icon='icon-like'
+												data-btn-ok-class='btn-success'
+												data-btn-cancel-label='No'
+												data-btn-cancel-icon='icon-close'
+												data-btn-cancel-class='btn-danger'
+												data-title='¿Elminar?'
+												data-content='No se podrá recuperar este producto.'
+												data-sendparameter='$paramsSendDelete'>
+												Eliminar
+											</button>
+										</td>
+										<td>
+											<a href='#' class='btn btn-primary' onclick='saveAllQuantityShoppingCartPublic(event)'>Actualizar</a>
+										</td>
+									</tr>";
+			echo $print;
 		}
 		// send params to save on database
 		$arrayProcessOrder = json_encode($contentProducts);
-		echo    "<tr>
-					 <td colspan='6'>
-					 </td>
-					 <td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-						<p style='font-size: 1.5em;'>Sub-Total:</p>
-					 </td>
-					 <td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-						<p style='font-size: 1.5em;'>$$totalFormat</p>
-					 </td>
+		echo    					"<tr>
+										<td colspan='6'></td>
+										<td class='text-center'>
+											<p>Sub-Total:</p>
+										</td>
+										<td class='text-center'>
+											<p>$ $totalFormat</p>
+										</td>
 
-				  </tr>
-				  <tr>
-					 <td colspan='6' style='border:none;'>
-					 </td>
-					 <td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-						<p style='font-size: 1.5em;'>I.V.A. (16%)</p>
-					 </td>
-					 <td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-						<p style='font-size: 1.5em;'>$$formatoIva</p>
-					 </td>
-				  </tr>
-				  <tr>
-					 <td colspan='6' style='border:none;'>
-					 </td>
-					 <td class='text-center' style='vertical-align:middle; font-weight:bold;background-color:grey !important;color:#fff'>
-						<p style='font-size: 2em;'>Total</p>
-					 </td>
-					 <td class='text-center' style='vertical-align:middle; font-weight:bold;background-color:grey !important;color:#fff'>
-						<p style='font-size: 2em;'>$$formatoTotal</p>
-					 </td>
-				  </tr>";
-		echo "</table>";
-		echo "</div>";
-		echo "<div class='row' style='margin: 10px 50px 50px 50px;'>
-				  <button type='button' class='btn btn-danger pull-left'
-					onclick='deleteLocalStorage()'
-					data-toggle='tooltip' title='Eliminar todos los productos!'>
-					 Vaciar Carrito
-				  </button>";
-		echo    '<div class="modal fade" id="confirm-order" tabindex="-1" role="dialog"
-					  aria-labelledby="myModalLabel" aria-hidden="true">
-						<div class="modal-dialog">
-						  <div class="modal-content">
-							 <div class="modal-header">
+									</tr>
+									<tr>
+										<td colspan='6' style='border:none;'></td>
+										<td class='text-center'>
+											<p>I.V.A. (16%)</p>
+										</td>
+										<td class='text-center'>
+											<p>$ $formatoIva</p>
+										</td>
+									</tr>
+									<tr>
+										<td colspan='6' style='border:none;'></td>
+										<td class='text-center'>
+											<p>Total</p>
+										</td>
+										<td class='text-center'>
+											<p>$ $formatoTotal</p>
+										</td>
+									</tr>";
+		echo 					"</table>";
+		echo 				"</div>";
+		echo 				"<div class='row'>
+								<button
+									type='button'
+									class='btn btn-danger pull-left'
+									onclick='deleteLocalStorage()'
+									data-toggle='tooltip' title='Eliminar todos los productos!'>
+									Vaciar Carrito
+								</button>";
+		echo    '<div class="modal fade" id="confirm-order" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
 								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 								<h4 class="modal-title" id="myModalLabel">Confirmar Pedido</h4>
-							 </div>
+							</div>
 
-							 <div class="modal-body">
+							<div class="modal-body">
 								<div class="row">
-								  <div class="col-xs-12">
-									 <div class="well">
-										<form>
-										  <div class="form-group">
-											 <label for="username" class="control-label">Email</label>
-											 <input type="email" name="emailOrder" class="form-control text-center" id="emailOrder" value="" required title="Ingresa tu email!" placeholder="example@gmail.com">
-											 <span class="help-block"></span>
-										  </div>
-										  <div class="form-group">
-											 <label class="control-label">Nombre Completo</label>
-											 <input type="text" class="form-control text-center" id="nombre" name="nombre" value="" required title="Ingresa tu Nombre completo!">
-											 <span class="help-block"></span>
-										  </div>
-										  <div class="form-group">
-											 <label class="control-label">Dirección Completa</label>
-											 <textarea rows="3" class="form-control" id="direccion" name="direccion" value="" required title="Ingresa tu Dirección completa!"></textarea>
-											 <span class="help-block"></span>
-										  </div>
-										  <div class="form-group">
-											 <label class="control-label">Código Postal</label>
-											 <input type="text" class="form-control text-center" id="postal" name="postal" value="" required title="Ingresa tu Código Postal para tu envío!">
-											 <span class="help-block"></span>
-										  </div>
-										  <div class="form-group">
-											 <label class="control-label">RFC</label>
-											 <input type="text" class="form-control text-center" id="rfc" name="rfc" value="" title="Ingresa tu RFC con homoclave, si necesitas factura!">
-											 <span class="help-block"></span>
-										  </div>
-										  <div class="form-group">
-											 <label class="control-label">Teléfono / Celular</label>
-											 <input type="text" class="form-control text-center" id="celular" name="celular" value="" required title="Ingresa un número para comunicarnos!">
-											 <span class="help-block"></span>
-										  </div>
-										  <button type="button" class="btn btn-default" data-dismiss="modal">
-											 Cancel
-										  </button>';
-		echo                      "<button type='button' class='btn btn-success btn-ok' onclick='processOrder(".$arrayProcessOrder.")'>
-											 Enviar Pedido
-										  </button>";
-		echo                    '</form>
-									 </div>
-								  </div>
+									<div class="col-xs-12">
+										<div class="well">
+											<form>
+												<div class="form-group">
+													<label for="username" class="control-label">Email</label>
+													<input type="email" name="emailOrder" class="form-control text-center" id="emailOrder" value="" required title="Ingresa tu email!" placeholder="example@gmail.com">
+													<span class="help-block"></span>
+												</div>
+												<div class="form-group">
+													<label class="control-label">Nombre Completo</label>
+													<input type="text" class="form-control text-center" id="nombre" name="nombre" value="" required title="Ingresa tu Nombre completo!">
+													<span class="help-block"></span>
+												</div>
+												<div class="form-group">
+													<label class="control-label">Dirección Completa</label>
+													<textarea rows="3" class="form-control" id="direccion" name="direccion" value="" required title="Ingresa tu Dirección completa!"></textarea>
+													<span class="help-block"></span>
+												</div>
+												<div class="form-group">
+													<label class="control-label">Código Postal</label>
+													<input type="text" class="form-control text-center" id="postal" name="postal" value="" required title="Ingresa tu Código Postal para tu envío!">
+													<span class="help-block"></span>
+												</div>
+												<div class="form-group">
+													<label class="control-label">RFC</label>
+													<input type="text" class="form-control text-center" id="rfc" name="rfc" value="" title="Ingresa tu RFC con homoclave, si necesitas factura!">
+													<span class="help-block"></span>
+												</div>
+												<div class="form-group">
+													<label class="control-label">Teléfono / Celular</label>
+													<input type="text" class="form-control text-center" id="celular" name="celular" value="" required title="Ingresa un número para comunicarnos!">
+													<span class="help-block"></span>
+												</div>
+												<button type="button" class="btn btn-default" data-dismiss="modal">
+													Cancel
+												</button>';
+		echo                    				"<button type='button' class='btn btn-success btn-ok' onclick='processOrder(".$arrayProcessOrder.")'>
+													Enviar Pedido
+												</button>";
+		echo                				'</form>
+										</div>
+									</div>
 								</div>
-							 </div>';
-		echo          "</div>
-						</div>
-				  </div>
-				  <button type='button' class='btn btn-success pull-right'
-					data-toggle='modal' data-target='#confirm-order' title='Procesar pedido!'>
-					 Procesar Pedido
-				  </button>
-				</div>";
-		/*echo "</div>";*/
-		echo "</div>";
-		echo "</div>";
-		echo "<div class='col-md-2' style='margin:20px 0 20px 0;padding:0 18px 0 5px;'>";
-		echo    "<div class='panel panel-default' style='margin:0'>";
-		echo      "<div class='panel-heading'>";
-		echo        "<h4>MÉTODOS DE ENTREGA</h4>";
-		echo      "</div>";
-		echo      "<div class='panel-body'>";
-		echo        "<p>Pautas de envio</p>";
-		echo      "</div>";
-		echo    "</div>";
-		echo "</div>";
-		echo "</div>";
+							</div>';
+		echo         	"</div>
+					</div>
+				</div>
+				<button type='button' class='btn btn-success pull-right' data-toggle='modal' data-target='#confirm-order' title='Procesar pedido!'>
+					Procesar Pedido
+				</button>
+			</div>";
 		echo "</div>"; // div overflow-x:auto
-
-		// NOTE print after all files js, because there is a conflict
-		echo <<<CONFIRMATION
-		  <script>
-			 $('[data-toggle="confirmation"]').confirmation({
-				onConfirm: function(result) {
-				  // console.log($(this));
-				  var jsonParameter = $(this)[0].sendparameter;
-				  deleteElementShoppingCar(jsonParameter.productID);
-				},
-				onCancel: function() {
-				  // do something when user cancel
-				}
-			 });
-		  </script>
-CONFIRMATION;
-
-	 } else {
+	} else {
 		// shopping cart it's empty
-	 }
-
-  }
-
-  private function getShoppingCarPartner() {
-  	 /*echo "<div id='espere' style='position:relative;display:flex;align-items:center;justify-content:center;'><!--<img src='../img/img_pro/219.gif'/>--> <p>Un momento por favor, estamos procesando su solicitud. Gracias.</p></div>";*/
-	 $print = "<div class='row' style='margin: 40px 15px 0 250px;display:;'>";
-
-	 // display response ajax records orders
-	 /*$print .=   "<div class='col-md-12'>";
-	 $print .=     "<div class='panel panel-default responsiveCarrito'>";
-	 $print .=       "<div class='panel-heading'>";
-	 $print .=         "<h3 class='panel-title' style='font-weight:bold'>Pedidos Realizados</h3>";
-	 $print .=       "</div>"; // panel-heading
-
-	 $print .=       "<div class='panel-body fixed-panel' id='content-orders-record'>";
-	 $print .=       "</div>"; // panel-body
-	 $print .=      "</div>"; // panel-default
-	 $print .=    "</div>"; // col-md-12
-	 $print .=   "<div class='col-md-12'>";
-	 $print .=     "<div class='panel panel-default'>";
-	 $print .=       "<div class='panel-heading'>";
-	 $print .=         "<h3 class='panel-title'><i class='fa fa-search' aria-hidden='true'></i> Buscar producto </h3>";
-	 $print .=       "</div>"; // panel-heading*/
-
-	 $print .=       "<div class='panel-body'>";
-	 $print .=         "<div class='form-group col-md-12'>"; // content
-	 $print .=           "<div class='form-group col-md-7'>"; // input search
-	 $print .=             "<p style='font-weight:bold'>Ingresa tu busqueda: ";
-	 $print .=             "<input type='text' class='form-control' id='findProductBy' placeholder='Código, Clave ó Descripción'/></p><div id='espere'><p>Un momento por favor, estamos procesando su solicitud.<img src='../img/img_pro/loading.gif' width='100'/></p></div>";
-	 $print .=           "</div>"; // col-md-7 to size input search
-	 $print .=           "<div class='form-group col-md-12'>"; // result response
-	 // display response ajax products, when user search by: code, key or title
-	 $print .=             "<div id='resultFindProductBy' class='responsiveCarrito'></div>";
-	 $print .=           "</div>"; // col-md-12 result response
-	 $print .=          "</div>"; // col-md-12 content
-	 $print .=        "</div>"; // panel-body
-
-	 $print .=     "</div>"; // panel-default
-	 $print .=   "</div>"; // col-md-12
-
-	 $print .= "</div>"; // row
-
-	 $print .= "<hr style='margin:0'>";
-
-	 $print .= "<div class='row' style='margin: 20px 15px 0 250px;'>";
-	 // NOTE update dynamically ($_SESSION php) this div id=content-shoppingCar-partner by response ajax
-	 $print .=   "<div class='col-md-12'>";
-	 $print .=     "<div class='panel panel-default responsiveCarrito2'>";
-	 $print .=       "<div class='panel-heading'>";
-	 $print .=         "<h3 class='panel-title' style='font-weight:bold'><i class='fa fa-cart-arrow-down' aria-hidden='true'></i> Pedido Actual</h3>";
-	 $print .=       "</div>"; // panel-heading
-
-	 $print .=       "<div class='panel-body fixed-panel2' id='content-shoppingCar-partner'>";
-	 // validate if exist session, then loop to show products
-	 if(!isset($_SESSION["shoppingCarPartner"])) {
-		$print .= "<h4 style='font-weight:bold; color: red'>Sin productos...</h4>";
-	 } else {
-		$print .= $this->getTableShoppingCarPartner();
-	 }
-
-	 $print .= "</div>"; // End panel-body
-	 $print .=  "</div>"; // End div col-md-12
-	 $print .= "</div>"; // End div row
-
-	 echo $print;
-  }
-
-  //TODO hacer el dashboard de la intranet
-  private function getDashBoardPartner() {
-	$paramDb = new Database();
-	$paramFunctions = new Util();
-	$getConnection = $paramDb->GetLink();
-
-	if(isset($_SESSION["data"])) {
-		$session = $_SESSION["data"];
 	}
 
-	$rol = $paramDb->SecureInput($session["rol"]);
-	$clienteID = $paramDb->SecureInput($session["username"]);
-	$id = $_SESSION["data"]["id"];
-	// $id = 3631;
-	$username = $_SESSION["data"]["name"];
-	$rfc = $_SESSION["data"]["rfc"];
-	$saldo = $_SESSION["data"]["saldo"];
-	$formatoSaldo = number_format($saldo, 2, '.',',');
-	$limite = $_SESSION["data"]["limite"];
-	$formatoLimite = number_format($limite, 2, '.',',');
-	$dispo = $limite - $saldo;
-	$dispo = number_format($dispo, 2, '.',',');
-	$disponible = $limite - $saldo;
-	$vendedor = $_SESSION["data"]["vendedor"];
-	$vendedorID = $_SESSION["data"]["vendedorid"];
-	$diascredito = $_SESSION["data"]["diacredito"];
-	$diasvisita = $_SESSION["data"]["diavis"];
-	$ultimacompra = $_SESSION["data"]["ucompra"];
-	$compraReciente = $_SESSION["data"]["compraReciente"];
-	$pas2 = $_SESSION["data"]["pas2"];
-	$pasAnt = $_SESSION["data"]["pasAnt"];
-	$correo = $_SESSION["data"]["correo"];
-	$arrayBooleans = array("bManagementOrder" => false);
+	}
+
+	private function getShoppingCarPartner() {
+		$print = "<div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 panel'>
+					<div class='row'>";
+		$print .=       "<div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>";
+		$print .= 			"<input type='text' class='form-control text-center' id='findProductBy' placeholder='Ingrese el Código, clave ó descripción del producto a buscar...'/></p>
+							<div id='espere'>
+								<p>Un momento por favor, estamos procesando su solicitud.<img src='../img/loading.gif' width='100'/>
+							</div>";
+		$print .= 		"</div>";
+		$print .=		"<div class='form-group col-md-12'>"; // result response
+		// display response ajax products, when user search by: code, key or title
+		$print .= 			"<div id='resultFindProductBy' class='buscarProd'></div>";
+		$print .= 		"</div>";
+		$print .=	"</div>
+				</div>";
+
+		$print .= "<hr>";
+
+		$print .= "<div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 panel'>
+					<div class='row'>";
+		// NOTE update dynamically ($_SESSION php) this div id=content-shoppingCar-partner by response ajax
+		$print .= 		"<div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 padding-bo'>";
+		$print .= 			"<div class='row'>";
+		$print .= 				"<div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>";
+		$print .= 					"<h3><i class='fa fa-cart-arrow-down' aria-hidden='true'></i> Pedido <spam class='text-tomato'>Actual</spam></h3>";
+		$print .= 				"</div>";
+
+		$print .= 				"<div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 carrito' id='content-shoppingCar-partner'>";
+		// validate if exist session, then loop to show products
+		if(!isset($_SESSION["shoppingCarPartner"])) {
+			$print .= 				"<h4 class='text-red'>Sin productos...</h4>";
+		} else {
+			$print .= $this->getTableShoppingCarPartner();
+		}
+
+		$print .= 				"</div>";
+		$print .=  			"</div>";
+		$print .= 		"</div>";
+		$print .= 	"</div>";
+		$print .= "</div>";
+
+		echo $print;
+	}
+
+  //TODO hacer el dashboard de la intranet
+private function getDashBoardPartner() {
+	$paramDb 		= new Database();
+	$paramFunctions = new Util();
+	$getConnection 	= $paramDb->GetLink();
+
+	if(isset($_SESSION["data"])) {
+		$session 	= $_SESSION["data"];
+	}
+
+	// var_dump($session);
+
+	$rol 			= $paramDb->SecureInput($session["rol"]);
+	$clienteID 		= $paramDb->SecureInput($session["username"]);
+	$id 			= $paramDb->SecureInput($session["id"]);
+	$username		= $paramDb->SecureInput($session["name"]);
+	$rfc 			= $paramDb->SecureInput($session["rfc"]);
+	$saldo 			= $paramDb->SecureInput($session["saldo"]);
+	$formatoSaldo 	= number_format($saldo, 2, '.',',');
+	$limite			= $paramDb->SecureInput($session["limite"]);
+	$formatoLimite 	= number_format($limite, 2, '.',',');
+	$dispo1 		= $limite - $saldo;
+	$dispo 			= number_format($dispo1, 2, '.',',');
+	$vendedor		= $paramDb->SecureInput($session["vendedor"]);
+	$vendedorID		= $paramDb->SecureInput($session["vendedorid"]);
+	$diascredito	= $paramDb->SecureInput($session["diacredito"]);
+	$diasvisita		= $paramDb->SecureInput($session["diavis"]);
+	$ultimacompra	= $paramDb->SecureInput($session["ucompra"]);
+	$compraReciente	= $paramDb->SecureInput($session["compraReciente"]);
+	$pas2 			= $paramDb->SecureInput($session["pas2"]);
+	$pasAnt 		= $paramDb->SecureInput($session["pasAnt"]);
+	$correo 		= $paramDb->SecureInput($session["correo"]);
+	$perid 			= $paramDb->SecureInput($session["perid"]);
+	$arrayBooleans 	= array("bManagementOrder" => false);
 
 	switch ($diasvisita) {
 		case 'D':
@@ -850,7 +746,6 @@ CONFIRMATION;
 			$dia = 'Sin Visita';
 			break;
 	}
-
 	$year = date("Y");
 
 	$fechaActualDia = date('d');
@@ -909,15 +804,15 @@ CONFIRMATION;
 			$diasTotalMesUltimaCompra = 31;
 			break;
 	}
-
 	//Buscar actualización de la base de datos
+	$mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
     $con1 = "SELECT MAX(id) as actid FROM actualizacion";
-	$res1 = mysqli_query($getConnection,$con1);
+	$res1 = mysqli_query($mysqliCon,$con1);
 	$fil1 = mysqli_fetch_array($res1);
 	$idActualizacion = $fil1["actid"];
 
 	$con2 = "SELECT * FROM actualizacion WHERE id=$idActualizacion";
-	$res2 = mysqli_query($getConnection,$con2);
+	$res2 = mysqli_query($mysqliCon,$con2);
 	$fil2 = mysqli_fetch_array($res2);
 	$dateAct = $fil2["date"];
 	$timeAct = $fil2["time"];
@@ -972,90 +867,44 @@ CONFIRMATION;
 	$trim3 = "<strong>Compras: 01 Julio, ".date("Y")." - 30 Septiembre, ".date("Y")."</strong>";
 	$trim4 = "<strong>Compras: 01 Octubre, ".date("Y")." - 31 Diciembre, ".date("Y")."</strong>";
 
-	if($pas2==''){
-		echo '<div id="myLargeModalLabel" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-				<div class="modal-dialog modal-lg">
-					<div class="modal-content">
-						<div class="modal-header text-center">
-							<p class="lead">Bienvenido a su Escritorio Virtual FMO, este es su primer inicio de sesión y le invitamos a realizar el cambio de su contraseña; si no lo realiza, no podrá accesar nuevamente a su escritorio hasta que termine el mes, <b>ya que su contraseña se resetea cada inicio de mes.</b></p>
-						</div>
-						<div class="modal-body" style="display:flex; align-items: center; justify-content: center;">
-							<form>
-								<div class="form-group" style="text-align: center;">
-									<input style="width:300px;" class="form-control text-center" id="usuario" name="usuario" value="'.$clienteID.'" type="text" readonly="readonly">
-								</div>
-								<div class="form-group" style="text-align: center;display:;">
-									<input style="width:300px;" class="form-control text-center" id="email" name="email" value="'.$correo.'" type="email" readonly="readonly">
-								</div>
-								<div class="form-group">
-									<input autofocus style="width:300px;" class="form-control text-center" id="passwordNew" name="password" onChange="verificarPassword()" placeholder="Nuevo Password" type="text" autocomplete="off" required>
-									<p id="pasAnt" style="display:none;">'.$pasAnt.'</p>
-								</div>
-								<script>
-									function verificarPassword(){
-										var pasAnt 	= document.getElementById("pasAnt").innerHTML;
-										var pasNew 	= document.getElementById("passwordNew").value;
-										var usuario = document.getElementById("usuario").value;
-										var email 	= document.getElementById("email").value;
-										console.log(pasAnt, pasNew, usuario, email);
-										if(pasAnt === pasNew){
-											alert("El nuevo password debe ser diferente.");
-										} else {
-											$.post("../php/classes/cambiarpass.php", {usuario: usuario, password: pasNew, emial: email});
-											alert("Su contraseña se cambio correctamente, debe de inciar sesión con los nuevos datos. Gracias!.");
-											Session.Clear();
-											Session.Abandon();
-										}
-									}
-								</script>
-								<div id="mensajePas"></div>
-								<div class="form-group text-center" id="botonEnviar" style="display: none;">
-									<button class="btn btn-danger pull-center" type="submit">Enviar</button>
-								</div>
-							</form>
-							<!-- <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button> -->
-						</div>
-					</div>
-				</div>
-			</div>
-			<script>$(document).ready(function(){$("#myLargeModalLabel").modal("show");});</script>';
-	}
-
 	$getFotoVen = "SELECT v.nombre, v.tel, v.foto
 						FROM vendedores v
-						JOIN cli c ON c.vendedorid = v.vendedorid
-						WHERE c.clienteid = ".$id."";
-	$FotoVenEnc = mysqli_query($getConnection,$getFotoVen);
+						WHERE v.vendedorid = ".$perid."";
+	$FotoVenEnc = mysqli_query($mysqliCon,$getFotoVen);
 	$filaFoto = mysqli_fetch_row($FotoVenEnc);
 
-	$print = '<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
+	$print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
 				<div class="row">
-					<div class="col-md-12">
-						<span style="font-size: .8em;font-weight:bold;color:red;">Versión &beta;eta | Última actualización: '.$actualizacion.'</span>
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+						<span class="text-actualizacion">Versión &beta;eta | Última actualización: '.$actualizacion.'</span>
 						<div class="row infoCard">
-							<div class="col-md-4">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
 								<div class="row">
-									<div class="col-md-12">
+									<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
 										<h5>
 											<span style="font-weight:bold;">#'.$clienteID.'</span> - '.$username.'
-											<small>'.$rol.'</small>
+											<small class="text-green">'.$rol.'</small>
 										</h5>
 									</div>
-									<div class="col-md-12 text-center">
+									<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
 										<h5>Vendedor</h5>
 										<div class="row padding">
-											<div class="col-md-3 text-input">
-												<img src="../img/vendedores/'.$filaFoto[2].'" class="img-vendedor" alt="'.$filaFoto[0].'" width="100">
-											</div>
-											<div class="col-md-9">
+											<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 text-input">';
+	if($perid === '16'){
+		$print .=								'<img src="../img/vendedores/user2.png" class="img-vendedor" alt="Oficina" width="110">';
+	} else {
+		$print .=								'<img src="../img/vendedores/'.$filaFoto[2].'" class="img-vendedor" alt="'.$filaFoto[0].'" width="100">';
+	}											
+	$print .=								'</div>
+											<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
 												<div class="row">
-													<div class="col-md-12">
+													<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
 														<div class="row">
-															<div class="col-md-3 text-left">
+															<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 text-left">
 																<span>Nombre: </span>
 															</div>
-															<div class="col-md-9">';
-	if($filaFoto[0] == 0){
+															<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">';
+	if($perid == '16'){
 		$print .=												'<p class="input-falso">Usuario de oficina</p>';
 	} else {
 		$print .=												'<p class="input-falso">'.$filaFoto[0].'</p>';
@@ -1063,16 +912,26 @@ CONFIRMATION;
 	$print .=												'</div>
 														</div>
 													</div>
-													<div class="col-md-12">
+													<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
 														<div class="row">
-															<div class="col-md-3 text-left">
+															<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 text-left">
 																<span>Tel.: </span>
 															</div>
-															<div class="col-md-9">';
-	if($filaFoto[1] == 0){
-		$print .=												'<p class="input-falso">(000) 000 0000</p>';
+															<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">';
+	if($perid == '16'){
+		if($filaFoto[1] == 0){
+			$print .=											'<p class="input-falso">(000) 000 0000</p>';
+		} else {
+
+			$print .=											'<p class="input-falso">'.$filaFoto[1].'</p>';
+		}
 	} else {
-		$print .=												'<p class="input-falso">'.$filaFoto[1].'</p>';
+		if($filaFoto[1] == 0){
+			$print .=											'<p class="input-falso">(000) 000 0000</p>';
+		} else {
+
+			$print .=											'<p class="input-falso">'.$filaFoto[1].'</p>';
+		}
 	}
 	$print .=												'</div>
 														</div>
@@ -1083,77 +942,110 @@ CONFIRMATION;
 									</div>
 								</div>
 							</div>
-							<div class="col-md-4">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
 								<div class="form-group">
 									<div class="row">
-										<div class="col-md-4 text-input">
+										<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
 											<span>Saldo en la Cuenta</span>
 										</div>
-										<div class="col-md-8">
-											<input type="number" class="form-control" placeholder="$ '.$formatoSaldo.'" readonly />
+										<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+											<div class="row">';
+	$dispo1;
+	if($saldo > $limite){
+		$print .=								'<div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+													<input type="text" class="form-control" value="$ '.$formatoSaldo.'" readonly />
+												</div>
+												<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xs-2 text-red centrar">
+													<i class="fas fa-times-circle"></i>
+												</div>';
+	} else {
+		$print .=								'<div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+													<input type="text" class="form-control" value="$ '.$formatoSaldo.'" readonly />
+												</div>
+												<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xs-2 text-green centrar">
+													<i class="fas fa-check-circle"></i>
+												</div>';
+	}
+	$print .=								'</div>
 										</div>
 									</div>
 								</div>
 								<div class="form-group">
 									<div class="row">
-										<div class="col-md-4 text-input">
+										<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
 											<span>Saldo Disponible</span>
 										</div>
-										<div class="col-md-8">
-											<input type="number" class="form-control" placeholder="$ '.$dispo.'" readonly />
+										<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+											<div class="row">';
+	if($dispo1 > 0){
+		$print .=								'<div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+													<input type="text" class="form-control" value="$ '.$dispo.'" readonly />
+												</div>
+												<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xs-2 text-green centrar">
+													<i class="fas fa-check-circle"></i>
+												</div>';
+	} else {
+		$print .=								'<div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+													<input type="text" class="form-control" value="$ '.$dispo.'" readonly />
+												</div>
+												<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xs-2 text-red centrar">
+													<i class="fas fa-times-circle"></i>
+												</div>';
+	}
+	$print .=								'</div>
 										</div>
 									</div>
 								</div>
 								<div class="form-group">
 									<div class="row">
-										<div class="col-md-4 text-input">
+										<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
 											<span>Limite de Crédito</span>
 										</div>
-										<div class="col-md-8">
-											<input type="number" class="form-control" placeholder="$ '.$formatoLimite.'" readonly />
+										<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+											<input type="text" class="form-control" value="$ '.$formatoLimite.'" readonly />
 										</div>
 									</div>
 								</div>
 							</div>
-							<div class="col-md-4">
-							<div class="form-group">
-								<div class="row">
-									<div class="col-md-4 text-input">
-										<span>Días de Crédito</span>
-									</div>
-									<div class="col-md-8">
-										<input type="number" class="form-control" placeholder="'.$diascredito.'" readonly />
-									</div>
-								</div>
-							</div>
-							<div class="form-group">
-								<div class="row">
-									<div class="col-md-4 text-input">
-										<span>Última Compra</span>
-									</div>
-									<div class="col-md-8">
-										<input type="number" class="form-control" placeholder="'.$compraReciente.'" readonly />
+							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+								<div class="form-group">
+									<div class="row">
+										<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+											<span>Días de Crédito</span>
+										</div>
+										<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+											<input type="number" class="form-control" value="'.$diascredito.'" readonly />
+										</div>
 									</div>
 								</div>
-							</div>
-							<div class="form-group">
-								<div class="row">
-									<div class="col-md-4 text-input">
-										<span>Próximo Vencimiento</span>
-									</div>
-									<div class="col-md-8">
-										<input type="number" class="form-control" placeholder="'.$fechaLimite.'" readonly />
+								<div class="form-group">
+									<div class="row">
+										<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+											<span>Última Compra</span>
+										</div>
+										<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+											<input type="text" class="form-control" value="'.$compraReciente.'" readonly />
+										</div>
 									</div>
 								</div>
-							</div>
+								<div class="form-group">
+									<div class="row">
+										<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+											<span>Próximo Vencimiento</span>
+										</div>
+										<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+											<input type="text" class="form-control" value="'.$fechaLimite.'" readonly />
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>';
-	$print .= '<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12 graficasGeneral">
+	$print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficasGeneral">
 				<div class="row">
-					<div class="col-md-12 text-center">';
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">';
 	if($fechaActualMes < 4){
 		$print .= 		'<h5>1er. Periodo Trimestral del '.date("Y").'</h5>
 						<p class="text-center">'.$trim1.'</p>';
@@ -1175,7 +1067,6 @@ CONFIRMATION;
 		$fechaInicio 	= date("Y-10-01");
 		$fechaFinal 	= date("Y-12-31");
 	}
-
 	$getGraphCompras = "SELECT de.desventa, de.descantidad
 			FROM doc d
 				JOIN des de ON de.desdocid = d.docid
@@ -2132,7 +2023,7 @@ CONFIRMATION;
 			$numComprasMes3Sem4 = 0;
 		}
 	}
-	
+
 	switch ($fechaActualMes) {
 		case 1:
 			$mes='Enero';
@@ -2183,16 +2074,17 @@ CONFIRMATION;
 			$diasMes = 31;
 			break;
 	}
+
 	$print .=			'<div class="row">
-							<div class="col-md-4">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
 								<div class="row">
-									<div class="col-md-12 graficos">
+									<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficos">
 										<h4 class="text-center">Compras Totales</h4>
 										<p class="text-center">$ 20,000.00 MXN Minimo</p>
 										<p id="total" style="display: none;">'.$total.'</p>
 										<canvas id="comprasTri"></canvas>
 									</div>
-									<div class="col-md-12">';
+									<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">';
 	if($total >= 20000){
 		$print .=				  		'<span class="text-green">
 											<i class="fa fa-check"></i> Aprobando
@@ -2202,20 +2094,22 @@ CONFIRMATION;
 											<i class="fa fa-times"></i> Reprobando
 										</span>';
 	}
+
 	$print .=							'<h5>Sus compras trimestrales debe ser mayor o igual a $20,000.00 pesos.</h5>
 										<span>No entran códigos que inicien con 8/5/6, pero si entran de la marca Klintek</span>
 									</div>
 								</div>
 							</div>
-							<div class="col-md-4">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
 								<div class="row">
-									<div class="col-sm-12 graficos">
+									<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficos">
 										<h4 class="text-center">Facturas Vencidas</h4>
 										<p class="text-center">No debe tener ninguna vencida</p>
 										<p style="display:none;" id="faltaVenTota">$faltaVenTota</p>
 										<p class="facvenc">'.$numeroVeces.'</p>
 									</div>
-									<div class="col-md-12">';
+									<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">';
+	
 	if($numeroVeces == 0){
 		$print .=				  		'<span class="text-green">
 											<i class="fa fa-check"></i> Aprobando
@@ -2225,6 +2119,7 @@ CONFIRMATION;
 											<i class="fa fa-times"></i> Reprobando
 										</span>';
 	}
+
 	$print .=							'<h5>No tener ninguna factura vencidad antes de que termine el trimestre.</h5>
 										<span>Excepto si el último día de pago cae en domingo, se pasa al día siguiente.</span>
 									</div>
@@ -2233,9 +2128,9 @@ CONFIRMATION;
 									</div>
 								</div>
 							</div>
-							<div class="col-md-4">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
 								<div class="row">
-									<div class="col-md-12 graficos barchart">
+									<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficos barchart">
 										<h4 class="text-center">Compras Semanales</h4>
 										<p id="mesNum" style="display: none;">'.$fechaActualMes.'</p>
 										<p id="numComprasMes1Sem1" style="display:none;">'.$numComprasMes1Sem1.'</p>
@@ -2252,7 +2147,7 @@ CONFIRMATION;
 										<p id="numComprasMes3Sem4" style="display:none;">'.$numComprasMes3Sem4.'</p>
 										<canvas id="barChart"></canvas>
 									</div>
-									<div class="col-md-12">
+									<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
 										<h5>Debe de tener registrado por lo menos 2 compras por semana distinita.</h5>
 										<span>No se puede registrar 8 compras al principio o al final del mes.</span>
 									</div>
@@ -2263,16 +2158,18 @@ CONFIRMATION;
 					</div>
 				</div>
 			</div>';
-	$print .= '<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12">
-				<div class="row">
-					<div class="col-md-12">
-						<div class="row infoCard">
-							<div class="col-md-12 text-center">
-								<h5>PROMOTRUPER <b>'.$mes.' '.date('Y').'</b></h5>
-							</div>
-							<div class="col-md-12">
-								<div class="row">
-									<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 col-12 promo">';
+	$print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+			<div class="row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+					<div class="row infoCard">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+							<h5>PROMOTRUPER <b>'.$mes.' '.date('Y').'</b></h5>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 padding-bo">
+							<div class="row">
+								<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 promo">
+									<div class="row">';
+	
 	if($rol == "DISTRIBUIDOR"){
 		$numPrecio = 1;
 	} elseif ($rol == "SUBDISTRIBUIDOR"){
@@ -2280,6 +2177,7 @@ CONFIRMATION;
 	} elseif ($rol == "MAYOREO"){
 		$numPrecio = 3;
 	}
+
 	$getNumPromo = "SELECT COUNT(i.invdescuento)
 						FROM inv i
 							JOIN precios pre ON pre.unidadid = i.unibasid
@@ -2288,12 +2186,11 @@ CONFIRMATION;
 						ORDER BY i.clvprov";
 	$allNumPromo = mysqli_query($getConnection,$getNumPromo);
 	$NumPromo = mysqli_num_rows($allNumPromo);
+
 	if($NumPromo > 0) {
-		$getPromo = "SELECT i.articuloid, i.clave, i.clvprov, img.imagen, i.descripcio, i.unibasid, pre.nprecio, pre.precio, pre.pimpuesto, i.fecaltart, i.invdescuento
-						FROM enl
-							JOIN inv i ON i.ARTICULOID = enl.articuloID
-							JOIN precios pre ON pre.unidadid = enl.articuloID
-							JOIN imagenes img ON img.id = enl.imagenID
+		$getPromo = "SELECT i.articuloid, i.clave, i.clvprov, i.descripcio, i.unibasid, pre.nprecio, pre.precio, pre.pimpuesto, i.fecaltart, i.invdescuento
+						FROM inv i
+							JOIN precios pre ON pre.unidadid = i.articuloID
 						WHERE i.invdescuento > 0
 							AND pre.nprecio = $numPrecio
 						ORDER BY i.invdescuento DESC";
@@ -2301,10 +2198,11 @@ CONFIRMATION;
 		$numRowPromo = $paramDb->NumRows();
 		$rows = $paramDb->Rows();
 		if($numRowPromo > 0) {
-			$headersPromo = ["Clave", "Código", "Imagen", "Descripción", "Precio", "Descuento", "Precio Promoción", "Agregar"];
-			$classPerColumnPromo = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
+			// $headersPromo = ["Clave", "Código", "Descripción", "Precio", "Descuento", "Precio Promoción", "Agregar"];
+			// $classPerColumnPromo = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
 
-			$print .= $paramFunctions->drawTableHeader($headersPromo, $classPerColumnPromo);
+			// $print .= $paramFunctions->drawTableHeader($headersPromo, $classPerColumnPromo);
+
 			foreach($rows as $row) {
 				$clave = $row["clave"];
 				$codigo = $row["clvprov"];
@@ -2313,7 +2211,6 @@ CONFIRMATION;
 				$impuesto = $row["pimpuesto"];
 				$impuesto = $impuesto / 100;
 				$precioConIva = $precio + ($precio * $impuesto);
-				$imagen = $row["imagen"];
 				$precioFormato = number_format($precioConIva, 2);
 				$descPromo = $row["invdescuento"];
 				$descPromDec = $descPromo / 100;
@@ -2330,49 +2227,66 @@ CONFIRMATION;
 								"msgError"=>"Error al agregar producto al carrito");
 				$paramsSendPromo = json_encode($paramsPromo);
 				if($precio > 0){
-					$print .= 				"<tr>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-													$clave
-												</td>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-													$codigo
-												</td>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-													<img src='https://www.ferremayoristas.com.mx/tienda/img/img_pro/img/".$imagen."' width='100'/>
-												</td>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-													$titulo
-												</td>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-													MX$ $precioFormato
-												</td>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-													<img src='https://www.ferremayoristas.com.mx/tienda/img/iconos/".$numDesc."porciento2000x763.png' width='100'/>
-												</td>";
-					$print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
-													<p style='font-weight:bold; color: red;'>MX$ $preDescFomrato</p>
-												</td>";
-					$print .=   				"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>";
-					$print .=     					"<button type='button' class='btn btn-success btnOk' onclick='generalFunctionToRequest($paramsSendPromo)'><i class='fa fa-plus' aria-hidden='true'></i></button>";
-					$print .=   				"</td>
-											</tr>";
+					//Dibujo tipo Store
+					$print .= 			'<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 text-center producto">
+											<div class="row">
+												<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 altura-def">
+													<h5>'.$titulo.'</h5>
+												</div>
+												<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+													<div class="row">
+														<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+															<p>'.$clave.'</p>
+														</div>
+														<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+															<p>'.$codigo.'</p>
+														</div>
+													</div>
+												</div>
+												<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+													<div class="row">
+														<div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xs-5 pre-ant">
+															<p>DE: $ '.$precioFormato.'</p>
+														</div>
+														<div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xs-5 text-green pre-des">
+															<p>A: $ '.$preDescFomrato.'</p>
+														</div>
+														<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xs-2">
+															<p class="descuento text-red">-'.$numDesc.'%</p>
+															<!--<img src="../img/iconos/porciento2000x763.png" width="70"/>-->
+														</div>
+													</div>
+												</div>
+												<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">';
+					$print .=						"<button type='button' class='btn btn-outline-success btn-lg btn-block' onclick='generalFunctionToRequest($paramsSendPromo)'>Agregar a pedido</button>";
+					$print .=					'</div>';
+
+					//imagen no se refleja aún
+					// $print .= 					"<td class='text-center' style='vertical-align:middle; font-weight:bold;'>
+					// 									<img src='https://www.ferremayoristas.com.mx/tienda/img/img_pro/img/".$imagen."' width='100'/>
+					// 								</td>";
 				}
+				$print .=					'</div>
+										</div>';
 			}
-			$print .= 					'</table>';
 		} else {
 			$print .= 					"<h4>No hay PROMOTRUPER este mes.</h4>";
 		}
 	}
-	$print .=						'</div>
+							
+	$print .= 						'</div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>';
+			</div>
+		</div>';
+
 	echo $print;
 	$getConnection->close();
-  }
+	$mysqliCon->close();
+}
 
 private function saveOrderPartner() {
 	$paramDb = new Database();

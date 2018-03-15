@@ -299,7 +299,7 @@ class Util {
 
   public function drawTableHeader($headers, $classPerColumn) {
     // NOTE only print header, the body it's on loop
-    $table =    "<table class='table table-striped'>";
+    $table =    "<table class='table table-striped table-dark'>";
     $table .=     '<tr>';
     $length = count($headers);
 

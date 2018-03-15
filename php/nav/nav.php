@@ -8,7 +8,7 @@
 	$paramDb = new Database();
 	$getConnection = $paramDb->GetLink();
     $paramFunctions = new Util();
-    
+
 	$rol = $_SESSION["data"]["rol"];
 	$username = $_SESSION["data"]["name"];
 	$user = $_SESSION["data"]["username"];
@@ -31,10 +31,11 @@
 	$correo = $_SESSION["data"]["correo"];
 	$tel = $_SESSION["data"]["tel"];
 	$pas2 = $_SESSION["data"]["pas2"];
-	$pasAnt = $_SESSION["data"]["pasAnt"];
-
+    $pasAnt = $_SESSION["data"]["pasAnt"];
+    
+    $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
 	$getDashboard = "SELECT * FROM dashboard WHERE rol ='$rol'";
-    $result = mysqli_query($getConnection,$getDashboard);
+    $result = mysqli_query($mysqliCon,$getDashboard);
     
     $fechaActualDia = date('d');
     $fechaActualMes = date('m');
@@ -109,7 +110,7 @@
     <nav class="navbar navbar-expand-lg">
         <a class="nabvar-brand">
             <!-- <img class="d-inline-block align-top" src="../img/logo2.png" width="30" height="30" /> -->
-            FMOStore &beta;
+            FMO<span style="color: tomato!important;">Store</span> &beta;
         </a>
         <div class="menu">
             <ul class="nav">
