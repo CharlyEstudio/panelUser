@@ -647,7 +647,7 @@ class Shopping {
 					<div class='row'>";
 		$print .=       "<div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>";
 		$print .= 			"<input type='text' class='form-control text-center' id='findProductBy' placeholder='Ingrese el Código, clave ó descripción del producto a buscar...'/></p>
-							<div id='espere'>
+							<div id='espere' class='centrar'>
 								<p>Un momento por favor, estamos procesando su solicitud.<img src='../img/loading.gif' width='100'/>
 							</div>";
 		$print .= 		"</div>";

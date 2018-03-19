@@ -57,9 +57,15 @@ class Util {
   }
 
   // print nav, depend what kind of user has been logged show menu them
-  public function drawNavMenu($result, $disponible, $saldo, $diasRestantesNewMes, $vendedor, $ignorasuspender, $activo, $user) {
+  public function drawNavMenu($rol, $disponible, $saldo, $diasRestantesNewMes, $vendedor, $ignorasuspender, $activo, $user) {
+
+    $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+    $getDashboard = "SELECT * FROM dashboard WHERE rol ='$rol'";
+    $buscarRolNav = mysqli_query($mysqliCon,$getDashboard);
+
     $nav = "";
-    // Mes y A単o
+    $fechaActual = date('Y-m-d');
+    // Mes
     $mesNum = date('m');
     switch ($mesNum) {
       case 1:
@@ -100,29 +106,23 @@ class Util {
       break;
     }
 
-    if($user == 'admin' || $user == 'supervisor1' || $user == 'supervisor2' || $user == 'pedidos' || $user == 'direccion' || $user == 'cartera'){
-      while ($row = mysqli_fetch_array($result)) {
-        $seccion = $row["seccion"];
-        $funcion = $row["funcion"];
-        $parametro = $row["parametro"];
-        $clase = $row["clase"];
-        $linkFunction = $funcion . "('$parametro')"; // make link for function javascript and pass parameter
-        $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-        $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
-        $nav .=    '<i class="'.$clase.'"></i>';
-        $nav .=    '<span class="pull-right-container" style="display:none;">
-                      <i class="'.$clase.' pull-right"></i>
-                    </span>
-                  </a>
-                </li>';
-      }
-    } elseif($user == '00001' || $user == '00080' || $user == '00051' || $user == '00491' || $user == '02980' || $user == '01739' || $user == '01789'){
-      while ($row = mysqli_fetch_array($result)) {
-        $seccion = $row["seccion"];
-        $funcion = $row["funcion"];
-        $parametro = $row["parametro"];
-        $clase = $row["clase"];
-        $linkFunction = $funcion . "('$parametro')"; // make link for function javascript and pass parameter
+    while ($row = mysqli_fetch_array($buscarRolNav)) {
+      $seccion = $row["seccion"];
+      $funcion = $row["funcion"];
+      $parametro = $row["parametro"];
+      $clase = $row["clase"];
+      $linkFunction = $funcion . "('$parametro')";
+
+      if($user == 'admin' || $user == 'supervisor1' || $user == 'supervisor2' || $user == 'pedidos' || $user == 'direccion' || $user == 'cartera'){
+          $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
+          $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+          $nav .=    '<i class="'.$clase.'"></i>';
+          $nav .=    '<span class="pull-right-container" style="display:none;">
+                        <i class="'.$clase.' pull-right"></i>
+                      </span>
+                    </a>
+                  </li>';
+      } elseif($user == '00001' || $user == '00080' || $user == '00051' || $user == '00491' || $user == '02980' || $user == '01739' || $user == '01789'){
         if($seccion == "PROMOTRUPER"){
           $nav .='<li class="nav-item" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
           $nav .=  '<a class="nav-link" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
@@ -142,18 +142,8 @@ class Util {
                     </a>
                   </li>';
         }
-      }
-    } elseif($disponible > 0) {
-      while ($row = mysqli_fetch_array($result)) {
-        $seccion = $row["seccion"];
-        $funcion = $row["funcion"];
-        $parametro = $row["parametro"];
-        $clase = $row["clase"];
-        $linkFunction = $funcion . "('$parametro')"; // make link for function javascript and pass parameter
-
-        $fecha = new DateTime();
-        $fechaActual = $fecha->format('d-m-Y');
-
+      } elseif($disponible > 0) {
+        var_dump($disponible);
         if($activo == "S" || $ignorasuspender >= $fechaActual){
           if($seccion == "PROMOTRUPER"){
             $nav .='<li class="nav-item" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
@@ -233,15 +223,7 @@ class Util {
                     </li>';
           }
         }
-      }
-    } else {
-      while ($row = mysqli_fetch_array($result)) {
-        $seccion = $row["seccion"];
-        $funcion = $row["funcion"];
-        $parametro = $row["parametro"];
-        $clase = $row["clase"];
-        $linkFunction = $funcion . "('$parametro')"; // make link for function javascript and pass parameter
-
+      } else {
         if($parametro == "promotruper"){
           $nav .='<li class="nav-item" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
           $nav .=  '<a class="nav-link" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
