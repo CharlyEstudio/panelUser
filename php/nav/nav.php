@@ -36,6 +36,8 @@
     $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
 	$getDashboard = "SELECT * FROM dashboard WHERE rol ='$rol'";
     $result = mysqli_query($mysqliCon,$getDashboard);
+    $buscarRol = mysqli_fetch_array($result);
+    $usuario = $buscarRol["rol"];
     
     $fechaActualDia = date('d');
     $fechaActualMes = date('m');
@@ -110,7 +112,7 @@
     <nav class="navbar navbar-expand-lg">
         <a class="nabvar-brand">
             <!-- <img class="d-inline-block align-top" src="../img/logo2.png" width="30" height="30" /> -->
-            FMO<span style="color: tomato!important;">Store</span> &beta;
+            FMO<span style="color: tomato!important;">Store</span>
         </a>
         <div class="menu">
             <ul class="nav">
@@ -131,9 +133,16 @@
             ?>
                 <li class="nav-item">
 					<a href="#" class="nav-link">
-			<?php
-				echo	'<i class="fas fa-user-circle fa-lg" aria-hidden="true"></i>
-							<span>'.$username.'</span>';
+            <?php
+                //revisar por que no coloca bien el usuario
+                if($usuario == 'socio'){
+				    echo '<i class="fas fa-user-circle fa-lg" aria-hidden="true"></i>
+                            <span>'.$user.'</span>';
+                } else {
+                    echo '<i class="fas fa-user-circle fa-lg" aria-hidden="true"></i>
+                            <span>'.$usuario.'</span>';
+                            
+                }
 			?>
 					</a>
 				</li>

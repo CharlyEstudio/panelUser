@@ -1,6 +1,7 @@
 <?php
 require_once("../class.database.php");
 require_once("../functions/util.php");
+date_default_timezone_set('America/Mexico_City');
 
 class Shopping {
 
@@ -748,11 +749,9 @@ private function getDashBoardPartner() {
 	}
 	$year = date("Y");
 
-	$fechaActualDia = date('d');
 	$fechaActualMes = date('m');
 
 	$UltimaComp = strtotime($ultimacompra);
-	$diasUltimaCompra = idate('d' ,$UltimaComp);
 	$mesUltimaCOmpra = idate('m',$UltimaComp);
 
 	switch ($mesUltimaCOmpra) {
@@ -804,24 +803,10 @@ private function getDashBoardPartner() {
 			$diasTotalMesUltimaCompra = 31;
 			break;
 	}
-	//Buscar actualización de la base de datos
-	$mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
-    $con1 = "SELECT MAX(id) as actid FROM actualizacion";
-	$res1 = mysqli_query($mysqliCon,$con1);
-	$fil1 = mysqli_fetch_array($res1);
-	$idActualizacion = $fil1["actid"];
 
-	$con2 = "SELECT * FROM actualizacion WHERE id=$idActualizacion";
-	$res2 = mysqli_query($mysqliCon,$con2);
-	$fil2 = mysqli_fetch_array($res2);
-	$dateAct = $fil2["date"];
-	$timeAct = $fil2["time"];
-
-	$actualizacion = $dateAct." a las ".$timeAct;
-
-	$sumaDeDias = $diasUltimaCompra + $diascredito;
 	$fecActual2 = date("Y-m-d");
-	$getGraphVencido2 = "SELECT docid, feccap, feccan, vence, total, totalpagado
+		
+	$getGraphVencido2 = "SELECT vence
 							FROM doc
 							WHERE clienteid = $id
 								AND totalpagado < total
@@ -830,36 +815,46 @@ private function getDashBoardPartner() {
 								AND vence < '$fecActual2'
 							ORDER BY feccap ASC";
 
-	$numVec2 = mysqli_query($getConnection, $getGraphVencido2);
-	$numeroVeces = $numVec2->num_rows;
+	$executeQuery = $paramDb->Query($getGraphVencido2);
+	$numeroVeces = $paramDb->NumRows();
+	$row = $paramDb->Rows();
 
 	if($numeroVeces > 0){
-		if($fechaActualMes == $mesUltimaCOmpra){
-			if($sumaDeDias >= $diasTotalMesUltimaCompra){
-				$diasRestantesNewMes = $sumaDeDias - $diasTotalMesUltimaCompra;
-				$nextMes = $mesUltimaCOmpra + 1;
-				$fechaLimite = date("Y-$nextMes-$diasRestantesNewMes");
-			} else {
-				$fechaLimite = date("Y-$mesUltimaCOmpra-$sumaDeDias");//39
-				$diasRestantesNewMes = $sumaDeDias;
-			}
-		} elseif($sumaDeDias >= $diasTotalMesUltimaCompra){
-			$diasRestantesNewMes = $diasTotalMesUltimaCompra - $sumaDeDias;
-			if($diasRestantesNewMes > 0){
-				$nextMes = $mesUltimaCOmpra + 1;
-				$fechaLimite = date("Y-$nextMes-$diasRestantesNewMes");//39
-			} else {
-				$fechaLimite = 'Factura(s) Vencida(s)';
-			}
+		$buscarVencido = "SELECT vence
+							FROM doc
+							WHERE clienteid = $id
+								AND totalpagado < total
+								AND feccan = 0
+								AND tipo NOT LIKE 'C'
+								AND vence < '$fecActual2'
+							ORDER BY feccap ASC LIMIT 0,1";
+
+		$executeQuery = $paramDb->Query($buscarVencido);
+		$row = $paramDb->Rows();
+		$fecrepo = $row[0];
+		if($fecActual2 > $fecrepo){
+			$fechaLimite = $fecrepo;
 		} else {
-			$diasRestantesNewMes = ($diasTotalMesUltimaCompra - $sumaDeDias) - $fechaActualDia;
 			$fechaLimite = 'Factura(s) Vencida(s)';
-			$nextMes = $mesUltimaCOmpra;
 		}
 	} else {
-		$diasRestantesNewMes = 0;
-		$fechaLimite = 'Sin Vencimiento';
-		$nextMes = 0;
+		$buscarMaxId = "SELECT vence
+							FROM doc
+							WHERE clienteid = $id
+								AND totalpagado < total
+								AND feccan = 0
+								AND tipo NOT LIKE 'C'
+							ORDER BY feccap ASC LIMIT 0,1";
+
+		$buscarId = mysqli_query($getConnection, $buscarMaxId);
+		$idVenc = mysqli_fetch_row($buscarId);
+		$fecrepo = $idVenc[0];
+
+		if($fecActual2 < $fecrepo){
+			$fechaLimite = $fecrepo;
+		} else {
+			$fechaLimite = 'Sin Vencimiento';
+		}
 	}
 
 	$trim1 = "<strong>Compras: 01 Enero, ".date("Y")." - 31 Marzo, ".date("Y")."</strong>";
@@ -867,16 +862,16 @@ private function getDashBoardPartner() {
 	$trim3 = "<strong>Compras: 01 Julio, ".date("Y")." - 30 Septiembre, ".date("Y")."</strong>";
 	$trim4 = "<strong>Compras: 01 Octubre, ".date("Y")." - 31 Diciembre, ".date("Y")."</strong>";
 
+	$mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
 	$getFotoVen = "SELECT v.nombre, v.tel, v.foto
 						FROM vendedores v
 						WHERE v.vendedorid = ".$perid."";
 	$FotoVenEnc = mysqli_query($mysqliCon,$getFotoVen);
 	$filaFoto = mysqli_fetch_row($FotoVenEnc);
 
-	$print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+	$print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT">
 				<div class="row">
 					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-						<span class="text-actualizacion">Versión &beta;eta | Última actualización: '.$actualizacion.'</span>
 						<div class="row infoCard">
 							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
 								<div class="row">
@@ -992,10 +987,33 @@ private function getDashBoardPartner() {
 													<i class="fas fa-times-circle"></i>
 												</div>';
 	}
+
+	if($saldo > $limite || $dispo1 > 0){
+		$estatus = 'Activo';
+	} else{
+		$estatus = 'Activo';
+	}
 	$print .=								'</div>
 										</div>
 									</div>
 								</div>
+								<div class="form-group">
+									<div class="row">';
+	if($saldo > $limite || $dispo1 > 0){
+		$estatus = 'Activo';								
+		$print .=						'<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 botonActivo centrar">
+											<spam>'.$estatus.'<spam/>
+										</div>';
+	} else{
+		$estatus = 'Suspendido';
+		$print .=						'<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 botonSuspendido centrar">
+											<spam>'.$estatus.'<spam/>
+										</div>';
+	}									
+	$print .=						'</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
 								<div class="form-group">
 									<div class="row">
 										<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
@@ -1006,8 +1024,6 @@ private function getDashBoardPartner() {
 										</div>
 									</div>
 								</div>
-							</div>
-							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
 								<div class="form-group">
 									<div class="row">
 										<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
@@ -2158,12 +2174,12 @@ private function getDashBoardPartner() {
 					</div>
 				</div>
 			</div>';
-	$print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+	$print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB">
 			<div class="row">
 				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
 					<div class="row infoCard">
 						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
-							<h5>PROMOTRUPER <b>'.$mes.' '.date('Y').'</b></h5>
+							<h5>PROMOTRUPER <b class="text-tomato">'.$mes.' '.date('Y').'</b></h5>
 						</div>
 						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 padding-bo">
 							<div class="row">

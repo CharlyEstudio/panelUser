@@ -1,10 +1,15 @@
 <?php
 require_once("../class.database.php");
 require_once("../functions/util.php");
+date_default_timezone_set('America/Mexico_City');
 
 class Report {
   public function getterDashBoardAdmin($params) {
     $this->getDashBoardAdmin($params);
+  }
+
+  public function getterDashBoardCartera($params) {
+    $this->getDashBoardCartera($params);
   }
 
   public function getterDashBoardDirIndex($params) {
@@ -81,6 +86,122 @@ class Report {
     echo $print;
   }
 
+  private function getDashBoardCartera($params) {
+    $paramFunctions   = new Util();
+    $paramDb          = new Database();
+    $getConnection    = $paramDb->GetLink();
+
+    $dia  = date("Y-m-d");
+    $month = date('m');
+    $year = date('Y');
+
+    //Sacamos el mes en que estamos
+    switch ($month) {
+      case 1:
+        $mes='Enero';
+        $diasTotalMes = 31;
+      break;
+      case 2:
+        $mes='Febrero';
+        $diasTotalMes = 28;
+      break;
+      case 3:
+        $mes='Marzo';
+        $diasTotalMes = 31;
+      break;
+      case 4:
+        $mes='Abril';
+        $diasTotalMes = 30;
+      break;
+      case 5:
+        $mes='Mayo';
+        $diasTotalMes = 31;
+      break;
+      case 6:
+        $mes='Junio';
+        $diasTotalMes = 30;
+      break;
+      case 7:
+        $mes='Julio';
+        $diasTotalMes = 31;
+      break;
+      case 8:
+        $mes='Agosto';
+        $diasTotalMes = 31;
+      break;
+      case 9:
+        $mes='Septiembre';
+        $diasTotalMes = 30;
+      break;
+      case 10:
+        $mes='Octubre';
+        $diasTotalMes = 31;
+      break;
+      case 11:
+        $mes='Noviembre';
+        $diasTotalMes = 30;
+      break;
+      case 12:
+        $mes='Diciembre';
+        $diasTotalMes = 31;
+      break;
+    }
+
+    // Morosidad TOTAL.
+    $getMorosidad = "SELECT
+                  SUM(d.totalpagado - d.total) as TotalDeuda
+                  FROM doc d
+                  WHERE d.total > d.totalpagado
+                      AND d.tipo = 'F'
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+    $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
+    $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
+    if($rowMorosidad === NULL){
+      $MorosidadF = 0;
+    } else {
+      $MorosidadF = $rowMorosidad[0]*(-1);
+    }
+    $Morosidad = number_format($MorosidadF, 2, ".", ",");
+
+    //Facturas Vencidas al mes
+    $fechaInicioVenc = date('Y-m-01');
+    $fechaFinalVenc = date('Y-m-'.$diasTotalMes.'');
+    $numVenFac = "SELECT vence
+                    FROM doc
+                    WHERE totalpagado < total
+                      AND feccan = 0
+                      AND tipo NOT LIKE 'C'
+                      AND vence < '$dia'
+                      AND (
+                            feccap < '$fechaFinalVenc'
+                            AND feccap > '$fechaInicioVenc'
+                          )";
+
+    $venFac = mysqli_query($getConnection, $numVenFac);
+    $numeroVecesFacVenc = mysqli_num_rows($venFac);
+
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT hg910 centrar text-center">
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                    <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                      <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                      <img src="../img/barrafmo2.gif" width="200"/>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                    <h4 class="h4">VENCIDAS/MES</h4>
+                    <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                    <h4 class="h4">MOROSIDA TOTAL</h4>
+                    <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
+                  </div>
+                </div>
+              </div>';
+    echo $print;
+    $getConnection->close();
+  }
+
   private function getDashBoardDirIndex($params) {
     $paramFunctions   = new Util();
     $paramDb          = new Database();
@@ -89,26 +210,20 @@ class Report {
     //Se hace la busqueda de ventas totales del Dia
     $dia  = date("Y-m-d");
 
-    $queryVtaDia = "SELECT (
-                            SELECT CASE
-                            WHEN TOTAL > 0
-                            THEN SUM((SELECT (SUBTOTAL2) FROM DUAL))
-                            END
-                            ) AS total
+    $queryVtaDia = "SELECT docid
                             FROM doc
                           WHERE fecha = '$dia'
                             AND tipo = 'F'
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQueryDia = $getConnection->query($queryVtaDia);
-    $qVtaDia = mysqli_fetch_array($resultQueryDia);
+    $qVtaDia = mysqli_num_rows($resultQueryDia);
     if($qVtaDia === NULL){
       $totalVentaDia = 0;
     } else {
       //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $totalVentaDia = $qVtaDia['total'];
+      $totalVentaDia = $qVtaDia;
     }
-    $formatTotalVentaDia = number_format($totalVentaDia, 2, '.',',');
 
     //Se hace la busqueda de ventas totales del Mes
     $month = date('m');
@@ -116,19 +231,13 @@ class Report {
     $dayVtaTotMes = date("d", mktime(0,0,0, $month+1, 0, $year));
     $primerDiaMes = date('Y-m-d', mktime(0,0,0, $month, 1, $year));
     $ultimoDiaMes = date('Y-m-d', mktime(0,0,0, $month, $dayVtaTotMes, $year));
-    $queryVtaMes = "SELECT (
-                            SELECT CASE
-                            WHEN TOTAL > 0
-                            THEN SUM((SELECT (SUBTOTAL2) FROM DUAL))
-                            END
-                            ) AS total
+    $queryVtaMes = "SELECT SUM(SUBTOTAL2) AS total
                             FROM doc
                           WHERE (
                                 fecha <= '$ultimoDiaMes'
                                 AND fecha >= '$primerDiaMes' 
                                 )
                             AND tipo = 'F'
-                            and totalpagado = total
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQueryMes = $getConnection->query($queryVtaMes);
@@ -194,7 +303,7 @@ class Report {
 
     // Morosidad TOTAL.
     $getMorosidad = "SELECT
-                  SUM((SELECT (SELECT (d.totalpagado - d.total)) FROM DUAL)) as TotalDeuda
+                  SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
                   WHERE d.total > d.totalpagado
                       AND d.tipo = 'F'
@@ -208,101 +317,72 @@ class Report {
     }
     $Morosidad = number_format($MorosidadF, 2, ".", ",");
 
-    $print =  '<div class="row" style="margin: 50px 0 0 0;display: flex;align-items: center;justify-content: center;flex-direction: column;">
-                <div class="content-wrapper">
-                  <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
-                    <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
-                    <img src="../img/img_pro/barrafmo2.gif" width="200"/>
+    //Facturas Vencidas al mes
+    $fechaInicioVenc = date('Y-m-01');
+    $fechaFinalVenc = date('Y-m-'.$diasTotalMes.'');
+    $numVenFac = "SELECT vence
+                            FROM doc
+                            WHERE totalpagado < total
+                              AND feccan = 0
+                              AND tipo NOT LIKE 'C'
+                              AND vence < '$dia'
+                              AND (
+                                    feccap < '$fechaFinalVenc'
+                                    AND feccap > '$fechaInicioVenc'
+                                  )";
+
+    $venFac = mysqli_query($getConnection, $numVenFac);
+    $numeroVecesFacVenc = mysqli_num_rows($venFac);
+    
+    //Nuevos clientes del mes
+    $numCliMes = "SELECT clienteid
+                            FROM cli
+                            WHERE (
+									                  fecaltcli < '$fechaFinalVenc'
+									                  AND fecaltcli > '$fechaInicioVenc'
+									                )";
+
+    $clieMes = mysqli_query($getConnection, $numCliMes);
+    $numeroVecesCliNuevos = mysqli_num_rows($clieMes);
+
+    //Se hace la busqueda de pedidos totales de los nuevos clientes
+    
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT hg910 centrar text-center">
+                <div class="row">
+                  <div class="content-wrapper">
+                    <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                      <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                      <img src="../img/barrafmo2.gif" width="200"/>
+                    </div>
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                        <h4 class="h4">No. PEDIDOS AL DIA</h4>
+                        <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$totalVentaDia.'</p>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                        <h4 class="h4">VENTAS AL MES</h4>
+                        <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</p>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                        <p class="h4">FACTURAS VENCIDAS AL MES</p>
+                        <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                        <h4 class="h4">MOROSIDA TOTAL</h4>
+                        <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                        <h4 class="h4">NUEVOS CLIENTES AL MES</h4>
+                        <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesCliNuevos.'</p>
+                      </div>
+                    </div>
                   </div>
-                  <!-- Main content -->
-                  <section class="content">
-                    <!-- Info boxes -->
-                    <div class="row">
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-red"><i class="fas fa-stopwatch" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">No. PEDIDOS AL DIA</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">#</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-yellow"><i class="far fa-calendar-alt" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">VENTAS AL MES</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                    </div>
-                    <!-- /.row -->
-                    <div class="row">
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-orange"><i class="far fa-calendar-alt" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">FACTURAS VENCIDAS AL MES</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">#</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-fuchsia"><i class="fa fa-calendar" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">MOROSIDA TOTAL</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">$ '.$Morosidad.'</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                    </div>
-                    <!-- /.row -->
-                    <div class="row">
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-blue"><i class="fas fa-user-plus" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">NUEVOS CLIENTES AL MES</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">#</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-green"><i class="fas fa-tasks" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">PEDIDOS DE CLIENTES NUEVOS</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">#</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                    </div>
-                    <!-- /.row -->
-                  </section>
-                  <!-- /.content -->
                 </div>
-                <!-- /.content-wrapper -->
-              </div>'; // End div row
+              </div>';
     echo $print;
     $getConnection->close();
   }
@@ -339,24 +419,18 @@ class Report {
     //Se hace la busqueda de ventas totales del Dia
     $dia  = date("Y-m-d");
 
-    $queryVtaDia = "SELECT (
-                            SELECT CASE
-                            WHEN TOTAL > 0
-                            THEN SUM((SELECT (SUBTOTAL2) FROM DUAL))
-                            END
-                            ) AS total
-                            FROM doc
+    $queryVtaDia = "SELECT SUM(SUBTOTAL2) AS total
+                          FROM doc
                           WHERE fecha = '$dia'
                             AND tipo = 'F'
-                            AND totalpagado = total
-                            AND subtotal2 > 0
+                            AND total > totalpagado
                             AND FECCAN = 0";
-    $resultQueryDia = $getConnection->query($queryVtaDia);
+    $resultQueryDia = mysqli_query($getConnection, $queryVtaDia);
     $qVtaDia = mysqli_fetch_array($resultQueryDia);
-    if($qVtaDia === NULL){
+    if($qVtaDia == NULL){
       $totalVentaDia = 0;
     } else {
-      $totalVentaDia = $qVtaDia['total'];
+      $totalVentaDia = $qVtaDia["total"];
     }
     $formatTotalVentaDia = number_format($totalVentaDia, 2, '.',',');
 
@@ -365,7 +439,6 @@ class Report {
                       FROM doc
                       WHERE fecha = '$dia'
                         AND tipo = 'F'
-                        AND totalpagado = total
                         AND subtotal2 > 0
                         AND FECCAN = 0";
     $resultQueryPedDia = $getConnection->query($queryPedDia);
@@ -405,7 +478,6 @@ class Report {
                                 AND fecha >= '$primerDia' 
                                 )
                             AND tipo = 'F'
-                            AND totalpagado = total
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQuerySemana = $getConnection->query($queryVtaSemana);
@@ -433,7 +505,6 @@ class Report {
                                 AND fecha >= '$primerDiaMes' 
                                 )
                             AND tipo = 'F'
-                            AND totalpagado = total
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQueryMes = $getConnection->query($queryVtaMes);
@@ -458,7 +529,6 @@ class Report {
                                 AND fecha >= '$primerDiaTrimestre' 
                                 )
                             AND tipo = 'F'
-                            AND totalpagado = total
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQueryTrimestre = $getConnection->query($queryVtaTrimestre);
@@ -548,7 +618,6 @@ class Report {
                                   WHERE fecha >= '".$fecAnteIni."'
                                     AND fecha <= '".$fecAnteFin."'
                                     AND tipo = 'F'
-                                    AND totalpagado = total
                                     AND subtotal2 > 0
                                     AND FECCAN = 0";
     $resultQueryvtdAnt = $getConnection->query($queryVtaTotalDiaAnt);
@@ -587,7 +656,6 @@ class Report {
                                       AND fecha >= '".${'fecIniQ'.$y}."'
                                     )
                               AND tipo = 'F'
-                              AND totalpagado = total
                               AND FECCAN = 0";
       $buscandoMes = $getConnection->query($buscandoAnual);
       $mesEnc = mysqli_fetch_row($buscandoMes);
@@ -630,7 +698,6 @@ class Report {
                                       AND fecha >= '".${'fecIniQ'.$y}."'
                                     )
                               AND tipo = 'F'
-                              AND totalpagado = total
                               AND FECCAN = 0";
       $buscandoMes = $getConnection->query($buscandoAnual);
       $mesEnc = mysqli_fetch_row($buscandoMes);
@@ -668,7 +735,6 @@ class Report {
                               ) AS dato".$y."
                               FROM doc
                               WHERE tipo = 'F'
-                                AND totalpagado = total
                                 AND (
                                       fecha <= '".${'fecFinQ'.$y}."'
                                       AND fecha >= '".${'fecIniQ'.$y}."'
@@ -716,7 +782,6 @@ class Report {
                                       AND fecha >= '".${'fecIniQ'.$mAnt}."'
                                     )
                               AND tipo = 'F'
-                              AND totalpagado = total
                               AND FECCAN = 0";
       $buscandoMes = $getConnection->query($buscandoAnual);
       $mesEnc = mysqli_fetch_row($buscandoMes);
@@ -770,405 +835,324 @@ class Report {
       break;
     }
 
-    $print =  '<div class="row" style="margin: 50px 0 0 0;display: flex;align-items: center;justify-content: center;flex-direction: column;">
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
                 <div class="content-wrapper">
-                  <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
-                    <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
-                    <img src="../img/img_pro/barrafmo2.gif" width="200"/>
-                  </div>
-                  <!-- Main content -->
-                  <section class="content">
-                    <!-- Info boxes -->
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                      <div class="row infoCard">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                          <div class="form-group">
+                            <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                <span>Ventas al día</span>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                    <input type="text" class="form-control" value="$ '.$formatTotalVentaDia.'" readonly />
+										          </div>
+									          </div>
+								          </div>
+								          <div class="form-group">
+									          <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                <span>Pedidos al día</span>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                <input type="text" class="form-control" value="'.$qPediDia.'" readonly />
+                              </div>
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                <span>Ventas la mes</span>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                <input type="text" class="form-control" value="$ '.$formatTotalVentaMes.'" readonly />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                          <div class="form-group">
+                            <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                <span>Ventas a la semana</span>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                <input type="text" class="form-control" value="$ '.$formatTotalVentaSemana.'" readonly />
+										          </div>
+									          </div>
+								          </div>
+								          <div class="form-group">
+									          <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                <span>Ventas al trimestre</span>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                <input type="text" class="form-control" value="$ '.$formatTotalVentaTrimestre.'" readonly />
+                              </div>
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                <span>Estatus</span>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                <input type="text" class="form-control" value="Aqui va un estatus de como esta la compañia" readonly />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>';
+                  
+    $print .=     '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficasGeneral">
                     <div class="row">
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-red"><i class="fas fa-stopwatch" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <div class="col-md-12">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                        <h3 class="">Venta Mensual</h3>
+                        <h4>Venta Mensual de <b>'.$mes.'</b> del <b>'.date("Y").'</b></h4>
+                        <div class="row text-center">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficosBarra">
+                            <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
+                            <p id="mesActual" style="display: none;">'.$totalVentaMes.'</p>
+                            <p id="mesAnterior" style="display: none;">'.$vAnt.'</p>
+                            <p id="mejorMes" style="display: none;">'.$vMejor.'</p>
+                            <p id="mesMej" style="display: none;">'.$mesMej.'</p>
+                            <canvas id="areaChart" style="height:250px;"></canvas>
+                          </div>
+                          <script src="../intranet/js/Chart.js"></script>
+                          <script src="../intranet/js/graficas.js"></script>';
+    $print .=           '</div>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                            <div class="row">';
+    $print .=                 '<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                                <span class="text-redGraf">
+                                  Ventas del Mes pasado<br /><b style="font-size: 2em;">$ '.number_format($vAnt, 2, ".", ",").'</b>
+                                </span>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                                <span class="text-blue">
+                                  Venta Actual<br /><b style="font-size: 2em;">$ '.number_format($totalVentaMes, 2, ".", ",").'</b>
+                                </span>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                                <span class="text-green">
+                                  Ventas del Mejor Mes<br /><b style="font-size: 2em;">$ '.number_format($vMejor, 2, ".", ",").'</b>
+                                </span>
+                                <p class="text-green" style="font-weight:bold">'.$mesMej.' '.$anioAnterior.'</p>
+                              </div>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                              <h1 class="display-4">Proyección de Cierre</h1>
                               <div class="row">
-                                <div class="col-md-6">
-                                  <span class="info-box-text">VENTAS AL DIA</span>
-                                  <span class="info-box-number" style="font-size: 1.7em !important;">$ '.$formatTotalVentaDia.'</span>
-                                </div>
-                                <div class="col-md-6">
-                                  <span class="info-box-text">PEDIDOS AL DIA</span>
-                                  <span class="info-box-number" style="font-size: 1.7em !important;">'.$qPediDia.'</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-aqua"><i class="fa fa-table" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">VENTAS A LA SEMANA</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">$ '.$formatTotalVentaSemana.'</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                    </div>
-                    <!-- /.row -->
-
-                    <div class="row">
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-yellow"><i class="far fa-calendar-alt" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">VENTAS AL MES</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-fuchsia"><i class="fa fa-calendar" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">VENTAS AL TRIMESTRE</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">$ '.$formatTotalVentaTrimestre.'</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                    </div>
-                    <!-- /.row -->
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="box">
-                          <div class="box-header with-border">';
-        $print .=               '<h3 class="box-title">Venta Mensual</h3>
-                          </div>
-                          <!-- /.box-header -->
-                          <div class="box-body">
-                            <div class="row">
-                              <div class="col-md-12 col-sm-12">
-                                <p class="text-center">';
-        $print .=               '</p>
-                                <div clas="row">
-                                  <div class="col-md-12 col-sm-12">';
-        $print .=                   '<h4 class="text-center">Venta Mensual de <b>'.$mes.'</b> del <b>'.date("Y").'</b></h4>
-                                    <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
-                                    <p id="mesActual" style="display: none;">'.$totalVentaMes.'</p>
-                                    <p id="mesAnterior" style="display: none;">'.$vAnt.'</p>
-                                    <p id="mejorMes" style="display: none;">'.$vMejor.'</p>
-                                    <p id="mesMej" style="display: none;">'.$mesMej.'</p>
-                                    <div class="chart">
-                                      <canvas id="areaChart" style="height:250px;"></canvas>
-                                    </div>
-                                  </div>
-                                  <script src="../intranet/bower_components/jquery/dist/jquery.min.js"></script>
-                                  <script src="../intranet/dist/js/Chart.js"></script>
-                                  <script src="../intranet/dist/js/graficas.js"></script>
-                                </div>
-                                <!-- /.box-body -->
-                              </div>
-                              <!-- /.col -->
-                            </div>
-                            <!-- /.row -->
-                          </div>
-                          <!-- ./box-body -->
-                          <div class="box-footer">
-                            <div class="row">
-                              <div class="col-sm-12 col-xs-12">';
-          $print .=             '<div class="description-block">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
                                   <div class="row">
-                                    <div class="col-md-4">
-                                      <span class="description-percentage text-red" style="font-weight:bold;">
-                                        Ventas del Mes pasado<br /><b style="font-size: 2em;">$ '.number_format($vAnt, 2, ".", ",").'</b>
-                                      </span>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                      <p class="lead"><b>Ingrese los días del mes actual a calcular</b></p>
                                     </div>
-                                    <div class="col-md-4">
-                                      <span class="description-percentage text-blue" style="font-weight:bold;">
-                                        Venta Actual<br /><b style="font-size: 2em;">$ '.number_format($totalVentaMes, 2, ".", ",").'</b>
-                                      </span>
-                                    </div>
-                                    <div class="col-md-4">
-                                      <span class="description-percentage text-green" style="font-weight:bold;">
-                                        Ventas del Mejor Mes<br /><b style="font-size: 2em;">$ '.number_format($vMejor, 2, ".", ",").'</b>
-                                      </span>
-                                      <p class="text-green" style="font-weight:bold">'.$mesMej.' '.$anioAnterior.'</p>
-                                    </div>
-                                  </div>
-                                  <div class="col-md-12 text-center">
-                                    <h1 class="display-4">Proyección de Cierre</h1>
-                                    <div class="row">
-                                      <div class="col-md-4">
-                                        <div class="row">
-                                          <div class="col-md-12">
-                                            <p class="lead"><b>Ingrese los días del mes actual a calcular</b></p>
-                                          </div>
-                                          <div class="col-md-12">
-                                            <input id="diasActual" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 25" required>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div class="col-md-4">
-                                        <div class="row">
-                                          <div class="col-md-12">
-                                            <p class="lead"><b>Ingrese los días del mes anterior a calcular</b></p>
-                                          </div>
-                                          <div class="col-md-12">
-                                            <input id="diasAnterior" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 20" required>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div class="col-md-4">
-                                        <div class="row">
-                                          <div class="col-md-12">
-                                            <p class="lead"><b>Ingrese los días que han pasado (días hábiles)</b></p>
-                                          </div>
-                                          <div class="col-md-12">
-                                            <input id="diasConteo" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 11" required>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div id="botonCalcular" class="col-md-12" style="margin: 10px 0 10px 0;">
-                                      <input class="btn btn-success" type="submit" name="" value="Calcular" onClick="calcular();">
-                                    </div>
-                                    <div class="row">
-                                      <div class="col-md-6" id="ventaPorDiaActual"></div>
-                                      <div class="col-md-6" id="ventaPorDiaAnterior"></div>
-                                      <div class="col-md-6" id="pronosticoMensual"></div>
-                                      <div class="col-md-6" id="proyeccionCierre"></div>
-                                      <div class="col-md-12" id="ventaPorDiaIgualar"></div>
-                                    </div>
-                                    <script src="../js/calculos.js"></script>
-                                  </div>';
-        $print .=                 '<div class="col-md-12">
-                                    <h5 class="text-center lead">Se presenta el reporte de ventas al mes, en comparación con el anterior y con el mejor mes.</h5>
-                                  </div>
-                                </div>
-                                <!-- /.description-block -->
-                              </div>
-                              <!-- /.col -->
-                            </div>
-                            <!-- /.row -->
-                            <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
-                          </div>
-                          <!-- /.box-footer -->
-                        </div>
-                        <!-- /.box -->
-                      </div>
-                      <!-- /.col -->
-                    </div>
-                    <!-- /.row -->';
-        $print .=   '<div class="row">
-                      <div class="col-md-12">
-                        <div class="box">
-                          <div class="box-header with-border">
-                              <h3 class="box-title">Reporte de Venta</h3>
-                          </div>
-                          <!-- /.box-header -->
-                          <div class="box-body">
-                            <div class="row">
-                              <div class="col-md-12 col-sm-12">
-                                <p class="text-center">';
-        $print .=                   '</p>
-                                <div clas="row">
-                                  <div class="col-md-12 col-sm-12">';
-        $print .=                   '<h4 class="text-center"><b>'.date("Y").' <em style="font-size: 0.5em;">Vs</em> '.$anioAnterior.' <em style="font-size: 0.5em;">Vs</em> Empresa</b></h4>
-                                    <div class="chart">
-                                      <canvas id="areaChartAnual" style="height:250px"></canvas>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                      <input id="diasActual" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 25" required>
                                     </div>
                                   </div>
                                 </div>
-                                <!-- /.box-body -->
-                              </div>
-                              <!-- /.col -->
-                            </div>
-                            <!-- /.row -->
-                          </div>
-                          <!-- ./box-body -->
-                          <div class="box-footer">
-                            <div class="row">
-                              <div class="col-sm-12 col-xs-12">';
-        $vtaAnualActual = date("Y");
-        $print .=               '<div class="description-block">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
                                   <div class="row">
-                                    <div class="col-md-6">
-                                      <p class="lead" style="color:#3adcf4"><b style="font-size: 1em;">'.$anioAnterior.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearAnterior, 2, ".", ",").'</b></p>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                      <p class="lead"><b>Ingrese los días del mes anterior a calcular</b></p>
                                     </div>
-                                    <div class="col-md-6">
-                                      <p class="lead" style="color:#7f0b0b"><b style="font-size: 1em;">'.$vtaAnualActual.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearEmpresa, 2, ".", ",").'</b></p>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                      <input id="diasAnterior" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 20" required>
                                     </div>
                                   </div>
-                                  <h5 class="description-header">Se presenta el reporte de ventas anuales.</h5>
                                 </div>
-                                <!-- /.description-block -->
-                              </div>
-                              <!-- /.col -->
-                            </div>
-                            <!-- /.row -->
-                            <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
-                          </div>
-                          <!-- /.box-footer -->
-                        </div>
-                        <!-- /.box -->
-                      </div>
-                      <!-- /.col -->
-                    </div>
-                    <!-- /.row -->';
-      // TODO hacer consultas por vendedor, por tipo de cliente y por tiempo de morosidad.
-      $hoy = date('Y-m-d');
-
-      $getMorosidad = "SELECT 
-                    SUM((SELECT (SELECT (d.totalpagado - d.total)) FROM DUAL)) as TotalDeuda
-                    FROM doc d
-                    WHERE d.total > d.totalpagado
-                        AND d.tipo = 'F'
-                        AND (SELECT DATEDIFF(d.vence, '".$hoy."')) < 0";
-      $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
-      $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
-      $MorosidadF = $rowMorosidad[0]*(-1);
-      $Morosidad = number_format($MorosidadF, 2, ".", ",");
-
-      $get030DiasDist = "SELECT 
-                    SUM((SELECT (SELECT (d.totalpagado - d.total)) FROM DUAL)) as TotalDeuda
-                    FROM doc d
-                    WHERE d.total > d.totalpagado
-                        AND d.tipo = 'F'
-                        AND (SELECT DATEDIFF(d.vence, '".$hoy."')) >= -30
-                        AND (SELECT DATEDIFF(d.vence, '".$hoy."')) < 0
-                    ORDER BY d.vence ASC";
-      $resultGet030Dist = mysqli_query($getConnection,$get030DiasDist);
-      $row030Dist = mysqli_fetch_array($resultGet030Dist);
-      $dias030DistF = $row030Dist[0]*(-1);
-      $dias030Dist = number_format($dias030DistF, 2, ".", ",");
-
-      $get3060DiasDist = "SELECT
-                    SUM((SELECT (SELECT (d.totalpagado - d.total)) FROM DUAL)) as TotalDeuda
-                    FROM doc d
-                    WHERE d.total > d.totalpagado
-                        AND d.tipo = 'F'
-                        AND (SELECT DATEDIFF(d.vence, '".$hoy."')) >= -60
-                        AND (SELECT DATEDIFF(d.vence, '".$hoy."')) < -30
-                    ORDER BY d.vence ASC";
-      $resultGet3060Dist = mysqli_query($getConnection,$get3060DiasDist);
-      $row3060Dist = mysqli_fetch_array($resultGet3060Dist);
-      $dias3060DistF = $row3060Dist[0]*(-1);
-      $dias3060Dist = number_format($dias3060DistF, 2, ".", ",");
-
-      $get6090DiasDist = "SELECT 
-                    SUM((SELECT (SELECT (d.totalpagado - d.total)) FROM DUAL)) as TotalDeuda
-                    FROM doc d
-                    WHERE d.total > d.totalpagado
-                        AND d.tipo = 'F'
-                        AND (SELECT DATEDIFF(d.vence, '".$hoy."')) >= -90
-                        AND (SELECT DATEDIFF(d.vence, '".$hoy."')) < -60
-                    ORDER BY d.vence ASC";
-      $resultGet6090Dist = mysqli_query($getConnection,$get6090DiasDist);
-      $row6090Dist = mysqli_fetch_array($resultGet6090Dist);
-      $dias6090DistF = $row6090Dist[0]*(-1);
-      $dias6090Dist = number_format($dias6090DistF, 2, ".", ",");
-
-      $get90DiasDist = "SELECT
-                    SUM((SELECT (SELECT (d.totalpagado - d.total)) FROM DUAL)) as TotalDeuda
-                    FROM doc d
-                    WHERE d.total > d.totalpagado
-                        AND d.tipo = 'F'
-                        AND (SELECT DATEDIFF(d.vence, '".$hoy."')) < -90
-                    ORDER BY d.vence ASC";
-      $resultGet90Dist = mysqli_query($getConnection,$get90DiasDist);
-      $row90Dist = mysqli_fetch_array($resultGet90Dist);
-      $dias90DistF = $row90Dist[0]*(-1);
-      $dias90Dist = number_format($dias90DistF, 2, ".", ",");
-
-      $print .=     '<div class="row">
-                      <div class="col-md-12">
-                        <div class="box">
-                          <div class="box-header with-border">
-                              <h3 class="box-title">Cuentas por Cobrar</h3>
-                          </div>
-                          <!-- /.box-header -->
-                          <div class="box-body">
-                            <div class="row">
-                              <div class="col-md-12 col-sm-12">
-                                <div clas="row">
-                                  <div class="col-md-12 col-sm-12">
-                                    <h4 class="text-center">Cartera Vencida Total</h4>
-                                    <p class="text-center" style="color:red; font-weight:bold;font-size: 2em;">$ '.$Morosidad.'</p>
-                                    <div>
-                                      <table class="table table-striped">
-                                        <thead class="thead-inverse">
-                                          <tr>
-                                            <th class="text-center"></th>
-                                            <th class="text-center">0 - 30 Días</th>
-                                            <th class="text-center">31 - 60 Días</th>
-                                            <th class="text-center">61 - 90 Días</th>
-                                            <th class="text-center">+ 90 Días</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          <tr>
-                                            <th scope="row" class="text-center">Importe</th>';
-
-      if($dias030Dist > 0){
-        $print .=                           '<td class="text-center" style="font-weight:bold;color:red;">$ '.$dias030Dist.' <a href="#" style="color: red;" onClick="showMorosidad(0, 1);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
-      } else {
-        $print .=                           '<td class="text-center">$ '.$dias030Dist.'</td>';
-      }
-
-      if($dias3060Dist > 0){
-        $print .=                           '<td class="text-center" style="font-weight:bold;color:red;">$ '.$dias3060Dist.' <a href="#" style="color: red;" onClick="showMorosidad(0, 2);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
-      } else {
-        $print .=                           '<td class="text-center">$ '.$dias3060Dist.'</td>';
-      }
-
-      if($dias6090Dist > 0){
-        $print .=                           '<td class="text-center" style="font-weight:bold;color:red;">$ '.$dias6090Dist.' <a href="#" style="color: red;" onClick="showMorosidad(0, 3);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
-      } else {
-        $print .=                           '<td class="text-center">$ '.$dias6090Dist.'</td>';
-      }
-
-      if($dias90Dist > 0){
-        $print .=                           '<td class="text-center" style="font-weight:bold;color:red;">$ '.$dias90Dist.' <a href="#" style="color: red;" onClick="showMorosidad(0, 4);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
-      } else {
-        $print .=                           '<td class="text-center">$ '.$dias90Dist.'</td>';
-      }
-
-      $print .=                           '</tr>
-                                        </tbody>
-                                      </table>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                      <p class="lead"><b>Ingrese los días que han pasado</b></p>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                      <input id="diasConteo" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 11" required>
                                     </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                          <div class="box-footer">
-                            <div class="row">
-                              <div class="col-sm-12 col-xs-12">';
-        $print .=               '<div class="description-block">
-                                  <h5 class="description-header">Se presenta el reporte de cuentas por cobrar.</h5>
-                                </div>
+                              <div id="botonCalcular" class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12" style="padding: 10px;">
+                                <input class="btn btn-success" type="submit" name="" value="Calcular" onClick="calcular();">
                               </div>
-                              <!-- /.col -->
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="ventaPorDiaActual"></div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="ventaPorDiaAnterior"></div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="pronosticoMensual"></div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="proyeccionCierre"></div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12" id="ventaPorDiaIgualar"></div>
+                              </div>
+                              <script src="../intranet/js/calculos.js"></script>
+                            </div>';
+    $print .=               '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                              <h5 class="text-center lead">Se presenta el reporte de ventas al mes, en comparación con el anterior y con el mejor mes.</h5>
+                              <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
                             </div>
-                            <!-- /.row -->
-                            <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
                           </div>
-                          <!-- /.box-footer -->
                         </div>
                       </div>
                     </div>';
-      $print .=   '</section>
-                  <!-- /.content -->
+    $vtaAnualActual = date("Y");
+    $print .=       '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB">
+                      <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                          <div class="row infoCard">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                              <h3>Reporte de Venta</h3>
+                              <h4><b>'.date("Y").' <em style="font-size: 0.5em;">Vs</em> '.$anioAnterior.' <em style="font-size: 0.5em;">Vs</em> Empresa</b></h4>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                              <canvas id="areaChartAnual" style="height:250px"></canvas>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                                  <p class="lead" style="color:#3adcf4"><b style="font-size: 1em;">'.$anioAnterior.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearAnterior, 2, ".", ",").'</b></p>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                                  <p class="lead text-redGraf"><b style="font-size: 1em;">'.$vtaAnualActual.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearEmpresa, 2, ".", ",").'</b></p>
+                                </div>
+                              </div>
+                              <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>';
+
+    $print .=     '</div>
                 </div>
-                <!-- /.content-wrapper -->
-              </div>'; // End div row
+              </div>';
+
+    // TODO hacer consultas por vendedor, por tipo de cliente y por tiempo de morosidad.
+    $getMorosidad = "SELECT 
+                  SUM(d.totalpagado - d.total) as TotalDeuda
+                  FROM doc d
+                  WHERE d.total > d.totalpagado
+                    AND d.tipo = 'F'
+                    AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+    $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
+    $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
+    $MorosidadF = $rowMorosidad[0]*(-1);
+    $Morosidad = number_format($MorosidadF, 2, ".", ",");
+
+    $get030DiasDist = "SELECT 
+                  SUM(d.totalpagado - d.total) as TotalDeuda
+                  FROM doc d
+                  WHERE d.total > d.totalpagado
+                      AND d.tipo = 'F'
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -30
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0
+                  ORDER BY d.vence ASC";
+    $resultGet030Dist = mysqli_query($getConnection,$get030DiasDist);
+    $row030Dist = mysqli_fetch_array($resultGet030Dist);
+    $dias030DistF = $row030Dist[0]*(-1);
+    $dias030Dist = number_format($dias030DistF, 2, ".", ",");
+
+    $get3060DiasDist = "SELECT
+                  SUM(d.totalpagado - d.total) as TotalDeuda
+                  FROM doc d
+                  WHERE d.total > d.totalpagado
+                      AND d.tipo = 'F'
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -60
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -30
+                  ORDER BY d.vence ASC";
+    $resultGet3060Dist = mysqli_query($getConnection,$get3060DiasDist);
+    $row3060Dist = mysqli_fetch_array($resultGet3060Dist);
+    $dias3060DistF = $row3060Dist[0]*(-1);
+    $dias3060Dist = number_format($dias3060DistF, 2, ".", ",");
+
+    $get6090DiasDist = "SELECT 
+                  SUM(d.totalpagado - d.total) as TotalDeuda
+                  FROM doc d
+                  WHERE d.total > d.totalpagado
+                      AND d.tipo = 'F'
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -90
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -60
+                  ORDER BY d.vence ASC";
+    $resultGet6090Dist = mysqli_query($getConnection,$get6090DiasDist);
+    $row6090Dist = mysqli_fetch_array($resultGet6090Dist);
+    $dias6090DistF = $row6090Dist[0]*(-1);
+    $dias6090Dist = number_format($dias6090DistF, 2, ".", ",");
+
+    $get90DiasDist = "SELECT
+                  SUM(d.totalpagado - d.total) as TotalDeuda
+                  FROM doc d
+                  WHERE d.total > d.totalpagado
+                      AND d.tipo = 'F'
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90
+                  ORDER BY d.vence ASC";
+    $resultGet90Dist = mysqli_query($getConnection,$get90DiasDist);
+    $row90Dist = mysqli_fetch_array($resultGet90Dist);
+    $dias90DistF = $row90Dist[0]*(-1);
+    $dias90Dist = number_format($dias90DistF, 2, ".", ",");
+
+    $print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB">
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                    <h3>Cuentas por Cobrar</h3>
+                    <h4>Cartera Vencida Total</h4>
+                    <p class="text-redGraf" style="font-weight:bold;font-size: 2em;">$ '.$Morosidad.'</p>
+                    <table class="table table-striped table-dark">
+                      <thead class="thead-inverse">
+                        <tr>
+                          <th class="text-center"></th>
+                          <th class="text-center">0 - 30 Días</th>
+                          <th class="text-center">31 - 60 Días</th>
+                          <th class="text-center">61 - 90 Días</th>
+                          <th class="text-center">+ 90 Días</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th scope="row" class="text-center">Importe</th>';
+
+      if($dias030Dist > 0){
+        $print .=           '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias030Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad(0, 1);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+      } else {
+        $print .=           '<td class="text-center">$ '.$dias030Dist.'</td>';
+      }
+
+      if($dias3060Dist > 0){
+        $print .=           '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias3060Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad(0, 2);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+      } else {
+        $print .=           '<td class="text-center">$ '.$dias3060Dist.'</td>';
+      }
+
+      if($dias6090Dist > 0){
+        $print .=           '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias6090Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad(0, 3);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+      } else {
+        $print .=           '<td class="text-center">$ '.$dias6090Dist.'</td>';
+      }
+
+      if($dias90Dist > 0){
+        $print .=           '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias90Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad(0, 4);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+      } else {
+        $print .=           '<td class="text-center">$ '.$dias90Dist.'</td>';
+      }
+
+      $print .=           '</th>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <h5>Se presenta el reporte de cuentas por cobrar.</h5>
+                    <p class="lead">La información mostrada es de solo carácter informativo.</p>
+                  </div>
+                </div>
+              </div>';
     echo $print;
     $getConnection->close();
   }
@@ -1201,18 +1185,25 @@ class Report {
     }
 
     //Se obtiene los datos del vendedor
-    $queryPer = "SELECT p.nombre, v.foto, v.tel, p.ingreso, p.sermov
+    $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+    $queryPerDat = "SELECT v.foto, v.tel
+                    FROM vendedores v
+                    WHERE vendedorid = $perid";
+
+    $resultadoPerDat = mysqli_query($mysqliCon,$queryPerDat);
+    $filaPerDat = mysqli_fetch_array($resultadoPerDat);
+    $foto = $filaPerDat[0];
+    $tel = $filaPerDat[1];
+    
+    $queryPer = "SELECT p.nombre, p.ingreso, p.sermov
                     FROM per p
-                      JOIN vendedores v ON v.vendedorid = p.perid
                     WHERE perid = $perid";
 
     $resultadoPer = mysqli_query($getConnection,$queryPer);
     $filaPer = mysqli_fetch_array($resultadoPer);
     $nombre = $filaPer[0];
-    $foto = $filaPer[1];
-    $tel = $filaPer[2];
-    $ingreso = $filaPer[3];
-    $sermov = $filaPer[4];
+    $ingreso = $filaPer[1];
+    $sermov = $filaPer[2];
 
     if($sermov == 1){
       $zona = 1;
@@ -1223,25 +1214,20 @@ class Report {
     }
 
     //Se hace la busqueda de ventas totales del Dia
-    $queryVtaDia = "SELECT (
-                            SELECT CASE
-                            WHEN TOTAL > 0
-                            THEN SUM((SELECT (SUBTOTAL2) FROM DUAL))
-                            END
-                            ) AS total
+    $queryVtaDia = "SELECT SUM(SUBTOTAL2) AS total
                             FROM doc
                           WHERE vendedorid = $perid
                             AND fecha = '$dia'
                             AND tipo = 'F'
-                            AND totalpagado = total
                             AND subtotal2 > 0
                             AND FECCAN = 0";
-    $resultQueryDia = $getConnection->query($queryVtaDia);
-    $qVtaDia = mysqli_fetch_array($resultQueryDia);
+    $resultQueryDia = mysqli_query($getConnection,$queryVtaDia);
+    $qVtaDia = mysqli_fetch_row($resultQueryDia);
+    $qPedDia = mysqli_num_rows($resultQueryDia);
     if($qVtaDia === NULL){
       $totalVentaDia = 0;
     } else {
-      $totalVentaDia = $qVtaDia['total'];
+      $totalVentaDia = $qVtaDia[0];
     }
     $formatTotalVentaDia = number_format($totalVentaDia, 2, '.',',');
 
@@ -1255,12 +1241,7 @@ class Report {
     $primerDia=date("Y-m-d",mktime(0,0,0,$month,$day-$diaSemana+1,$year));
     # A la fecha recibida, le sumamos el dia de la semana menos siete y obtendremos el domingo
     $ultimoDia=date("Y-m-d",mktime(0,0,0,$month,$day+(7-$diaSemana),$year));
-    $queryVtaSemana = "SELECT (
-                            SELECT CASE
-                            WHEN TOTAL > 0
-                            THEN SUM((SELECT (SUBTOTAL2) FROM DUAL))
-                            END
-                            ) AS total
+    $queryVtaSemana = "SELECT SUM(SUBTOTAL2) AS total
                             FROM doc
                           WHERE vendedorid = $perid
                             AND (
@@ -1268,7 +1249,6 @@ class Report {
                                 AND fecha >= '$primerDia' 
                                 )
                             AND tipo = 'F'
-                            AND totalpagado = total
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQuerySemana = $getConnection->query($queryVtaSemana);
@@ -1284,12 +1264,7 @@ class Report {
     $diaFinal = date("d", mktime(0,0,0, $month+1, 0, $year));
     $primerDiaMes = date('Y-m-d', mktime(0,0,0, $month, 1, $year));
     $ultimoDiaMes = date('Y-m-d', mktime(0,0,0, $month, $diaFinal, $year));
-    $queryVtaMes = "SELECT (
-                            SELECT CASE
-                            WHEN TOTAL > 0
-                            THEN SUM((SELECT (SUBTOTAL2) FROM DUAL))
-                            END
-                            ) AS total
+    $queryVtaMes = "SELECT SUM(SUBTOTAL2) AS total
                             FROM doc
                           WHERE vendedorid = $perid
                             AND (
@@ -1297,7 +1272,6 @@ class Report {
                                 AND fecha >= '$primerDiaMes' 
                                 )
                             AND tipo = 'F'
-                            AND totalpagado = total
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQueryMes = $getConnection->query($queryVtaMes);
@@ -1311,12 +1285,7 @@ class Report {
 
 
     //Se hace la busqueda de ventas totales del Trimestre
-    $queryVtaTrimestre = "SELECT (
-                            SELECT CASE
-                            WHEN TOTAL > 0
-                            THEN SUM((SELECT (SUBTOTAL2) FROM DUAL))
-                            END
-                            ) AS total
+    $queryVtaTrimestre = "SELECT SUM(SUBTOTAL2) AS total
                             FROM doc
                           WHERE vendedorid = $perid
                             AND (
@@ -1324,7 +1293,6 @@ class Report {
                                 AND fecha >= '$primerDiaTrimestre' 
                                 )
                             AND tipo = 'F'
-                            AND totalpagado = total
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQueryTrimestre = $getConnection->query($queryVtaTrimestre);
@@ -1429,7 +1397,6 @@ class Report {
                                   AND fecha >= '".$fecActIni."'
                                   AND fecha <= '".$fecActFin."'
                                   AND tipo = 'F'
-                                  AND totalpagado = total
                                   AND subtotal2 > 0
                                   AND FECCAN = 0";
     $resultQueryvtd = $getConnection->query($queryVtaTotalDia);
@@ -1442,15 +1409,12 @@ class Report {
 
     //Reporte Anterior
     /*echo            "<p>Ventas Anteriores</p>";*/
-    $queryVtaTotalDiaAnt = "SELECT (
-                                      SUM((SELECT (SUBTOTAL2) FROM DUAL))
-                                    ) AS total
+    $queryVtaTotalDiaAnt = "SELECT SUM(SUBTOTAL2) AS total
                                   FROM doc
                                   WHERE vendedorid = $perid
                                     AND fecha >= '".$fecAnteIni."'
                                     AND fecha <= '".$fecAnteFin."'
                                     AND tipo = 'F'
-                                    AND totalpagado = total
                                     AND subtotal2 > 0
                                     AND FECCAN = 0";
     $resultQueryvtdAnt = $getConnection->query($queryVtaTotalDiaAnt);
@@ -1491,7 +1455,6 @@ class Report {
                                       AND fecha >= '".${'fecIniQ'.$y}."'
                                     )
                               AND tipo = 'F'
-                              AND totalpagado = total
                               AND FECCAN = 0";
       $buscandoMes = $getConnection->query($buscandoAnual);
       $mesEnc = mysqli_fetch_row($buscandoMes);
@@ -1536,7 +1499,6 @@ class Report {
                                       AND fecha >= '".${'fecIniQ'.$y}."'
                                     )
                               AND tipo = 'F'
-                              AND totalpagado = total
                               AND FECCAN = 0";
       $buscandoMes = $getConnection->query($buscandoAnual);
       $mesEnc = mysqli_fetch_row($buscandoMes);
@@ -1575,7 +1537,6 @@ class Report {
                               ) AS dato".$y."
                               FROM doc
                               WHERE tipo = 'F'
-                                AND totalpagado = total
                                 AND (
                                       fecha <= '".${'fecFinQ'.$y}."'
                                       AND fecha >= '".${'fecIniQ'.$y}."'
@@ -1599,15 +1560,26 @@ class Report {
     $anioAnterior = date('Y')-1;
     for($mAnt = 1; $mAnt <= 12; $mAnt++){
 
-      if($diasTotalMes < 30){
-        ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
-        ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-28');
-      } else if($diasTotalMes > 30){
+      // if($diasTotalMes < 30){
+      //   ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
+      //   ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-28');
+      // } else if($diasTotalMes > 30){
+      //   ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
+      //   ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-31');
+      // } else {
+      //   ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
+      //   ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-30');
+      // }
+
+      if($mAnt == 1 || $mAnt == 3 || $mAnt == 5 || $mAnt == 7 || $mAnt == 8 || $mAnt == 10 || $mAnt == 12){
         ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
         ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-31');
-      } else {
+      } elseif($mAnt == 4 || $mAnt == 6 || $mAnt == 9 || $mAnt == 7 || $mAnt == 11){
         ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
         ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-30');
+      } elseif($mAnt == 2){
+        ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
+        ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-28');
       }
 
       $buscandoAnual= "SELECT (
@@ -1625,7 +1597,6 @@ class Report {
                                       AND fecha >= '".${'fecIniQ'.$mAnt}."'
                                     )
                               AND tipo = 'F'
-                              AND totalpagado = total
                               AND FECCAN = 0";
       $buscandoMes = $getConnection->query($buscandoAnual);
       $mesEnc = mysqli_fetch_row($buscandoMes);
@@ -1685,285 +1656,241 @@ class Report {
                 </div>
               </div>";*/
 
-    $print =  '<div class="row" style="margin: 55px 0 0 0;">
-                <div class="content-wrapper">
-                  <!-- Content Header (Page header) -->
-                  <section class="content-header">
-                    <div class="row">
-                      <div class="col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                        <div class="col-sm-6 col-md-2 text-center">
-                          <img src="../img/img_pro/vendedores/'.$foto.'" class="img-circle img-fluid" alt="'.$foto.'" width="130">
-                        </div>
-                        <div class="col-sm-6 col-md-8">
-                          <h1 class="display-4">
-                            <span>'.$nombre.'</span> 
-                          </h1>
-                          <h1>
-                            <small>Tel.: '.$tel.'</small>
-                          </h1>
-                        </div>
-                        <div class="col-sm-6 col-md-2 text-center">
-                          <h3>
-                            <small style="font-weight:bold;">Fecha de Ingreso<br />'.$ingreso.'</small>
-                          </h3>
-                          <h3>
-                            <small style="font-weight:bold;">Zona: '.$zona.'</small>
-                          </h3>
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT">
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                    <div class="row infoCard">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 text-input">
+                            <img src="../img/vendedores/'.$foto.'" class="rounded-circle img-fluid" alt="'.$foto.'" />
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                            <h5>
+                              <span><b>#'.$perid.'</b></span> - '.$nombre.'
+                              <small class="text-green">ZONA '.$zona.'</small>
+                            </h5>
+                            <h5>
+                              <span>Tel.: '.$tel.'</span>
+                            </h5>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </section>
-                  <!-- Main content -->
-                  <section class="content">
-                    <!-- Info boxes -->
-                    <div class="row">
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-red"><i class="fas fa-stopwatch" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <div class="col-md-12">
-                              <div class="row">
-                                <div class="col-md-6">
-                                  <span class="info-box-text">VENTAS AL DIA</span>
-                                  <span class="info-box-number" style="font-size: 1.7em !important;">$ '.$formatTotalVentaDia.'</span>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                            <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                                <div class="form-group">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                      <span>Ventas al día</span>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                      <div class="row">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+                                          <input type="text" class="form-control" value="$ '.$formatTotalVentaDia.'" readonly />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div class="col-md-6">
-                                  <span class="info-box-text">PEDIDOS AL DIA</span>
-                                  <span class="info-box-number" style="font-size: 1.7em !important;">#</span>
+                                <div class="form-group">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                      <span>Pedidos al día</span>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                      <div class="row">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+                                          <input type="text" class="form-control" value="'.$qPedDia.'" readonly />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="form-group">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                      <span>Ventas al mes</span>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                      <div class="row">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+                                          <input type="text" class="form-control" value="$ '.$formatTotalVentaMes.'" readonly />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                                <div class="form-group">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                      <span>Ventas a la semana</span>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                      <div class="row">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+                                          <input type="text" class="form-control" value="$ '.$formatTotalVentaSemana.'" readonly />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="form-group">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                      <span>Ventas al trimestre</span>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                      <div class="row">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+                                          <input type="text" class="form-control" value="$ '.$formatTotalVentaTrimestre.'" readonly />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                          <!-- /.info-box-content -->
                         </div>
-                        <!-- /.info-box -->
                       </div>
-                      <!-- /.col -->
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-aqua"><i class="fa fa-table" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">VENTAS A LA SEMANA</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">$ '.$formatTotalVentaSemana.'</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
                     </div>
-                    <!-- /.row -->
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficasGeneral">
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                    <h3>Venta Mensual</h3>
+                    <h4Venta Mensual de <b>'.$mes.'</b> del <b>'.date("Y").'</b></h4>
+                      <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficos">
+                          <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
+                          <p id="mesActual" style="display: none;">'.$totalVentaMes.'</p>
+                          <p id="mesAnterior" style="display: none;">'.$vAnt.'</p>
+                          <p id="mejorMes" style="display: none;">'.$vMejor.'</p>
+                          <p id="mesMej" style="display: none;">'.$mesMej.'</p>
+                          <canvas id="areaChart" style="height:450px;"></canvas>
+                        </div>
+                        <script src="../intranet/js/Chart.js"></script>
+                        <script src="../intranet/js/graficas.js"></script>
+                      </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                        <span class="text-redGraf">
+                          Ventas del Mes pasado<br /><b style="font-size: 2em;">$ '.number_format($vAnt, 2, ".", ",").'</b>
+                        </span>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                        <span class="text-blue">
+                          Venta Actual<br /><b style="font-size: 2em;">$ '.number_format($totalVentaMes, 2, ".", ",").'</b>
+                        </span>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                        <span class="text-green">
+                          Ventas del Mejor Mes<br /><b style="font-size: 2em;">$ '.number_format($vMejor, 2, ".", ",").'</b>
+                        </span>
+                        <p class="text-green" style="font-weight:bold">'.$mesMej.' '.$anioAnterior.'</p>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                      <h1 class="display-4">Proyección de Cierre</h1>
+                      <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                          <div class="row">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                              <p class="lead"><b>Ingrese los días del mes actual a calcular</b></p>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                              <input id="diasActual" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 25" required>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                          <div class="row">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                              <p class="lead"><b>Ingrese los días del mes anterior a calcular</b></p>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                              <input id="diasAnterior" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 20" required>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                          <div class="row">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                              <p class="lead"><b>Ingrese los días que han pasado</b></p>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                              <input id="diasConteo" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 11" required>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div id="botonCalcular" class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12" style="padding: 10px;">
+                        <input class="btn btn-success" type="submit" name="" value="Calcular" onClick="calcular();">
+                      </div>
+                      <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="ventaPorDiaActual"></div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="ventaPorDiaAnterior"></div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="pronosticoMensual"></div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="proyeccionCierre"></div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12" id="ventaPorDiaIgualar"></div>
+                      </div>
+                      <script src="../intranet/js/calculos.js"></script>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                      <h5 class="text-center lead">Se presenta el reporte de ventas al mes, en comparación con el anterior y con el mejor mes.</h5>
+                      <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB">
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                    <div class="row infoCard">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                        <h3>Reporte de Venta</h3>
+                        <h4 class="text-center"><b>'.date("Y").' <em style="font-size: 0.5em;">Vs</em> '.$anioAnterior.' <em style="font-size: 0.5em;">Vs</em> Empresa</b></h4>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                        <canvas id="areaChartAnual" style="height:250px"></canvas>
+                      </div>
+                      <script src="../intranet/js/Chart.js"></script>
+                      <script src="../intranet/js/graficas.js"></script>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                            <p class="lead" style="color:#3adcf4"><b style="font-size: 1em;">'.$anioAnterior.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearAnterior, 2, ".", ",").'</b></p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                            <p class="lead text-redGraf" style="color:#b109ab"><b style="font-size: 1em;">'.date("Y").'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearActual , 2, ".", ",").'</b></p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                          <p class="lead text-redGraf"><b style="font-size: 1em;">Empresa '.date("Y").'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearEmpresa, 2, ".", ",").'</b></p>
+                          </div>
+                        </div>
+                        <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>';
 
-                    <div class="row">
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-yellow"><i class="far fa-calendar-alt" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">VENTAS AL MES</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                      <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="info-box">
-                          <span class="info-box-icon bg-fuchsia"><i class="fa fa-calendar" aria-hidden="true"></i></span>
-                          <div class="info-box-content">
-                            <span class="info-box-text">VENTAS AL TRIMESTRE</span>
-                            <span class="info-box-number" style="font-size: 1.7em !important;">$ '.$formatTotalVentaTrimestre.'</span>
-                          </div>
-                          <!-- /.info-box-content -->
-                        </div>
-                        <!-- /.info-box -->
-                      </div>
-                      <!-- /.col -->
-                    </div>
-                    <!-- /.row -->
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="box">
-                          <div class="box-header with-border">';
-        $print .=               '<h3 class="box-title">Venta Mensual</h3>
-                          </div>
-                          <!-- /.box-header -->
-                          <div class="box-body">
-                            <div class="row">
-                              <div class="col-md-12 col-sm-12">
-                                <p class="text-center">';
-        $print .=               '</p>
-                                <div clas="row">
-                                  <div class="col-md-12 col-sm-12">';
-        $print .=                   '<h4 class="text-center">Venta Mensual de <b>'.$mes.'</b> del <b>'.date("Y").'</b></h4>
-                                    <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
-                                    <p id="mesActual" style="display: none;">'.$totalVentaMes.'</p>
-                                    <p id="mesAnterior" style="display: none;">'.$vAnt.'</p>
-                                    <p id="mejorMes" style="display: none;">'.$vMejor.'</p>
-                                    <p id="mesMej" style="display: none;">'.$mesMej.'</p>
-                                    <div class="chart">
-                                      <canvas id="areaChart" style="height:250px;"></canvas>
-                                    </div>
-                                  </div>
-                                  <script src="../intranet/bower_components/jquery/dist/jquery.min.js"></script>
-                                  <script src="../intranet/dist/js/Chart.js"></script>
-                                  <script src="../intranet/dist/js/graficas.js"></script>
-                                </div>
-                                <!-- /.box-body -->
-                              </div>
-                              <!-- /.col -->
-                            </div>
-                            <!-- /.row -->
-                          </div>
-                          <!-- ./box-body -->
-                          <div class="box-footer">
-                            <div class="row">
-                              <div class="col-sm-12 col-xs-12">';
-          $print .=             '<div class="description-block">
-                                  <div class="row">
-                                    <div class="col-md-4">
-                                      <span class="description-percentage text-red" style="font-weight:bold;">
-                                        Ventas del Mes pasado<br /><b style="font-size: 2em;">$ '.number_format($vAnt, 2, ".", ",").'</b>
-                                      </span>
-                                    </div>
-                                    <div class="col-md-4">
-                                      <span class="description-percentage text-blue" style="font-weight:bold;">
-                                        Venta Actual<br /><b style="font-size: 2em;">$ '.number_format($totalVentaMes, 2, ".", ",").'</b>
-                                      </span>
-                                    </div>
-                                    <div class="col-md-4">
-                                      <span class="description-percentage text-green" style="font-weight:bold;">
-                                        Ventas del Mejor Mes<br /><b style="font-size: 2em;">$ '.number_format($vMejor, 2, ".", ",").'</b>
-                                      </span>
-                                      <p class="text-green" style="font-weight:bold">'.$mesMej.' '.$anioAnterior.'</p>
-                                    </div>
-                                  </div>
-                                  <div class="col-md-12 text-center">
-                                    <h1 class="display-4">Proyección de Cierre</h1>
-                                    <div class="row">
-                                      <div class="col-md-4">
-                                        <div class="row">
-                                          <div class="col-md-12">
-                                            <p class="lead"><b>Ingrese los días del mes actual a calcular</b></p>
-                                          </div>
-                                          <div class="col-md-12">
-                                            <input id="diasActual" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 25" required>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div class="col-md-4">
-                                        <div class="row">
-                                          <div class="col-md-12">
-                                            <p class="lead"><b>Ingrese los días del mes anterior a calcular</b></p>
-                                          </div>
-                                          <div class="col-md-12">
-                                            <input id="diasAnterior" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 20" required>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div class="col-md-4">
-                                        <div class="row">
-                                          <div class="col-md-12">
-                                            <p class="lead"><b>Ingrese los días que han pasado (días hábiles)</b></p>
-                                          </div>
-                                          <div class="col-md-12">
-                                            <input id="diasConteo" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 11" required>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div id="botonCalcular" class="col-md-12" style="margin: 10px 0 10px 0;">
-                                      <input class="btn btn-success" type="submit" name="" value="Calcular" onClick="calcular();">
-                                    </div>
-                                    <div class="row">
-                                      <div class="col-md-6" id="ventaPorDiaActual"></div>
-                                      <div class="col-md-6" id="ventaPorDiaAnterior"></div>
-                                      <div class="col-md-6" id="pronosticoMensual"></div>
-                                      <div class="col-md-6" id="proyeccionCierre"></div>
-                                      <div class="col-md-12" id="ventaPorDiaIgualar"></div>
-                                    </div>
-                                    <script src="../js/calculos.js"></script>
-                                  </div>';
-        $print .=                 '<div class="col-md-12">
-                                    <h5 class="text-center lead">Se presenta el reporte de ventas al mes, en comparación con el anterior y con el mejor mes.</h5>
-                                  </div>
-                                </div>
-                                <!-- /.description-block -->
-                              </div>
-                              <!-- /.col -->
-                            </div>
-                            <!-- /.row -->
-                            <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
-                          </div>
-                          <!-- /.box-footer -->
-                        </div>
-                        <!-- /.box -->
-                      </div>
-                      <!-- /.col -->
-                    </div>
-                    <!-- /.row -->';
-        $print .=   '<div class="row">
-                      <div class="col-md-12">
-                        <div class="box">
-                          <div class="box-header with-border">
-                              <h3 class="box-title">Reporte de Venta</h3>
-                          </div>
-                          <!-- /.box-header -->
-                          <div class="box-body">
-                            <div class="row">
-                              <div class="col-md-12 col-sm-12">
-                                <p class="text-center">';
-        $print .=                   '</p>
-                                <div clas="row">
-                                  <div class="col-md-12 col-sm-12">';
-        $print .=                   '<h4 class="text-center"><b>'.date("Y").' <em style="font-size: 0.5em;">Vs</em> '.$anioAnterior.' <em style="font-size: 0.5em;">Vs</em> Empresa</b></h4>
-                                    <div class="chart">
-                                      <canvas id="areaChartAnual" style="height:250px"></canvas>
-                                    </div>
-                                  </div>
-                                </div>
-                                <!-- /.box-body -->
-                              </div>
-                              <!-- /.col -->
-                            </div>
-                            <!-- /.row -->
-                          </div>
-                          <!-- ./box-body -->
-                          <div class="box-footer">
-                            <div class="row">
-                              <div class="col-sm-12 col-xs-12">';
-        $vtaAnualActual = date("Y");
-        $print .=               '<div class="description-block">
-                                  <div class="row">
-                                    <div class="col-md-4">
-                                      <p class="lead" style="color:#3adcf4"><b style="font-size: 1em;">'.$anioAnterior.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearAnterior, 2, ".", ",").'</b></p>
-                                    </div>
-                                    <div class="col-md-4">
-                                      <p class="lead" style="color:#b109ab"><b style="font-size: 1em;">'.$vtaAnualActual.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearActual, 2, ".", ",").'</b></p>
-                                    </div>
-                                    <div class="col-md-4">
-                                      <p class="lead" style="color:#7f0b0b"><b style="font-size: 1em;">Empresa '.$vtaAnualActual.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearEmpresa, 2, ".", ",").'</b></p>
-                                    </div>
-                                  </div>
-                                  <h5 class="description-header">Se presenta el reporte de ventas anuales.</h5>
-                                </div>
-                                <!-- /.description-block -->
-                              </div>
-                              <!-- /.col -->
-                            </div>
-                            <!-- /.row -->
-                            <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
-                          </div>
-                          <!-- /.box-footer -->
-                        </div>
-                        <!-- /.box -->
-                      </div>
-                      <!-- /.col -->
-                    </div>
-                    <!-- /.row -->';
       // TODO hacer consultas por vendedor, por tipo de cliente y por tiempo de morosidad.
       $getMorosidad = "SELECT 
-                    SUM((SELECT (SELECT (d.totalpagado - d.total)) FROM DUAL)) as TotalDeuda
+                    SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
@@ -1979,14 +1906,13 @@ class Report {
       $Morosidad = number_format($MorosidadF, 2, ".", ",");
 
       $get030DiasDist = "SELECT 
-                    SUM((SELECT (SELECT (d.totalpagado - d.total)) FROM DUAL)) as TotalDeuda
+                    SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
                         AND d.tipo = 'F'
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -30
-                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0
-                    ORDER BY d.vence ASC";
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
       $resultGet030Dist = mysqli_query($getConnection,$get030DiasDist);
       $row030Dist = mysqli_fetch_array($resultGet030Dist);
       if($row030Dist === NULL){
@@ -1997,17 +1923,16 @@ class Report {
       $dias030Dist = number_format($dias030DistF, 2, ".", ",");
 
       $get3060DiasDist = "SELECT
-                    SUM((SELECT (SELECT (d.totalpagado - d.total)) FROM DUAL)) as TotalDeuda
+                    SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
                         AND d.tipo = 'F'
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -60
-                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -30
-                    ORDER BY d.vence ASC";
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -30";
       $resultGet3060Dist = mysqli_query($getConnection,$get3060DiasDist);
       $row3060Dist = mysqli_fetch_array($resultGet3060Dist);
-      if($row3060Dist){
+      if($row3060Dist === NULL){
         $dias3060DistF = 0;
       } else {
         $dias3060DistF = $row3060Dist[0]*(-1);
@@ -2015,14 +1940,13 @@ class Report {
       $dias3060Dist = number_format($dias3060DistF, 2, ".", ",");
 
       $get6090DiasDist = "SELECT 
-                    SUM((SELECT (SELECT (d.totalpagado - d.total)) FROM DUAL)) as TotalDeuda
+                    SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
                         AND d.tipo = 'F'
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -90
-                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -60
-                    ORDER BY d.vence ASC";
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -60";
       $resultGet6090Dist = mysqli_query($getConnection,$get6090DiasDist);
       $row6090Dist = mysqli_fetch_array($resultGet6090Dist);
       if($row6090Dist === NULL){
@@ -2033,107 +1957,78 @@ class Report {
       $dias6090Dist = number_format($dias6090DistF, 2, ".", ",");
 
       $get90DiasDist = "SELECT 
-                    SUM((SELECT (SELECT (d.totalpagado - d.total)) FROM DUAL)) as TotalDeuda
+                    SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
                         AND d.tipo = 'F'
-                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90
-                    ORDER BY d.vence ASC";
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90";
       $resultGet90Dist = mysqli_query($getConnection,$get90DiasDist);
       $row90Dist = mysqli_fetch_array($resultGet90Dist);
-      if($row90Dist){
+      if($row90Dist === NULL){
         $dias90DistF = 0;
       } else {
-        $dias90DistF = $row90Dist[1]*(-1);
+        $dias90DistF = $row90Dist[0]*(-1);
       }
       $dias90Dist = number_format($dias90DistF, 2, ".", ",");
 
-      $print .=     '<div class="row">
-                      <div class="col-md-12">
-                        <div class="box">
-                          <div class="box-header with-border">
-                              <h3 class="box-title">Cuentas por Cobrar</h3>
-                          </div>
-                          <!-- /.box-header -->
-                          <div class="box-body">
-                            <div class="row">
-                              <div class="col-md-12 col-sm-12">
-                                <div clas="row">
-                                  <div class="col-md-12 col-sm-12">
-                                    <h4 class="text-center">Cartera Vencida Total</h4>
-                                    <p class="text-center" style="color:red; font-weight:bold;font-size: 2em;">$ '.$Morosidad.'</p>
-                                    <div>
-                                      <table class="table table-striped">
-                                        <thead class="thead-inverse">
-                                          <tr>
-                                            <th class="text-center"></th>
-                                            <th class="text-center">0 - 30 Días</th>
-                                            <th class="text-center">31 - 60 Días</th>
-                                            <th class="text-center">61 - 90 Días</th>
-                                            <th class="text-center">+ 90 Días</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          <tr>
-                                            <th scope="row" class="text-center">Importe</th>';
+      $print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB">
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                      <h3>Cuentas por Cobrar</h3>
+                      <h4>Cartera Vencida Total</h4>
+                      <p class="text-redGraf" style="font-weight:bold;font-size: 2em;">$ '.$Morosidad.'</p>
+                      <table class="table table-striped table-dark">
+                        <thead class="thead-inverse">
+                          <tr>
+                            <th class="text-center"></th>
+                            <th class="text-center">0 - 30 Días</th>
+                            <th class="text-center">31 - 60 Días</th>
+                            <th class="text-center">61 - 90 Días</th>
+                            <th class="text-center">+ 90 Días</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <th scope="row" class="text-center">Importe</th>';
 
-      if($dias030Dist > 0){
-        $print .=                           '<td class="text-center" style="font-weight:bold;color:red;">$ '.$dias030Dist.' <a href="#" style="color: red;" onClick="showMorosidad('.$perid.', 1);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
-      } else {
-        $print .=                           '<td class="text-center">$ '.$dias030Dist.'</td>';
-      }
+    if($dias030Dist > 0){
+    $print .=                 '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias030Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad('.$perid.', 1);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+    } else {
+    $print .=                 '<td class="text-center">$ '.$dias030Dist.'</td>';
+    }
 
-      if($dias3060Dist > 0){
-        $print .=                           '<td class="text-center" style="font-weight:bold;color:red;">$ '.$dias3060Dist.' <a href="#" style="color: red;" onClick="showMorosidad('.$perid.', 2);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
-      } else {
-        $print .=                           '<td class="text-center">$ '.$dias3060Dist.'</td>';
-      }
+    if($dias3060Dist > 0){
+    $print .=                 '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias3060Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad('.$perid.', 2);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+    } else {
+    $print .=                 '<td class="text-center">$ '.$dias3060Dist.'</td>';
+    }
 
-      if($dias6090Dist > 0){
-        $print .=                           '<td class="text-center" style="font-weight:bold;color:red;">$ '.$dias6090Dist.' <a href="#" style="color: red;" onClick="showMorosidad('.$perid.', 3);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
-      } else {
-        $print .=                           '<td class="text-center">$ '.$dias6090Dist.'</td>';
-      }
+    if($dias6090Dist > 0){
+    $print .=                 '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias6090Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad('.$perid.', 3);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+    } else {
+    $print .=                 '<td class="text-center">$ '.$dias6090Dist.'</td>';
+    }
 
-      if($dias90Dist > 0){
-        $print .=                           '<td class="text-center" style="font-weight:bold;color:red;">$ '.$dias90Dist.' <a href="#" style="color: red;" onClick="showMorosidad('.$perid.', 4);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
-      } else {
-        $print .=                           '<td class="text-center">$ '.$dias90Dist.'</td>';
-      }
+    if($dias90Dist > 0){
+    $print .=                 '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias90Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad('.$perid.', 4);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+    } else {
+    $print .=                 '<td class="text-center">$ '.$dias90Dist.'</td>';
+    }
 
-      $print .=                           '</tr>
-                                        </tbody>
-                                      </table>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="box-footer">
-                            <div class="row">
-                              <div class="col-sm-12 col-xs-12">';
-        $print .=               '<div class="description-block">
-                                  <h5 class="description-header">Se presenta el reporte de cuentas por cobrar.</h5>
-                                </div>
-                              </div>
-                              <!-- /.col -->
-                            </div>
-                            <!-- /.row -->
-                            <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
-                          </div>
-                          <!-- /.box-footer -->
-                        </div>
-                      </div>
-                    </div>';
-      $print .=   '</section>
-                  <!-- /.content -->
-                </div>
-                <!-- /.content-wrapper -->
-              </div>'; // End div row
+    $print .=               '</th>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <h5>Se presenta el reporte de cuentas por cobrar.</h5>
+                      <p class="lead">La información mostrada es de solo carácter informativo.</p>
+                    </div>
+                  </div>
+                </div>';
+
     echo $print;
     $getConnection->close();
+    $mysqliCon->close();
   }
 
   private function ShowDetailMor($params) {
@@ -2145,10 +2040,11 @@ class Report {
     $tiempoMor = $paramDb->SecureInput($params["tiempoMor"]);
     $hoyMor = date("Y-m-d");
     // TODO buscar morosidad por el tipo de tiempo, vendedor y lista de cliente
-    $getMor = "SELECT c.clienteid, c.numero, c.nombre, cfd.folio, (d.totalpagado - d.total) as total, (SELECT DATEDIFF(d.vence, '".$hoyMor."')) as dias
+    $getMor = "SELECT c.clienteid, c.numero, c.nombre, cfd.folio, (d.totalpagado - d.total) as total, (SELECT DATEDIFF(d.vence, '".$hoyMor."')) as dias, p.nombre as nombreVen
                     FROM doc d
                       JOIN cfd ON cfd.docid = d.docid
                       JOIN cli c ON c.clienteid = d.clienteid
+                      JOIN per p ON p.perid = d.vendedorid
                     WHERE d.total > d.totalpagado";
     if($perid > 0){
       $getMor .=      " AND d.vendedorid = $perid
@@ -2159,35 +2055,29 @@ class Report {
     // dependiendo del tiempo de morosidad (0-30 dias, etc) será el tipo de busqueda
     if($tiempoMor == 1){
       $periodo = "0-30 días";
-      $getMor .= " AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) >= -30
-                        AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) < 0
+      $getMor .=      " AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) >= -30
+                      AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) < 0
                     ORDER BY (SELECT DATEDIFF(d.vence, '".$hoyMor."')) ASC";
     } elseif($tiempoMor == 2){
       $periodo = "31-60 días";
-      $getMor .= " AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) >= -60
-                        AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) < -30
+      $getMor .=      " AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) >= -60
+                      AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) < -30
                     ORDER BY (SELECT DATEDIFF(d.vence, '".$hoyMor."')) ASC";
     } elseif($tiempoMor == 3){
       $periodo = "61-90 días";
-      $getMor .= " AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) >= -90
-                              AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) < -60
+      $getMor .=      " AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) >= -90
+                      AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) < -60
                     ORDER BY (SELECT DATEDIFF(d.vence, '".$hoyMor."')) ASC";
     } elseif($tiempoMor == 4){
       $periodo = "mayor de 90 días";
-      $getMor .= " AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) < -90
-                    ORDER BY (SELECT DATEDIFF(d.vence, '".$hoyMor."')) ASC";
+      $getMor .=      " AND (SELECT DATEDIFF(d.vence, '".$hoyMor."')) < -90
+                      ORDER BY (SELECT DATEDIFF(d.vence, '".$hoyMor."')) ASC";
     } else {
       $periodo = "Total";
-      $getMor .= "
-                    ORDER BY (SELECT DATEDIFF(d.vence, '".$hoyMor."')) ASC";
+      $getMor .=      " ORDER BY (SELECT DATEDIFF(d.vence, '".$hoyMor."')) ASC";
     }
-    /*$result = mysqli_query($getConnection, $getMor);*/
     $getMorosidadEx = $paramDb->Query($getMor);
     try {
-      /*$numeroR = mysqli_num_rows($result);
-      $filasM = mysqli_fetch_row($result);*/
-      /*$morososN = $result->num_rows;*/
-      /*$morososF = ;*/
       $numRow = $paramDb->NumRows();
       $rows = $paramDb->Rows();
 
@@ -2196,30 +2086,39 @@ class Report {
         $position = 0;
 
         // TODO make validation for user: registrado, publico and add column for get price
-        $headers = ["#", "NUMERO", "CLIENTE", "FACTURA", "DIAS VENCIDOS", "IMPORTE"];
-        $classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
+        $headers = ["#", "NUMERO", "CLIENTE", "FACTURA", "VENDEDOR", "DIAS VENCIDOS", "IMPORTE"];
+        $classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
 
-        echo "<div style='margin: 55px 0 0 0;'>";
-        echo  '<div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
-                <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
-                <img src="../img/img_pro/barrafmo2.gif" width="200"/>
-              </div>';
-        echo  "<div class='panel panel-default' style='margin:40px 15px 10px 250px;'>";
-        echo    "<div class='panel-heading'>";
+        echo '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
+                <h3>CARTERA <spam class="text-tomato">VENCIDA</spam></h3>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 edoctaScroll">
+                    <div class="row">';
 
         // TODO hacer boton de regresar para el vendedor
         if($perid > 0){
           $linkFunctionPersonal = "showPersonal(".$perid.")";
-          echo      "<h4>
-                      <a href='#' onClick='".$linkFunctionPersonal."'>
-                        <i class='fas fa-arrow-alt-circle-left fa-lg' aria-hidden='true'></i>
-                      </a> Clientes Morosos en <b>".$periodo."</b> a la fecha de <b>".$hoyMor."</b></h4>";
+          echo        '<div class="col-1 col-sm-1 col-md-1 col-lg-1 col-xs-1" style="max-width:30px;padding:0;">
+                        <a class="nav-link" href="#" onClick="'.$linkFunctionPersonal.'">
+                          <i class="fas fa-arrow-alt-circle-left fa-lg" aria-hidden="true"></i>
+                        </a>
+                      </div>
+                      <div class="col-11 col-sm-11 col-md-11 col-lg-11 col-xs-11">
+                        <h4>
+                          Clientes Morosos en <b>'.$periodo.'</b> a la fecha de <b>'.$hoyMor.'</b>
+                        </h4>
+                      </div>';
         } else {
           $linkFunctionPersonal = 'showInformation("dashBoardDireccion")';
-          echo      "<h4><a href='#' onClick='".$linkFunctionPersonal."'><i class='fas fa-arrow-alt-circle-left fa-lg' aria-hidden='true'></i></a> Clientes Morosos en <b>".$periodo."</b> a la fecha de <b>".$hoyMor."</b></h4>";
+          echo        "<h4>
+                        <a href='#' onClick='".$linkFunctionPersonal."'><i class='fas fa-arrow-alt-circle-left fa-lg' aria-hidden='true'></i></a> Clientes Morosos en <b>".$periodo."</b> a la fecha de <b>".$hoyMor."</b>
+                      </h4>";
         }
-        echo    "</div>";
-        echo    "<div class='panel-body'>";
+        echo        "</div>";
         $print = $paramFunctions->drawTableHeader($headers, $classPerColumn);
         $i = 0;
         $suma = 0;
@@ -2231,34 +2130,43 @@ class Report {
           $folio = $row["folio"];
           $importe = $row["total"];
           $diasVencidos = $row["dias"];
+          $nomvend = $row["nombreVen"];
           $i++;
           $suma += $importe;
           // set format
           $formatoImporte = number_format($importe, 2, '.', ',');
-          $print .= "<tr>";
-            $print .= "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$i</td>";
-            $print .= "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$numero</td>";
-            $print .= "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$cliente</td>";
-            $print .= "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$folio</td>";
-            $print .= "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$diasVencidos</td>";
-            $print .= "<td class='text-center' style='vertical-align:middle; font-weight:bold;color:red;'>MX$ $formatoImporte</td>";
+          $print .=     "<tr>";
+          $print .=       "<td class='text-center'>$i</td>";
+          $print .=       "<td class='text-center'>$numero</td>";
+          $print .=       "<td class='text-center'>$cliente</td>";
+          $print .=       "<td class='text-center'>$folio</td>";
+          $print .=       "<td class='text-center'>$nomvend</td>";
+          $print .=       "<td class='text-center'>$diasVencidos</td>";
+          $print .=       "<td class='text-center text-redGraf'>MX$ $formatoImporte</td>";
           $position++;
         }
-        $print .= "</tr>
-                  <tr>
-                    <th colspan='5' scope='row' style='font-size:2em;text-align:right;'>TOTAL</th>
-                    <td colspan='6' class='text-center' style='font-size:2em;font-weight:bold;color:red;'>MX$ ".number_format($suma, 2, '.', ',')."</td>
-                  </tr>";
+        $print .=       "</tr>
+                        <tr>
+                          <th colspan='5' scope='row' style='font-size:2em;text-align:right;'>TOTAL</th>
+                          <td colspan='6' class='text-center text-redGraf' style='font-size:2em;font-weight:bold;'>MX$ ".number_format($suma, 2, '.', ',')."</td>
+                        </tr>
+                    </table>
+                  </div>
+                </div>";
         echo $print;
       } else {
-        echo '<div class="content-wrapper">';
-        echo  "<h4>Sin morosidad.</h4>";
-        echo '</div>';
+        $print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 hg910 centrarSep">';
+        $print .= "<div class='row'>
+                    <div class='col-md-12 text-center'>
+                      <h4>No hay cuentas pendiente o con saldo.</h4>
+                      <h4>Su estado de cuenta esta limpio.</h4>
+                    </div>
+                  </div>
+                </div>";
       }
+      echo    "</div>";
     } catch (Exception $e){
-      echo '<div class="content-wrapper">';
-        echo  "<h4>Hay un problema</h4>";
-        echo '</div>';
+      echo "Problema al listar la morosidad: " . $e->getMessage();
     }
     $getConnection->close();
   }
@@ -4269,15 +4177,14 @@ class Report {
           </div>
           <script>$(document).ready(function(){$("#myLargeModalLabel").modal("show");});</script>';
     }
-
-    $getFotoVen = "SELECT p.nombre, v.tel, v.foto, p.perid
-                FROM vendedores v
-                  JOIN per p ON p.perid = v.vendedorid
+    $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+    $getDatoVen = "SELECT p.nombre, p.perid
+                FROM per p
                 WHERE p.sermov = $zona";
-    $FotoVenEnc = mysqli_query($getConnection,$getFotoVen);
-    $filaTotal =$FotoVenEnc->num_rows;
+    $DatoVenEnc = mysqli_query($getConnection,$getDatoVen);
+    $filaTotal =$DatoVenEnc->num_rows;
 
-    $exeQuGet = $paramDb->Query($getFotoVen);
+    $exeQuGet = $paramDb->Query($getDatoVen);
     if($exeQuGet === false) {
       echo "error-query";
       return false;
@@ -4287,44 +4194,37 @@ class Report {
     $rows = $paramDb->Rows();
 
     $email = 0;
-    $print =  '<div class="row" style="margin: 55px 0 0 0;">
-            <div class="content-wrapper">
-              <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
-                <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
-                <img src="../img/img_pro/barrafmo2.gif" width="200"/>
-              </div>
-              <!--<h4>Rol: '.$rol.'</h4>-->
-              <!--<h4>Total de Vendedores Encontrados: '.$filaTotal.'</h4>-->
-              <!-- Content Header (Page header) -->
-              
-              <!-- Main content -->
-                <!-- Info boxes -->
-                <div class="col-md-12">
-                  <div class="row">';
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT hg910">
+                <div class="row">
+                  <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                    <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                    <img src="../img/barrafmo2.gif" width="200"/>
+                  </div>';
     foreach($rows as $row) {
-      $foto = $row["foto"];
       $nombre = $row["nombre"];
       $perid = $row["perid"];
       $linkFunctionPersonal = "showPersonal(".$perid.")";
+      
+      $getFotoVen = "SELECT v.foto, v.tel
+                        FROM vendedores v
+                        WHERE v.vendedorid = $perid";
+      $FotoVenEnc = mysqli_query($mysqliCon,$getFotoVen);
+      $fotoVen =mysqli_fetch_array($FotoVenEnc);
+      $foto = $fotoVen["foto"];
 
-      $print .=     '<div class="col-md-3" style="margin: 0 0 10px 0 !important;display: flex;
-        justify-content: center;align-items: center;">
-                      <div class="card text-center" style="width: 20rem;">
-                        <a href="#" onclick="'.$linkFunctionPersonal.'">
-                          <img class="img-circle foto-vendedor" src="../img/img_pro/vendedores/'.$foto.'" alt="'.$foto.'" width="170">
-                        </a>
-                        <div class="card-block">
-                          <h4 class="card-title">'.$nombre.'</h4>
-                        </div>
+      $print .=   '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+                    <div class="text-center">
+                      <a href="#" onclick="'.$linkFunctionPersonal.'">
+                        <img class="img-fluid rounded-circle" src="../img/vendedores/'.$foto.'" alt="'.$foto.'" width="200">
+                      </a>
+                      <div class="card-block">
+                        <h4 class="card-title">'.$nombre.'</h4>
                       </div>
-                    </div>';
+                    </div>
+                  </div>';
     }
-    $print .=     '</div>
-                </div>
-                <!-- /.row -->
-            </div>
-            <!-- /.content-wrapper -->
-          </div>
+    $print .=   '</div>
+              </div>
           <!--<script>
             var facturasVencidas = document.getElementById("numeroVeces").innerHTML;
             var veces = 0;
@@ -4338,6 +4238,7 @@ class Report {
           </script>-->'; // End div row
     echo $print;
     $getConnection->close();
+    $mysqliCon->close();
   }
 
   private function getEnlaceZona2($params){
@@ -4406,15 +4307,14 @@ class Report {
           </div>
           <script>$(document).ready(function(){$("#myLargeModalLabel").modal("show");});</script>';
     }
-
-    $getFotoVen = "SELECT p.nombre, v.tel, v.foto, p.perid
-                FROM vendedores v
-                  JOIN per p ON p.perid = v.vendedorid
+    $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+    $getDatoVen = "SELECT p.nombre, p.perid
+                FROM per p
                 WHERE p.sermov = $zona";
-    $FotoVenEnc = mysqli_query($getConnection,$getFotoVen);
-    $filaTotal =$FotoVenEnc->num_rows;
+    $DatoVenEnc = mysqli_query($getConnection,$getDatoVen);
+    $filaTotal =$DatoVenEnc->num_rows;
 
-    $exeQuGet = $paramDb->Query($getFotoVen);
+    $exeQuGet = $paramDb->Query($getDatoVen);
     if($exeQuGet === false) {
       echo "error-query";
       return false;
@@ -4424,43 +4324,37 @@ class Report {
     $rows = $paramDb->Rows();
 
     $email = 0;
-    $print =  '<div class="row" style="margin: 55px 0 0 0;">
-            <div class="content-wrapper">
-              <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
-                <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
-                <img src="../img/img_pro/barrafmo2.gif" width="200"/>
-              </div>
-              <!--<h4>Rol: '.$rol.'</h4>-->
-              <!--<h4>Total de Vendedores Encontrados: '.$filaTotal.'</h4>-->
-              <!-- Content Header (Page header) -->
-              
-                <!-- Info boxes -->
-                <div class="col-md-12">
-                  <div class="row">';
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT hg910">
+                <div class="row">
+                  <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                    <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                    <img src="../img/barrafmo2.gif" width="200"/>
+                  </div>';
     foreach($rows as $row) {
-      $foto = $row["foto"];
       $nombre = $row["nombre"];
       $perid = $row["perid"];
       $linkFunctionPersonal = "showPersonal(".$perid.")";
 
-      $print .=     '<div class="col-md-3" style="margin: 0 0 10px 0 !important;display: flex;
-        justify-content: center;align-items: center;">
-                      <div class="card text-center" style="width: 20rem;">
-                        <a href="#" onclick="'.$linkFunctionPersonal.'">
-                          <img class="img-circle foto-vendedor" src="../img/img_pro/vendedores/'.$foto.'" alt="'.$foto.'" width="170">
-                        </a>
-                        <div class="card-block">
-                          <h4 class="card-title">'.$nombre.'</h4>
-                        </div>
+      $getFotoVen = "SELECT v.foto, v.tel
+                        FROM vendedores v
+                        WHERE v.vendedorid = $perid";
+      $FotoVenEnc = mysqli_query($mysqliCon,$getFotoVen);
+      $fotoVen =mysqli_fetch_array($FotoVenEnc);
+      $foto = $fotoVen["foto"];
+
+      $print .=   '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+                    <div class="text-center">
+                      <a href="#" onclick="'.$linkFunctionPersonal.'">
+                        <img class="img-fluid rounded-circle" src="../img/vendedores/'.$foto.'" alt="'.$foto.'" width="200">
+                      </a>
+                      <div class="card-block">
+                        <h4 class="card-title">'.$nombre.'</h4>
                       </div>
-                    </div>';
+                    </div>
+                  </div>';
     }
-    $print .=     '</div>
-                </div>
-                <!-- /.row -->
-            </div>
-            <!-- /.content-wrapper -->
-          </div>
+    $print .=   '</div>
+              </div>
           <!--<script>
             var facturasVencidas = document.getElementById("numeroVeces").innerHTML;
             var veces = 0;
@@ -4474,156 +4368,329 @@ class Report {
           </script>-->'; // End div row
     echo $print;
     $getConnection->close();
+    $mysqliCon->close();
   }
 
   private function getDashBoardSz($params) {
-  $paramDb = new Database();
-  $paramFunctions = new Util();
-  $getConnection = $paramDb->GetLink();
+    $paramDb = new Database();
+    $paramFunctions = new Util();
+    $getConnection = $paramDb->GetLink();
+    $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
 
-  if(isset($_SESSION["data"])) {
-    $session = $_SESSION["data"];
-  }
+    if(isset($_SESSION["data"])) {
+      $session = $_SESSION["data"];
+    }
 
-  $rol = $paramDb->SecureInput($session["rol"]);
-  $clienteID = $paramDb->SecureInput($session["username"]);
-  $id = $_SESSION["data"]["id"];
-  //$id = 4;
-  $username = $_SESSION["data"]["name"];
-  $pas2 = $_SESSION["data"]["pas2"];
-  $pasAnt = $_SESSION["data"]["pasAnt"];
-  $correo = $_SESSION["data"]["correo"];
-  $arrayBooleans = array("bManagementOrder" => false);
-  if($pas2==''){
-    echo  '<div id="myLargeModalLabel" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header text-center">
-                <p class="lead">Bienvenido a su Escritorio Virtual FMO, este es su primer inicio de sesión y le invitamos a realizar el cambio de su contraseña; si no lo realiza, no podrá accesar nuevamente a su escritorio hasta que termine el mes, <b>ya que su contraseña se resetea cada inicio de mes.</b></p>
-              </div>
-              <div class="modal-body" style="display:flex; align-items: center; justify-content: center;">
-                <form>
-                  <div class="form-group" style="text-align: center;">
-                    <input style="width:300px;" class="form-control text-center" id="usuario" name="usuario" value="'.$clienteID.'" type="text" readonly="readonly">
-                  </div>
-                  <div class="form-group" style="text-align: center;display:;">
-                    <input style="width:300px;" class="form-control text-center" id="email" name="email" value="'.$correo.'" type="email" readonly="readonly">
-                  </div>
-                  <div class="form-group">
-                    <input autofocus style="width:300px;" class="form-control text-center" id="passwordNew" name="password" onChange="verificarPassword()" placeholder="Nuevo Password" type="text" autocomplete="off" required>
-                    <p id="pasAnt" style="display:none;">'.$pasAnt.'</p>
-                  </div>
-                  <script>
-                    function verificarPassword(){
-                      var pasAnt  = document.getElementById("pasAnt").innerHTML;
-                      var pasNew  = document.getElementById("passwordNew").value;
-                      var usuario = document.getElementById("usuario").value;
-                      var email   = document.getElementById("email").value;
-                      console.log(pasAnt, pasNew, usuario, email);
-                      if(pasAnt === pasNew){
-                        alert("El nuevo password debe ser diferente.");
-                      } else {
-                        $.post("../php/classes/cambiarpass.php", {usuario: usuario, password: pasNew, emial: email});
-                        alert("Su contraseña se cambio correctamente, debe de inciar sesión con los nuevos datos. Gracias!.");
-                        Session.Clear();
-                        Session.Abandon();
+    $rol = $paramDb->SecureInput($session["rol"]);
+    $clienteID = $paramDb->SecureInput($session["username"]);
+    $id = $_SESSION["data"]["id"];
+    //$id = 4;
+    $username = $_SESSION["data"]["name"];
+    $pas2 = $_SESSION["data"]["pas2"];
+    $pasAnt = $_SESSION["data"]["pasAnt"];
+    $correo = $_SESSION["data"]["correo"];
+
+    if($rol == 'SZ-01'){
+      $zona = 1;
+    }elseif($rol == 'SZ-02'){
+      $zona = 2;
+    }else{
+      session_unset();
+      session_destroy();
+      echo '<script language="javascript">alert("Su tiempo ha expirado, vuelva a iniciar sesión para continuar en su escritorio.");</script>'; 
+      header("Location: ../login/index.php");
+    }
+
+    //Se hace la busqueda de ventas totales del Dia
+    $dia  = date("Y-m-d");
+
+    $queryVtaDia = "SELECT d. docid
+                      FROM doc d
+                        JOIN per p ON p.perid = d.vendedorid
+                      WHERE d.fecha = '$dia'
+                        AND p.sermov = $zona
+                        AND d.tipo = 'F'
+                        AND d.subtotal2 > 0
+                        AND d.FECCAN = 0";
+    $resultQueryDia = $getConnection->query($queryVtaDia);
+    $qVtaDia = mysqli_num_rows($resultQueryDia);
+    if($qVtaDia === NULL){
+      $totalVentaDia = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      $totalVentaDia = $qVtaDia;
+    }
+
+    //Se hace la busqueda de ventas totales del Mes
+    $month = date('m');
+    $year = date('Y');
+    $dayVtaTotMes = date("d", mktime(0,0,0, $month+1, 0, $year));
+    $primerDiaMes = date('Y-m-d', mktime(0,0,0, $month, 1, $year));
+    $ultimoDiaMes = date('Y-m-d', mktime(0,0,0, $month, $dayVtaTotMes, $year));
+    $queryVtaMes = "SELECT SUM(d.SUBTOTAL2) AS total
+                      FROM doc d
+                        JOIN per p ON p.perid = d.vendedorid
+                      WHERE (
+                            d.fecha <= '$ultimoDiaMes'
+                            AND d.fecha >= '$primerDiaMes' 
+                            )
+                        AND d.tipo = 'F'
+                        AND p.sermov = $zona
+                        AND d.subtotal2 > 0
+                        AND d.FECCAN = 0";
+    $resultQueryMes = $getConnection->query($queryVtaMes);
+    $qVtaMes = mysqli_fetch_array($resultQueryMes);
+    if($qVtaMes === NULL){
+      $totalVentaMes = 0;
+    } else {
+      $totalVentaMes = $qVtaMes['total'];
+    }
+    $formatTotalVentaMes = number_format($totalVentaMes, 2, '.',',');
+
+    //Sacamos el mes en que estamos
+    switch ($month) {
+      case 1:
+        $mes='Enero';
+        $diasTotalMes = 31;
+      break;
+      case 2:
+        $mes='Febrero';
+        $diasTotalMes = 28;
+      break;
+      case 3:
+        $mes='Marzo';
+        $diasTotalMes = 31;
+      break;
+      case 4:
+        $mes='Abril';
+        $diasTotalMes = 30;
+      break;
+      case 5:
+        $mes='Mayo';
+        $diasTotalMes = 31;
+      break;
+      case 6:
+        $mes='Junio';
+        $diasTotalMes = 30;
+      break;
+      case 7:
+        $mes='Julio';
+        $diasTotalMes = 31;
+      break;
+      case 8:
+        $mes='Agosto';
+        $diasTotalMes = 31;
+      break;
+      case 9:
+        $mes='Septiembre';
+        $diasTotalMes = 30;
+      break;
+      case 10:
+        $mes='Octubre';
+        $diasTotalMes = 31;
+      break;
+      case 11:
+        $mes='Noviembre';
+        $diasTotalMes = 30;
+      break;
+      case 12:
+        $mes='Diciembre';
+        $diasTotalMes = 31;
+      break;
+    }
+
+    // Morosidad TOTAL.
+    $getMorosidad = "SELECT
+                      SUM(d.totalpagado - d.total) as TotalDeuda
+                      FROM doc d
+                        JOIN per p ON p.perid = d.vendedorid
+                      WHERE d.total > d.totalpagado
+                          AND d.tipo = 'F'
+                          AND p.sermov = $zona
+                          AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+    $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
+    $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
+    if($rowMorosidad === NULL){
+      $MorosidadF = 0;
+    } else {
+      $MorosidadF = $rowMorosidad[0]*(-1);
+    }
+    $Morosidad = number_format($MorosidadF, 2, ".", ",");
+
+    //Facturas Vencidas al mes
+    $fechaInicioVenc = date('Y-m-01');
+    $fechaFinalVenc = date('Y-m-'.$diasTotalMes.'');
+    $numVenFac = "SELECT d.vence
+                    FROM doc d
+                      JOIN per p ON p.perid = d.vendedorid
+                    WHERE d.totalpagado < total
+                      AND d.feccan = 0
+                      AND d.tipo NOT LIKE 'C'
+                      AND d.vence < '$dia'
+                      AND p.sermov = $zona
+                      AND (
+                            d.feccap < '$fechaFinalVenc'
+                            AND d.feccap > '$fechaInicioVenc'
+                          )";
+
+    $venFac = mysqli_query($getConnection, $numVenFac);
+    $numeroVecesFacVenc = mysqli_num_rows($venFac);
+
+    //Nuevos clientes del mes
+    $numCliMes = "SELECT c.clienteid
+                    FROM cli c
+                      JOIN per p ON p.perid = c.vendedorid
+                    WHERE (
+                            c.fecaltcli < '$fechaFinalVenc'
+                            AND c.fecaltcli > '$fechaInicioVenc'
+                          )
+                      AND p.sermov = $zona";
+
+    $clieMes = mysqli_query($getConnection, $numCliMes);
+    $numeroVecesCliNuevos = mysqli_num_rows($clieMes);
+
+    $arrayBooleans = array("bManagementOrder" => false);
+    if($pas2==''){
+      echo  '<div id="myLargeModalLabel" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header text-center">
+                  <p class="lead">Bienvenido a su Escritorio Virtual FMO, este es su primer inicio de sesión y le invitamos a realizar el cambio de su contraseña; si no lo realiza, no podrá accesar nuevamente a su escritorio hasta que termine el mes, <b>ya que su contraseña se resetea cada inicio de mes.</b></p>
+                </div>
+                <div class="modal-body" style="display:flex; align-items: center; justify-content: center;">
+                  <form>
+                    <div class="form-group" style="text-align: center;">
+                      <input style="width:300px;" class="form-control text-center" id="usuario" name="usuario" value="'.$clienteID.'" type="text" readonly="readonly">
+                    </div>
+                    <div class="form-group" style="text-align: center;display:;">
+                      <input style="width:300px;" class="form-control text-center" id="email" name="email" value="'.$correo.'" type="email" readonly="readonly">
+                    </div>
+                    <div class="form-group">
+                      <input autofocus style="width:300px;" class="form-control text-center" id="passwordNew" name="password" onChange="verificarPassword()" placeholder="Nuevo Password" type="text" autocomplete="off" required>
+                      <p id="pasAnt" style="display:none;">'.$pasAnt.'</p>
+                    </div>
+                    <script>
+                      function verificarPassword(){
+                        var pasAnt  = document.getElementById("pasAnt").innerHTML;
+                        var pasNew  = document.getElementById("passwordNew").value;
+                        var usuario = document.getElementById("usuario").value;
+                        var email   = document.getElementById("email").value;
+                        console.log(pasAnt, pasNew, usuario, email);
+                        if(pasAnt === pasNew){
+                          alert("El nuevo password debe ser diferente.");
+                        } else {
+                          $.post("../php/classes/cambiarpass.php", {usuario: usuario, password: pasNew, emial: email});
+                          alert("Su contraseña se cambio correctamente, debe de inciar sesión con los nuevos datos. Gracias!.");
+                          Session.Clear();
+                          Session.Abandon();
+                        }
                       }
-                    }
-                  </script>
-                  <div id="mensajePas"></div>
-                  <div class="form-group text-center" id="botonEnviar" style="display: none;">
-                    <button class="btn btn-danger pull-center" type="submit">Enviar</button>
-                  </div>
-                </form>
-                <!-- <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button> -->
+                    </script>
+                    <div id="mensajePas"></div>
+                    <div class="form-group text-center" id="botonEnviar" style="display: none;">
+                      <button class="btn btn-danger pull-center" type="submit">Enviar</button>
+                    </div>
+                  </form>
+                  <!-- <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button> -->
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <script>$(document).ready(function(){$("#myLargeModalLabel").modal("show");});</script>';
-  }
+          <script>$(document).ready(function(){$("#myLargeModalLabel").modal("show");});</script>';
+    }
 
-  if($rol == 'SZ-01'){
-    $zona = 1;
-  }elseif($rol == 'SZ-02'){
-    $zona = 2;
-  }else{
-    session_unset();
-    session_destroy();
-    echo '<script language="javascript">alert("Su tiempo ha expirado, vuelva a iniciar sesión para continuar en su escritorio.");</script>'; 
-    header("Location: ../login/index.php");
-  }
+    $getDatoVen = "SELECT p.nombre, p.perid
+                FROM per p
+                WHERE p.sermov = $zona";
+    $DatoVenEnc = mysqli_query($getConnection,$getDatoVen);
+    $filaTotal =mysqli_num_rows($DatoVenEnc);
 
-  $getFotoVen = "SELECT p.nombre, v.tel, v.foto, p.perid
-              FROM vendedores v
-                JOIN per p ON p.perid = v.vendedorid
-              WHERE p.sermov = $zona";
-  $FotoVenEnc = mysqli_query($getConnection,$getFotoVen);
-  $filaTotal =$FotoVenEnc->num_rows;
+    $exeQuGet = $paramDb->Query($getDatoVen);
+    if($exeQuGet === false) {
+      echo "error-query";
+      return false;
+    }
 
-  $exeQuGet = $paramDb->Query($getFotoVen);
-  if($exeQuGet === false) {
-    echo "error-query";
-    return false;
-  }
+    $numRow = $paramDb->NumRows();
+    $rows = $paramDb->Rows();
 
-  $numRow = $paramDb->NumRows();
-  $rows = $paramDb->Rows();
-
-  $email = 0;
-  $print =  '<div class="row" style="margin: 55px 0 0 0;">
-          <div class="content-wrapper">
-            <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
-              <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
-              <img src="../img/img_pro/barrafmo2.gif" width="200"/>
-            </div>
-            <!--<h4>Rol: '.$rol.'</h4>-->
-            <!--<h4>Total de Vendedores Encontrados: '.$filaTotal.'</h4>-->
-            <!-- Content Header (Page header) -->
-            
-            <!-- Main content -->
-            <section class="content">
-              <!-- Info boxes -->
-              <div class="col-md-12">
-                <div class="row">';
-  foreach($rows as $row) {
-    $foto = $row["foto"];
-    $nombre = $row["nombre"];
-    $perid = $row["perid"];
-    $linkFunctionPersonal = "showPersonal(".$perid.")";
-
-    $print .=     '<div class="col-md-4" style="margin: 0 0 10px 0 !important; display: flex;">
-                    <div class="card text-center" style="width: 20rem;">
-                      <a href="#" onclick="'.$linkFunctionPersonal.'">
-                        <img class="img-circle foto-vendedor" src="../img/img_pro/vendedores/'.$foto.'" alt="'.$foto.'" width="170">
-                      </a>
-                      <div class="card-block">
-                        <h4 class="card-title">'.$nombre.'</h4>
+    $email = 0;
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT">
+                <div class="row">
+                  <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                    <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                    <img src="../img/barrafmo2.gif" width="200"/>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 infoCard paddingT paddingB centrar text-center">
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                        <h3>DATOS DE <spam class="text-tomato">ZONA '.$zona.'</spam></h3>
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                            <h4 class="h4">No. PEDIDOS AL DIA</h4>
+                            <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$totalVentaDia.'</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                            <h4 class="h4">VENTAS AL MES</h4>
+                            <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                            <p class="h4">FACTURAS VENCIDAS AL MES</p>
+                            <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                            <h4 class="h4">MOROSIDA TOTAL</h4>
+                            <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                            <h4 class="h4">NUEVOS CLIENTES AL MES</h4>
+                            <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesCliNuevos.'</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>';
-  }
-  $print .=     '</div>
-              </div>
-              <!-- /.row -->
-            </section>
-            <!-- /.content -->
-          </div>
-          <!-- /.content-wrapper -->
-        </div>
-        <!--<script>
-          var facturasVencidas = document.getElementById("numeroVeces").innerHTML;
-          var veces = 0;
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT">
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT paddingB text-center">
+                        <h3>VENDEDORES DE <spam class="text-tomato">ZONA '.$zona.'</spam></h3>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                        <div class="row">';
+    foreach($rows as $row) {
+      $nombre = $row["nombre"];
+      $perid = $row["perid"];
 
-          if(veces === 0){
-            if(facturasVencidas > 0){
-              alert("Tiene facturas vencidas, favor de realizar los pagos correspondientes para que no afecte su historial con nosotros. Gracias");
-              veces = 1;
-            }
-          }
-        </script>-->'; // End div row
+      $getFotoVen = "SELECT v.tel, v.foto
+                      FROM vendedores v
+                      WHERE v.vendedorid = $perid";
+      $FotoVenEnc = mysqli_query($mysqliCon,$getFotoVen);
+      $rowFoto = mysqli_fetch_row($FotoVenEnc);
+      $tel = $rowFoto[0];
+      $foto = $rowFoto[1];
+
+      $linkFunctionPersonal = "showPersonal(".$perid.")";
+
+      $print .=           '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+                            <div class="text-center">
+                              <a href="#" onclick="'.$linkFunctionPersonal.'">
+                                <img class="img-fluid rounded-circle" src="../img/vendedores/'.$foto.'" alt="'.$foto.'" width="200">
+                              </a>
+                              <div class="card-block">
+                                <h4 class="card-title">'.$nombre.'</h4>
+                              </div>
+                            </div>
+                          </div>';
+    }
+    $print .=           '</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>';
     echo $print;
     $getConnection->close();
+    $mysqliCon->close();
   }
 }
 

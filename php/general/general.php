@@ -26,6 +26,8 @@ if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
           $section = "dashBoardSz";
         } elseif($rol == "direccion"){
           $section = "dashBoardDirIndex";
+        } elseif($rol == "cartera"){
+          $section = "dashBoardCartera";
         } elseif($rol == "SUBDISTRIBUIDOR" || $rol == "DISTRIBUIDOR" || $rol == "MAYOREO") {
           $section = "dashboard";
         } elseif($rol == 'pedidos'){

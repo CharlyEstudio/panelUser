@@ -1,6 +1,7 @@
 <?php
 require_once("../class.database.php");
 require_once("../functions/util.php");
+date_default_timezone_set('America/Mexico_City');
 
 class Order {
   public function getterConfirmStatusOrder($params) {
@@ -76,7 +77,7 @@ class Order {
     $fecActual = date("Y-m-d");
 
     $getAllOrders="SELECT d.docid, cfd.tipdoc, cfd.folio, d.feccap, d.vence, d.total, d.totalpagado,
-                    (SELECT DATEDIFF(d.vence, '$fecActual')) as DiasPasados
+    (SELECT DATEDIFF(d.vence, '$fecActual')) as DiasPasados
                     FROM doc d
                       JOIN cfd ON cfd.docid = d.docid
                       JOIN cli c ON c.clienteid = d.clienteid
@@ -173,13 +174,13 @@ class Order {
 
           // NOTE section and divResultID, set in conditional because they change depends section and result will be show in different places(divs).
           if($section == "orders-record-partner") {
-            $headers = ["FOLIO", "EMISION", "VENCIMIENTO", "TOTAL", "DEUDA", "DIAS ATRASO"];
-            $classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
+            $headers = ["#", "FOLIO", "EMISION", "VENCIMIENTO", "TOTAL", "DEUDA", "DIAS RESTANTES"];
+            $classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
             $paramsPagination["section"] = $section; // param to draw table header
             $paramsPagination["divResultID"] = "page-wrapper";
           } else if($section == "shopping-cart-partner") {
-            $headers = ["FOLIO", "EMISION", "VENCIMIENTO", "TOTAL", "DEUDA", "DIAS ATRASO"];
-            $classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
+            $headers = ["#", "FOLIO", "EMISION", "VENCIMIENTO", "TOTAL", "DEUDA", "DIAS RESTANTES"];
+            $classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
             $paramsPagination["section"] = $section;
             $paramsPagination["divResultID"] = "content-orders-record";
           }
@@ -189,6 +190,8 @@ class Order {
                       <div class="row">
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 edoctaScroll">';
           $print .= $paramFunctions->drawTableHeader($headers, $classPerColumn);
+          $i=1;
+
           foreach($rows as $row) {
             $folio = $row["folio"];
             $tipo = $row["tipdoc"];
@@ -204,25 +207,23 @@ class Order {
             $formatoTotal = number_format($total, 2);
             $formatoDeuda = number_format($deuda, 2);
 
-            if($DiasPasados < 0){
-              $atraso = $DiasPasados * -1;
-            } else {
-              $atraso = 0;
-            }
+            $atraso = $DiasPasados;
 
             $print .=       "<tr>";
+            $print .=         "<td class='text-center'>$i</td>";
             $print .=         "<td class='text-center'>$facturaDoc</td>";
             $print .=         "<td class='text-center'>$feccap</td>";            
-            $print .=         "<td class='text-center'>$vence</td>";
+            $print .=         "<td class='text-center text-tomato'>$vence</td>";
             $print .=         "<td class='text-center'>MX$ $formatoTotal</td>";
             $print .=         "<td class='text-center'>MX$ $formatoDeuda</td>";
-            $print .=         "<td class='text-center'>$atraso</td>";
-            /*$print .= "<td class='text-center'>
-                        <a href='#' onclick='showDetailOrder($cajaid)'>
-                          <span class='fa fa-list-alt fa-2x' aria-didden='true'></span>
-                        </a>
-                      </td>";*/
+            $print .=         "<td class='text-center text-tomato'>$atraso</td>";
+            /*$print .=         "<td class='text-center'>
+                                <a href='#' onclick='showDetailOrder($cajaid)'>
+                                  <span class='fa fa-list-alt fa-2x' aria-didden='true'></span>
+                                </a>
+                              </td>";*/
             $print .=       "</tr>";
+            $i = $i +1;
           }
           $print .=       '</table>
                         </div>
@@ -233,11 +234,11 @@ class Order {
           require_once('../pagination/structure.php');
           echo      "</div>";
         } else {
-          $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                      <h3>ESTADO DE CUENTA</h3>';
-          echo        "<div class='row'>
-                        <div class='col-md-12'>
-                          <h4>No hay cuentas pendiente o con saldo. Su estado de cuenta esta limpio.</h4>
+          $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 hg910 centrarSep">';
+          $print .=   "<div class='row'>
+                        <div class='col-md-12 text-center'>
+                          <h4>No hay cuentas pendiente o con saldo.</h4>
+                          <h4>Su estado de cuenta esta limpio.</h4>
                         </div>
                       </div>";
           $print .= "</div>";
@@ -245,6 +246,15 @@ class Order {
       } catch (Exception $e) {
         echo "Problema al listar pedidos: " . $e->getMessage();
       }
+    } else {
+      $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 hg910 centrarSep">';
+      $print .=   "<div class='row'>
+                    <div class='col-md-12 text-center'>
+                      <h4>No hay cuentas pendiente o con saldo.</h4>
+                      <h4>Su estado de cuenta esta limpio.</h4>
+                    </div>
+                  </div>";
+      $print .= "</div>";
     } // end validation num row > 0, do something if doesn't exist order
     echo $print;
   } // end function
@@ -373,7 +383,7 @@ class Order {
           }
 
           $print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 facturas">
-                      <h3>HISTORIAL DE FACTURAS</h3>
+                      <h3>HISTORIAL <spam class="text-tomato">DE FACTURAS</spam></h3>
                       <div class="row">
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">';
           $print .= $paramFunctions->drawTableHeader($headers, $classPerColumn);
@@ -392,16 +402,16 @@ class Order {
             $formatoFalta = number_format($falta, 2);
 
             $print .=     "<tr>";
-            $print .=       "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$pedidoID</td>";
-            $print .=       "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$fecha</td>";            
-            $print .=       "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>MX$ $formatoSaldo</td>";
-            $print .=       "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>MX$ $formatoPagado</td>";
-            $print .=       "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>MX$ $formatoFalta</td>";
-            /*$print .= "<td class='text-center'>
-                        <a href='#' onclick='showDetailOrder($cajaid)'>
-                          <span class='fa fa-list-alt fa-2x' aria-didden='true'></span>
-                        </a>
-                      </td>";*/
+            $print .=       "<td class='text-center'>$pedidoID</td>";
+            $print .=       "<td class='text-center'>$fecha</td>";            
+            $print .=       "<td class='text-center'>MX$ $formatoSaldo</td>";
+            $print .=       "<td class='text-center'>MX$ $formatoPagado</td>";
+            $print .=       "<td class='text-center'>MX$ $formatoFalta</td>";
+            // $print .=       "<td class='text-center'>
+            //                   <a href='#' onclick='showDetailOrder($cajaid)'>
+            //                     <span class='fa fa-list-alt fa-2x' aria-didden='true'></span>
+            //                   </a>
+            //                 </td>";
             $print .=     "</tr>";
           }
           $print .=      '</table>';
@@ -560,14 +570,10 @@ class Order {
             $paramsPagination["divResultID"] = "content-orders-record";
           }
 
-          $print = '<div class="panel panel-default" style="margin: 40px 15px 0 250px">
-                      <div class="panel-header">
-                        <div class="box-header with-border">
-                          <h3 class="box-title">HISTORIAL</h3>
-                        </div>
-                      </div>
-                      <div class="panel-body">';
-          $print .= '<div>';
+          $print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 historial">
+                      <h3>HIST<spam class="text-tomato">ORIAL</spam></h3>';
+          $print .= '<div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">';
           $print .= $paramFunctions->drawTableHeader($headers, $classPerColumn);
           foreach($rows as $row) {
             $pedidoID = $row["docid"];
@@ -586,43 +592,41 @@ class Order {
             $falta = $pagado - $saldo;
             $formatoFalta = number_format($falta, 2);
             
-            $print .= "<tr>";
-            $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$pedidoID</td>";
-            $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;' scope='rowgroup'>$folio</td>";
-            $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$fecha</td>";
-            $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>$tipo</td>";
-            $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>MX$ $formatoSaldo</td>";
-            $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>MX$ $formatoPagado</td>";
-            $print .=   "<td class='text-center' style='vertical-align:middle; font-weight:bold;'>MX$ $formatoFalta</td>";
-            /*$print .= "<td class='text-center'>
-                        <a href='#' onclick='showDetailOrder($cajaid)'>
-                          <span class='fa fa-list-alt fa-2x' aria-didden='true'></span>
-                        </a>
-                      </td>";*/
-            $print .= "</tr>";
+            $print .=      "<tr>";
+            $print .=        "<td class='text-center'>$pedidoID</td>";
+            $print .=        "<td class='text-center' scope='rowgroup'>$folio</td>";
+            $print .=        "<td class='text-center'>$fecha</td>";
+            $print .=        "<td class='text-center'>$tipo</td>";
+            $print .=        "<td class='text-center'>MX$ $formatoSaldo</td>";
+            $print .=        "<td class='text-center'>MX$ $formatoPagado</td>";
+            $print .=        "<td class='text-center'>MX$ $formatoFalta</td>";
+            /*$print .=      "<td class='text-center'>
+                              <a href='#' onclick='showDetailOrder($cajaid)'>
+                                <span class='fa fa-list-alt fa-2x' aria-didden='true'></span>
+                              </a>
+                            </td>";*/
+            $print .=     "</tr>";
           }
-          $print .= '</table>';
-          $print .= "</div>";
-          $print .= "</div>";
-          $print .= "</div>"; // div overflow-x:auto
+          $print .=     '</table>';
+          $print .=   "</div>
+                    </div>";
           echo $print;
-          echo "<div class='text-center' style='margin: 0 15px 0 250px;'>";
+          echo      "<div class='text-center'>";
           // include pagination
           require_once('../pagination/structure.php');
-          echo "</div>";
-        } /*else {
-          echo "<div class='row'>
-                  <div class='col-md-12'>
-                    <h4>No tienes ningún pedido</h4>
-                  </div>
-                </div>";
-        }*/
+          echo      "</div>
+                  </div>";
+        } else {
+          echo      "<div class='row'>
+                      <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>
+                        <h4>No tienes ningún pedido</h4>
+                      </div>
+                    </div>";
+        }
       } catch (Exception $e) {
         echo "Problema al listar pedidos: " . $e->getMessage();
       }
-
     } // end validation num row > 0, do something if doesn't exist order
-
   } // end function
 
   // TODO remove columns on section Carrito, on Pedidos show all columns. params.section
@@ -976,7 +980,7 @@ class Order {
           }
 
           $print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 credito">
-                      <h3>HISTORIAL DE NOTAS DE CRÉDITO</h3>
+                      <h3>HISTORIAL DE NOTAS <spam class="text-tomato">DE CRÉDITO<spam></h3>
                       <div class="row">
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">';
           $print .= $paramFunctions->drawTableHeader($headers, $classPerColumn);

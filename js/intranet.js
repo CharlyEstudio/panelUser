@@ -899,6 +899,12 @@ function showInformation(location) {
       dataSend.location = 'getDashBoardDirIndex';
       dataSend.section = 'reports-partner';
       break;
+    case 'dashBoardCartera':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getDashBoardCartera';
+      dataSend.section = 'reports-partner';
+      break;
     case 'dashBoardDireccion':
       url = '../php/report/report.php';
       dataSend.data = 'empty';

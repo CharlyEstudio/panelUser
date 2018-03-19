@@ -100,7 +100,7 @@ class Util {
       break;
     }
 
-    if($user == 'admin' || $user == 'supervisor1' || $user == 'supervisor2' || $user == 'pedidos' || $user == 'direccion'){
+    if($user == 'admin' || $user == 'supervisor1' || $user == 'supervisor2' || $user == 'pedidos' || $user == 'direccion' || $user == 'cartera'){
       while ($row = mysqli_fetch_array($result)) {
         $seccion = $row["seccion"];
         $funcion = $row["funcion"];
@@ -259,7 +259,6 @@ class Util {
                         <i class="'.$clase.' pull-right"></i>
                       </span>
                     </a>
-                    <span>'.$seccion.'</span>
                   </li>';
         } elseif($diasRestantesNewMes < 0) {
           $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';

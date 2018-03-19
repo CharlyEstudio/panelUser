@@ -123,7 +123,7 @@ if(isset($_POST['user']) && isset($_POST['pass'])) {
 					$functions->redirect('../login/index.php');
 					$status		= "Incorrecto";
 				}
-				mysqli_query($getConnection, "INSERT INTO `accesos`(`user`, `datetimes`, `ip`, `status`) VALUES ('$getParamUser', '$fecha', '$ip', '$status')");
+				mysqli_query($mysqliCon, "INSERT INTO `accesos`(`user`, `datetimes`, `ip`, `status`) VALUES ('$getParamUser', '$fecha', '$ip', '$status')");
 			} catch (Exception $e) {
 				$_SESSION["message"] = $message;
 				$functions->redirect('../login/index.php');
