@@ -361,13 +361,12 @@ class Report {
                       </div>
                       <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
                         <h4 class="h4">VENTAS AL MES</h4>
-                        <span id="hora" style="display:none;">'.date("g").'</span>
+                        <span id="hora" style="display:none;">'.date("G").'</span>
                         <p class="lead text-tomato" id="totalventames" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</p>
                       </div>
                       <script type="text/javascript">
                         var hora = document.getElementById("hora").innerHTML;
-
-                        if(hora < 8){
+                        if(hora < 20){
                           $(document).ready(function() {	
                             function pedidosDia(){
                               $.ajax({
@@ -458,7 +457,6 @@ class Report {
                           FROM doc
                           WHERE fecha = '$dia'
                             AND tipo = 'F'
-                            AND total > totalpagado
                             AND FECCAN = 0";
     $resultQueryDia = mysqli_query($getConnection, $queryVtaDia);
     $qVtaDia = mysqli_fetch_array($resultQueryDia);
@@ -886,7 +884,7 @@ class Report {
                                 <span>Ventas al día</span>
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
-                                    <input type="text" class="form-control" value="$ '.$formatTotalVentaDia.'" readonly />
+                                <p id="totalventadia" class="input-falso text-green text-bold">$ '.$formatTotalVentaDia.'</p>
 										          </div>
 									          </div>
 								          </div>
@@ -896,17 +894,17 @@ class Report {
                                 <span>Pedidos al día</span>
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
-                                <input type="text" class="form-control" value="'.$qPediDia.'" readonly />
+                                <p id="totalpedidodia" class="input-falso text-green text-bold">'.$qPediDia.'</p>
                               </div>
                             </div>
                           </div>
                           <div class="form-group">
                             <div class="row">
                               <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
-                                <span>Ventas la mes</span>
+                                <span>Ventas al mes</span>
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
-                                <input type="text" class="form-control" value="$ '.$formatTotalVentaMes.'" readonly />
+                                <p class="input-falso text-green text-bold" id="totalVentaMes">$ '.$formatTotalVentaMes.'</p>
                               </div>
                             </div>
                           </div>
@@ -918,7 +916,7 @@ class Report {
                                 <span>Ventas a la semana</span>
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
-                                <input type="text" class="form-control" value="$ '.$formatTotalVentaSemana.'" readonly />
+                                <p id="totalventasemana" class="input-falso text-green text-bold">$ '.$formatTotalVentaSemana.'</p>
 										          </div>
 									          </div>
 								          </div>
@@ -928,7 +926,7 @@ class Report {
                                 <span>Ventas al trimestre</span>
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
-                                <input type="text" class="form-control" value="$ '.$formatTotalVentaTrimestre.'" readonly />
+                                <p id="totalventatrimestre" class="input-falso text-green text-bold">$ '.$formatTotalVentaTrimestre.'</p>
                               </div>
                             </div>
                           </div>
@@ -938,10 +936,75 @@ class Report {
                                 <span>Estatus</span>
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
-                                <input type="text" class="form-control" value="Aqui va un estatus de como esta la compañia" readonly />
+                                <p class="input-falso text-green text-bold">Aqui va un estatus de como esta la compañia</p>
                               </div>
                             </div>
                           </div>
+                          <span id="hora" style="display:none;">'.date("G").'</span>
+                          <script type="text/javascript">
+                            var hora = document.getElementById("hora").innerHTML;
+                            if(hora < 20){
+                              $(document).ready(function() {	
+                                function ventasDia(){
+                                  $.ajax({
+                                      type: "POST",
+                                      url: "../php/busquedas/ventadia.php",
+                                      success: function(mensaje) {
+                                          $("#totalventadia").text(mensaje);
+                                          // console.log(mensaje)
+                                      }
+                                    });
+                                }
+                                setInterval(ventasDia, 3000);
+                                function pedidosDia(){
+                                  $.ajax({
+                                      type: "POST",
+                                      url: "../php/busquedas/pedidodia.php",
+                                      success: function(mensaje) {
+                                          $("#totalpedidodia").text(mensaje);
+                                          // console.log(mensaje)
+                                      }
+                                  });
+                                }
+                                setInterval(pedidosDia, 3000);
+                                function ventasMes(){
+                                  $.ajax({
+                                      type: "POST",
+                                      url: "../php/busquedas/ventames.php",
+                                      success: function(mensaje) {
+                                          $("#totalVentaMes").text(mensaje);
+                                          // console.log(mensaje)
+                                      }
+                                    });
+                                }
+                                setInterval(ventasMes, 3000);
+                                function ventasSemana(){
+                                    $.ajax({
+                                        type: "POST",
+                                        url: "../php/busquedas/ventasemana.php",
+                                        success: function(mensaje) {
+                                            $("#totalventasemana").text(mensaje);
+                                            // console.log(mensaje)
+                                        }
+                                      });
+                                }
+                                setInterval(ventasSemana, 3000);
+                                function ventasTrimestre(){
+                                    $.ajax({
+                                        type: "POST",
+                                        url: "../php/busquedas/ventatrimestre.php",
+                                        success: function(mensaje) {
+                                            $("#totalventatrimestre").text(mensaje);
+                                            // console.log(mensaje)
+                                        }
+                                      });
+                                }
+                                setInterval(ventasTrimestre, 3000);
+                              });
+                            } else {
+                              console.log("Fuera de Línea");
+                            }
+                          </script>
                         </div>
                       </div>
                     </div>
@@ -955,7 +1018,7 @@ class Report {
                         <div class="row text-center">
                           <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficosBarra">
                             <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
-                            <p id="mesActual" style="display: none;">'.$totalVentaMes.'</p>
+                            <p id="mesActual" style="display: ;">'.$totalVentaMes.'</p>
                             <p id="mesAnterior" style="display: none;">'.$vAnt.'</p>
                             <p id="mejorMes" style="display: none;">'.$vMejor.'</p>
                             <p id="mesMej" style="display: none;">'.$mesMej.'</p>
