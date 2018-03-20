@@ -115,7 +115,7 @@ class Util {
 
       if($user == 'admin' || $user == 'supervisor1' || $user == 'supervisor2' || $user == 'pedidos' || $user == 'direccion' || $user == 'cartera'){
           $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-          $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+          $nav .=  '<a class="nav-link navMenu" href="#" onclick="'.$linkFunction.'">';
           $nav .=    '<i class="'.$clase.'"></i>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>
@@ -125,7 +125,7 @@ class Util {
       } elseif($user == '00001' || $user == '00080' || $user == '00051' || $user == '00491' || $user == '02980' || $user == '01739' || $user == '01789'){
         if($seccion == "PROMOTRUPER"){
           $nav .='<li class="nav-item" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-          $nav .=  '<a class="nav-link" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
+          $nav .=  '<a class="nav-link navMenu" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
           $nav .=    '<i class="'.$clase.'"></i>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>
@@ -134,7 +134,7 @@ class Util {
                   </li>';
         } else {
           $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-          $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+          $nav .=  '<a class="nav-link navMenu" href="#" onclick="'.$linkFunction.'">';
           $nav .=    '<i class="'.$clase.'"></i>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>
@@ -147,7 +147,7 @@ class Util {
         if($activo == "S" || $ignorasuspender >= $fechaActual){
           if($seccion == "PROMOTRUPER"){
             $nav .='<li class="nav-item" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-            $nav .=  '<a class="nav-link" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
+            $nav .=  '<a class="nav-link navMenu" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
             $nav .=    '<i class="'.$clase.'"></i>';
             $nav .=    '<span class="pull-right-container" style="display:none;">
                           <i class="'.$clase.' pull-right"></i>
@@ -156,7 +156,7 @@ class Util {
                     </li>';
           } elseif($parametro == "edocta" || $parametro == "facturas" || $parametro == "notcred" || $parametro == "order" || $parametro == "dashboard"){
             $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-            $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+            $nav .=  '<a class="nav-link navMenu" href="#" onclick="'.$linkFunction.'">';
             $nav .=    '<i class="'.$clase.'"></i>';
             $nav .=    '<span class="pull-right-container" style="display:none;">
                           <i class="'.$clase.' pull-right"></i>
@@ -166,7 +166,7 @@ class Util {
           } elseif($saldo > 0){
             if($diasRestantesNewMes < 0){
               $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-              $nav .=  '<a class="nav-link" href="#">';
+              $nav .=  '<a class="nav-link navMenu" href="#">';
               $nav .=    '<i class="'.$clase.'"></i>';
               $nav .=    '<span class="pull-right-container" style="display:none;">
                             <i class="'.$clase.' pull-right"></i>
@@ -175,7 +175,7 @@ class Util {
                       </li>';
             } else {
               $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-              $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+              $nav .=  '<a class="nav-link navMenu" href="#" onclick="'.$linkFunction.'">';
               $nav .=    '<i class="'.$clase.'"></i>';
               $nav .=    '<span class="pull-right-container" style="display:none;">
                             <i class="'.$clase.' pull-right"></i>
@@ -185,7 +185,7 @@ class Util {
             }
           } else {
             $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-            $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+            $nav .=  '<a class="nav-link navMenu" href="#" onclick="'.$linkFunction.'">';
             $nav .=    '<i class="'.$clase.'"></i>';
             $nav .=    '<span class="pull-right-container" style="display:none;">
                           <i class="'.$clase.' pull-right"></i>
@@ -196,7 +196,7 @@ class Util {
         } else {
           if($seccion == "PROMOTRUPER"){
               $nav .='<li class="nav-item" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-              $nav .=  '<a class="nav-link" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
+              $nav .=  '<a class="nav-link navMenu" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
               $nav .=    '<i class="'.$clase.'"></i>';
               $nav .=    '<span class="pull-right-container" style="display:none;">
                             <i class="'.$clase.' pull-right"></i>
@@ -205,7 +205,7 @@ class Util {
                       </li>';
           } elseif($parametro == "edocta" || $parametro == "facturas" || $parametro == "notcred" || $parametro == "order" || $parametro == "dashboard"){
             $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-            $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+            $nav .=  '<a class="nav-link navMenu" href="#" onclick="'.$linkFunction.'">';
             $nav .=    '<i class="'.$clase.'"></i>';
             $nav .=    '<span class="pull-right-container" style="display:none;">
                           <i class="'.$clase.' pull-right"></i>
@@ -214,7 +214,7 @@ class Util {
                     </li>';
           } else {
             $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-            $nav .=  '<a class="nav-link" href="#">';
+            $nav .=  '<a class="nav-link navMenu" href="#">';
             $nav .=    '<i class="'.$clase.'"></i>';
             $nav .=    '<span class="pull-right-container" style="display:none;">
                           <i class="'.$clase.' pull-right"></i>
@@ -226,7 +226,7 @@ class Util {
       } else {
         if($parametro == "promotruper"){
           $nav .='<li class="nav-item" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-          $nav .=  '<a class="nav-link" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
+          $nav .=  '<a class="nav-link navMenu" href="../../assets/pdf/promotruperOficial.pdf" target="_blank">';
           $nav .=    '<i class="'.$clase.'"></i>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>
@@ -235,7 +235,7 @@ class Util {
                   </li>';
         } elseif($parametro == "edocta" || $parametro == "facturas" || $parametro == "notcred" || $parametro == "order" || $parametro == "dashboard"){
           $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-          $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+          $nav .=  '<a class="nav-link navMenu" href="#" onclick="'.$linkFunction.'">';
           $nav .=    '<i class="'.$clase.'"></i>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>
@@ -244,7 +244,7 @@ class Util {
                   </li>';
         } elseif($diasRestantesNewMes < 0) {
           $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
-          $nav .=  '<a class="nav-link" href="#">';
+          $nav .=  '<a class="nav-link navMenu" href="#">';
           $nav .=    '<i class="'.$clase.'"></i>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>
@@ -253,7 +253,7 @@ class Util {
                   </li>';
         } /*else {
           $nav .='<li class="nav-item" role="'.$seccion.'">';
-          $nav .=  '<a class="nav-link" href="#" onclick="'.$linkFunction.'">';
+          $nav .=  '<a class="nav-link navMenu" href="#" onclick="'.$linkFunction.'">';
           $nav .=    '<i class="'.$clase.'"></i> <span>'.$seccion.'</span>';
           $nav .=    '<span class="pull-right-container" style="display:none;">
                         <i class="'.$clase.' pull-right"></i>

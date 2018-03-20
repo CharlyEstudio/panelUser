@@ -2,6 +2,7 @@
 require_once("../class.database.php");
 require_once("../functions/util.php");
 require_once("../functions/dml.php");
+date_default_timezone_set('America/Mexico_City');
 
 class Product {
   public function getterFindPublicProductBy($params) {

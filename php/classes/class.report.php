@@ -357,12 +357,47 @@ class Report {
                     <div class="row">
                       <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
                         <h4 class="h4">No. PEDIDOS AL DIA</h4>
-                        <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$totalVentaDia.'</p>
+                        <p class="lead text-tomato" id="totalpedidodia" style="font-size: 1.7em !important;">'.$totalVentaDia.'</p>
                       </div>
                       <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
                         <h4 class="h4">VENTAS AL MES</h4>
-                        <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</p>
+                        <span id="hora" style="display:none;">'.date("g").'</span>
+                        <p class="lead text-tomato" id="totalventames" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</p>
                       </div>
+                      <script type="text/javascript">
+                        var hora = document.getElementById("hora").innerHTML;
+
+                        if(hora < 8){
+                          $(document).ready(function() {	
+                            function pedidosDia(){
+                              $.ajax({
+                                  type: "POST",
+                                  url: "../php/busquedas/pedidodia.php",
+                                  valorBusqueda: "textoBusqueda",
+                                  success: function(mensaje) {
+                                      $("#totalpedidodia").text(mensaje);
+                                      // console.log(mensaje)
+                                  }
+                              });
+                            }
+                            setInterval(pedidosDia, 3000);
+                            function ventasMes(){
+                                $.ajax({
+                                    type: "POST",
+                                    url: "../php/busquedas/ventames.php",
+                                    valorBusqueda: "textoBusqueda",
+                                    success: function(mensaje) {
+                                        $("#totalventames").text(mensaje);
+                                        // console.log(mensaje)
+                                    }
+                                  });
+                            }
+                            setInterval(ventasMes, 3000);
+                          });
+                        } else {
+                          console.log("Fuera de Línea");
+                        }
+                      </script>
                     </div>
                     <div class="row">
                       <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
