@@ -373,9 +373,10 @@ class Report {
                                   type: "POST",
                                   url: "../php/busquedas/pedidodia.php",
                                   valorBusqueda: "textoBusqueda",
-                                  success: function(mensaje) {
-                                      $("#totalpedidodia").text(mensaje);
-                                      // console.log(mensaje)
+                                  success: function(pedido) {
+                                    $("#totalpedidodia").text(pedido);
+                                    // $("#totalpedidodia").addClass("aviso");
+                                    console.log(pedido)
                                   }
                               });
                             }
@@ -1018,7 +1019,7 @@ class Report {
                         <div class="row text-center">
                           <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficosBarra">
                             <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
-                            <p id="mesActual" style="display: ;">'.$totalVentaMes.'</p>
+                            <p id="mesActual" style="display: none;">'.$totalVentaMes.'</p>
                             <p id="mesAnterior" style="display: none;">'.$vAnt.'</p>
                             <p id="mejorMes" style="display: none;">'.$vMejor.'</p>
                             <p id="mesMej" style="display: none;">'.$mesMej.'</p>
@@ -1140,7 +1141,10 @@ class Report {
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
                   WHERE d.total > d.totalpagado
-                    AND d.tipo = 'F'
+                    AND (
+                          d.tipo = 'F'
+                          OR d.tipo = 'N'
+                        )
                     AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
     $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
     $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
@@ -1150,11 +1154,19 @@ class Report {
     $get030DiasDist = "SELECT 
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
+                    JOIN cfd ON cfd.docid = d.docid
+                    JOIN cli c ON c.clienteid = d.clienteid
+                    JOIN dom ON dom.clienteid = d.clienteid
+                    JOIN per p ON p.perid = d.vendedorid
+                    JOIN correos co ON co.clienteid = d.clienteid
+                    JOIN tel t ON t.clienteid = d.clienteid
                   WHERE d.total > d.totalpagado
-                      AND d.tipo = 'F'
+                      AND (
+                          d.tipo = 'F'
+                          OR d.tipo = 'N'
+                        )
                       AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -30
-                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0
-                  ORDER BY d.vence ASC";
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
     $resultGet030Dist = mysqli_query($getConnection,$get030DiasDist);
     $row030Dist = mysqli_fetch_array($resultGet030Dist);
     $dias030DistF = $row030Dist[0]*(-1);
@@ -1163,11 +1175,19 @@ class Report {
     $get3060DiasDist = "SELECT
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
+                    JOIN cfd ON cfd.docid = d.docid
+                    JOIN cli c ON c.clienteid = d.clienteid
+                    JOIN dom ON dom.clienteid = d.clienteid
+                    JOIN per p ON p.perid = d.vendedorid
+                    JOIN correos co ON co.clienteid = d.clienteid
+                    JOIN tel t ON t.clienteid = d.clienteid
                   WHERE d.total > d.totalpagado
-                      AND d.tipo = 'F'
+                      AND (
+                          d.tipo = 'F'
+                          OR d.tipo = 'N'
+                        )
                       AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -60
-                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -30
-                  ORDER BY d.vence ASC";
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -30";
     $resultGet3060Dist = mysqli_query($getConnection,$get3060DiasDist);
     $row3060Dist = mysqli_fetch_array($resultGet3060Dist);
     $dias3060DistF = $row3060Dist[0]*(-1);
@@ -1176,11 +1196,19 @@ class Report {
     $get6090DiasDist = "SELECT 
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
+                    JOIN cfd ON cfd.docid = d.docid
+                    JOIN cli c ON c.clienteid = d.clienteid
+                    JOIN dom ON dom.clienteid = d.clienteid
+                    JOIN per p ON p.perid = d.vendedorid
+                    JOIN correos co ON co.clienteid = d.clienteid
+                    JOIN tel t ON t.clienteid = d.clienteid
                   WHERE d.total > d.totalpagado
-                      AND d.tipo = 'F'
+                      AND (
+                          d.tipo = 'F'
+                          OR d.tipo = 'N'
+                        )
                       AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -90
-                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -60
-                  ORDER BY d.vence ASC";
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -60";
     $resultGet6090Dist = mysqli_query($getConnection,$get6090DiasDist);
     $row6090Dist = mysqli_fetch_array($resultGet6090Dist);
     $dias6090DistF = $row6090Dist[0]*(-1);
@@ -1189,10 +1217,18 @@ class Report {
     $get90DiasDist = "SELECT
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
+                    JOIN cfd ON cfd.docid = d.docid
+                    JOIN cli c ON c.clienteid = d.clienteid
+                    JOIN dom ON dom.clienteid = d.clienteid
+                    JOIN per p ON p.perid = d.vendedorid
+                    JOIN correos co ON co.clienteid = d.clienteid
+                    JOIN tel t ON t.clienteid = d.clienteid
                   WHERE d.total > d.totalpagado
-                      AND d.tipo = 'F'
-                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90
-                  ORDER BY d.vence ASC";
+                      AND (
+                          d.tipo = 'F'
+                          OR d.tipo = 'N'
+                        )
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90";
     $resultGet90Dist = mysqli_query($getConnection,$get90DiasDist);
     $row90Dist = mysqli_fetch_array($resultGet90Dist);
     $dias90DistF = $row90Dist[0]*(-1);
@@ -1990,9 +2026,15 @@ class Report {
       $getMorosidad = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
+                      JOIN cfd ON cfd.docid = d.docid
+                      JOIN cli c ON c.clienteid = d.clienteid
+                      JOIN dom ON dom.clienteid = d.clienteid
+                      JOIN per p ON p.perid = d.vendedorid
+                      JOIN correos co ON co.clienteid = d.clienteid
+                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
-                        AND d.tipo = 'F'
+                        AND d.tipo NOT LIKE 'C'
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
       $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
       $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
@@ -2006,9 +2048,15 @@ class Report {
       $get030DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
+                      JOIN cfd ON cfd.docid = d.docid
+                      JOIN cli c ON c.clienteid = d.clienteid
+                      JOIN dom ON dom.clienteid = d.clienteid
+                      JOIN per p ON p.perid = d.vendedorid
+                      JOIN correos co ON co.clienteid = d.clienteid
+                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
-                        AND d.tipo = 'F'
+                        AND d.tipo NOT LIKE 'C'
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -30
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
       $resultGet030Dist = mysqli_query($getConnection,$get030DiasDist);
@@ -2023,9 +2071,15 @@ class Report {
       $get3060DiasDist = "SELECT
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
+                      JOIN cfd ON cfd.docid = d.docid
+                      JOIN cli c ON c.clienteid = d.clienteid
+                      JOIN dom ON dom.clienteid = d.clienteid
+                      JOIN per p ON p.perid = d.vendedorid
+                      JOIN correos co ON co.clienteid = d.clienteid
+                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
-                        AND d.tipo = 'F'
+                        AND d.tipo NOT LIKE 'C'
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -60
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -30";
       $resultGet3060Dist = mysqli_query($getConnection,$get3060DiasDist);
@@ -2040,9 +2094,15 @@ class Report {
       $get6090DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
+                      JOIN cfd ON cfd.docid = d.docid
+                      JOIN cli c ON c.clienteid = d.clienteid
+                      JOIN dom ON dom.clienteid = d.clienteid
+                      JOIN per p ON p.perid = d.vendedorid
+                      JOIN correos co ON co.clienteid = d.clienteid
+                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
-                        AND d.tipo = 'F'
+                        AND d.tipo NOT LIKE 'C'
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -90
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -60";
       $resultGet6090Dist = mysqli_query($getConnection,$get6090DiasDist);
@@ -2057,9 +2117,15 @@ class Report {
       $get90DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
+                      JOIN cfd ON cfd.docid = d.docid
+                      JOIN cli c ON c.clienteid = d.clienteid
+                      JOIN dom ON dom.clienteid = d.clienteid
+                      JOIN per p ON p.perid = d.vendedorid
+                      JOIN correos co ON co.clienteid = d.clienteid
+                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
-                        AND d.tipo = 'F'
+                        AND d.tipo NOT LIKE 'C'
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90";
       $resultGet90Dist = mysqli_query($getConnection,$get90DiasDist);
       $row90Dist = mysqli_fetch_array($resultGet90Dist);
@@ -2138,17 +2204,20 @@ class Report {
     $tiempoMor = $paramDb->SecureInput($params["tiempoMor"]);
     $hoyMor = date("Y-m-d");
     // TODO buscar morosidad por el tipo de tiempo, vendedor y lista de cliente
-    $getMor = "SELECT c.clienteid, c.numero, c.nombre, cfd.folio, (d.totalpagado - d.total) as total, (SELECT DATEDIFF(d.vence, '".$hoyMor."')) as dias, p.nombre as nombreVen
+    $getMor = "SELECT c.clienteid, c.numero, c.nombre, dom.direccion, dom.numero as numerocli, dom.interior, dom.colonia, dom.ciudad, dom.municipio, dom.estado, dom.cp, co.correo, t.tel, cfd.folio, (d.totalpagado - d.total) as total, (SELECT DATEDIFF(d.vence, '".$hoyMor."')) as dias, p.nombre as nombreVen
                     FROM doc d
                       JOIN cfd ON cfd.docid = d.docid
                       JOIN cli c ON c.clienteid = d.clienteid
+                      JOIN dom ON dom.clienteid = d.clienteid
                       JOIN per p ON p.perid = d.vendedorid
+                      JOIN correos co ON co.clienteid = d.clienteid
+                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado";
     if($perid > 0){
       $getMor .=      " AND d.vendedorid = $perid
-                        AND cfd.tipdoc = 'F'";
+                        AND d.tipo NOT LIKE 'C'";
     } else {
-      $getMor .=      " AND cfd.tipdoc = 'F'";
+      $getMor .=      " AND d.tipo NOT LIKE 'C'";
     }
     // dependiendo del tiempo de morosidad (0-30 dias, etc) será el tipo de busqueda
     if($tiempoMor == 1){
@@ -2212,19 +2281,35 @@ class Report {
                       </div>';
         } else {
           $linkFunctionPersonal = 'showInformation("dashBoardDireccion")';
-          echo        "<h4>
-                        <a href='#' onClick='".$linkFunctionPersonal."'><i class='fas fa-arrow-alt-circle-left fa-lg' aria-hidden='true'></i></a> Clientes Morosos en <b>".$periodo."</b> a la fecha de <b>".$hoyMor."</b>
-                      </h4>";
+          echo        '<div class="col-1 col-sm-1 col-md-1 col-lg-1 col-xs-1" style="max-width:30px;padding:0;">
+                        <a class="nav-link" href="#" onClick="'.$linkFunctionPersonal.'">
+                          <i class="fas fa-arrow-alt-circle-left fa-lg" aria-hidden="true"></i>
+                        </a>
+                      </div>
+                      <div class="col-11 col-sm-11 col-md-11 col-lg-11 col-xs-11">
+                        <h4>
+                          Clientes Morosos en <b>'.$periodo.'</b> a la fecha de <b>'.$hoyMor.'</b>
+                        </h4>
+                      </div>';
         }
         echo        "</div>";
         $print = $paramFunctions->drawTableHeader($headers, $classPerColumn);
         $i = 0;
         $suma = 0;
-
         foreach ($rows as $row) {
           $clienteid = $row["clienteid"];
           $numero = $row["numero"];
           $cliente = $row["nombre"];
+          $direccion = $row["direccion"];
+          $numerocli = $row["numerocli"];
+          $interior = $row["interior"];
+          $colonia = $row["colonia"];
+          $ciudad = $row["ciudad"];
+          $municipio = $row["municipio"];
+          $estado = $row["estado"];
+          $cp = $row["cp"];
+          $correo = $row["correo"];
+          $tel = $row["tel"];
           $folio = $row["folio"];
           $importe = $row["total"];
           $diasVencidos = $row["dias"];
@@ -2236,7 +2321,22 @@ class Report {
           $print .=     "<tr>";
           $print .=       "<td class='text-center'>$i</td>";
           $print .=       "<td class='text-center'>$numero</td>";
-          $print .=       "<td class='text-center'>$cliente</td>";
+          $print .=       "<td class='text-center' width='700'>
+                            <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>
+                              <div class='row'>
+                                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 hr'>
+                                  $cliente
+                                </div>
+                                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>
+                                  Dirección: <span class='text-tomato'>$direccion</span> No. <span class='text-tomato'>$numerocli</span> Int. <span class='text-tomato'>$interior</span> Colonia: <span class='text-tomato'>$colonia</span>
+                                </div>
+                                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>
+                                  Ciudad: <span class='text-tomato'>$ciudad</span> Municipio: <span class='text-tomato'>$municipio</span> Estado: <span class='text-tomato'>$estado</span> C.P.: <span class='text-tomato'>$cp</span>
+                                </div>
+                                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>
+                                  Correo: <span class='text-tomato'>$correo</span> Tel.: <span class='text-tomato'>$tel</span>
+                                </div>
+                          </td>";
           $print .=       "<td class='text-center'>$folio</td>";
           $print .=       "<td class='text-center'>$nomvend</td>";
           $print .=       "<td class='text-center'>$diasVencidos</td>";
@@ -4603,7 +4703,10 @@ class Report {
                       FROM doc d
                         JOIN per p ON p.perid = d.vendedorid
                       WHERE d.total > d.totalpagado
-                          AND d.tipo = 'F'
+                          AND (
+                                d.tipo = 'F'
+                                OR d.tipo = 'N'
+                              )
                           AND p.sermov = $zona
                           AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
     $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
@@ -4623,7 +4726,10 @@ class Report {
                       JOIN per p ON p.perid = d.vendedorid
                     WHERE d.totalpagado < total
                       AND d.feccan = 0
-                      AND d.tipo NOT LIKE 'C'
+                      AND (
+                            d.tipo = 'F'
+                            OR d.tipo = 'N'
+                          )
                       AND d.vence < '$dia'
                       AND p.sermov = $zona
                       AND (
@@ -4737,7 +4843,7 @@ class Report {
                             <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
                           </div>
                           <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                            <h4 class="h4">MOROSIDA TOTAL</h4>
+                            <h4 class="h4">MOROSIDAD TOTAL</h4>
                             <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
                           </div>
                           <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">

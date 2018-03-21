@@ -4,9 +4,10 @@ class Database {
 	protected $_result;
 	protected $_numRows;
 
-	private $_host = "192.168.1.250";
-	// private $_port = 60033;
-	private $_port = 3306;
+	// private $_host = "192.168.1.250";
+	private $_host = "177.227.109.25";
+	private $_port = 60033;
+	// private $_port = 3306;
 	private $_username = "web";
 	private $_password = "webfmolvera17";
 	private $_database = "datosa";
