@@ -152,8 +152,11 @@ class Report {
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
                   WHERE d.total > d.totalpagado
-                      AND d.tipo = 'F'
-                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+                    AND (
+                          d.tipo = 'F'
+                          OR d.tipo = 'N'
+                        )'
+                    AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
     $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
     $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
     if($rowMorosidad === NULL){
@@ -170,7 +173,10 @@ class Report {
                     FROM doc
                     WHERE totalpagado < total
                       AND feccan = 0
-                      AND tipo NOT LIKE 'C'
+                      AND (
+                            d.tipo = 'F'
+                            OR d.tipo = 'N'
+                          )
                       AND vence < '$dia'
                       AND (
                             feccap < '$fechaFinalVenc'
@@ -213,7 +219,7 @@ class Report {
     $queryVtaDia = "SELECT docid
                             FROM doc
                           WHERE fecha = '$dia'
-                            AND tipo = 'F'
+                            AND (tipo = 'N' OR tipo = 'F')
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQueryDia = $getConnection->query($queryVtaDia);
@@ -306,8 +312,11 @@ class Report {
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
                   WHERE d.total > d.totalpagado
-                      AND d.tipo = 'F'
-                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+                    AND (
+                          d.tipo = 'F'
+                          OR d.tipo = 'N'
+                        )
+                    AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
     $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
     $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
     if($rowMorosidad === NULL){
@@ -324,7 +333,10 @@ class Report {
                             FROM doc
                             WHERE totalpagado < total
                               AND feccan = 0
-                              AND tipo NOT LIKE 'C'
+                              AND (
+                                    tipo = 'F'
+                                    OR tipo = 'N'
+                                  )
                               AND vence < '$dia'
                               AND (
                                     feccap < '$fechaFinalVenc'
@@ -370,27 +382,34 @@ class Report {
                           $(document).ready(function() {	
                             function pedidosDia(){
                               $.ajax({
-                                  type: "POST",
-                                  url: "../php/busquedas/pedidodia.php",
-                                  valorBusqueda: "textoBusqueda",
-                                  success: function(pedido) {
+                                type: "POST",
+                                url: "../php/busquedas/pedidodia.php",
+                                success: function(pedido) {
+                                  var valorPedidos = document.getElementById("totalpedidodia").innerHTML;
+                                  if(valorPedidos != pedido){
                                     $("#totalpedidodia").text(pedido);
-                                    // $("#totalpedidodia").addClass("aviso");
-                                    console.log(pedido)
+                                    $("#totalpedidodia").addClass("aviso");
+                                    // console.log(valorPedidos);
                                   }
+                                  // console.log(valorPedidos, pedido);
+                                }
                               });
                             }
                             setInterval(pedidosDia, 3000);
                             function ventasMes(){
-                                $.ajax({
-                                    type: "POST",
-                                    url: "../php/busquedas/ventames.php",
-                                    valorBusqueda: "textoBusqueda",
-                                    success: function(mensaje) {
-                                        $("#totalventames").text(mensaje);
-                                        // console.log(mensaje)
-                                    }
-                                  });
+                              $.ajax({
+                                type: "POST",
+                                url: "../php/busquedas/ventames.php",
+                                success: function(venta) {
+                                  var valorVentas = document.getElementById("totalventames").innerHTML;
+                                  if(valorVentas != venta){
+                                    $("#totalventames").text(venta);
+                                    $("#totalventames").addClass("aviso");
+                                    // console.log(valorVentas);
+                                  }
+                                  //console.log(valorVentas, venta);
+                                }
+                              });
                             }
                             setInterval(ventasMes, 3000);
                           });
@@ -1158,8 +1177,6 @@ class Report {
                     JOIN cli c ON c.clienteid = d.clienteid
                     JOIN dom ON dom.clienteid = d.clienteid
                     JOIN per p ON p.perid = d.vendedorid
-                    JOIN correos co ON co.clienteid = d.clienteid
-                    JOIN tel t ON t.clienteid = d.clienteid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
@@ -1179,8 +1196,6 @@ class Report {
                     JOIN cli c ON c.clienteid = d.clienteid
                     JOIN dom ON dom.clienteid = d.clienteid
                     JOIN per p ON p.perid = d.vendedorid
-                    JOIN correos co ON co.clienteid = d.clienteid
-                    JOIN tel t ON t.clienteid = d.clienteid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
@@ -1200,8 +1215,6 @@ class Report {
                     JOIN cli c ON c.clienteid = d.clienteid
                     JOIN dom ON dom.clienteid = d.clienteid
                     JOIN per p ON p.perid = d.vendedorid
-                    JOIN correos co ON co.clienteid = d.clienteid
-                    JOIN tel t ON t.clienteid = d.clienteid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
@@ -1221,8 +1234,6 @@ class Report {
                     JOIN cli c ON c.clienteid = d.clienteid
                     JOIN dom ON dom.clienteid = d.clienteid
                     JOIN per p ON p.perid = d.vendedorid
-                    JOIN correos co ON co.clienteid = d.clienteid
-                    JOIN tel t ON t.clienteid = d.clienteid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
@@ -2030,11 +2041,12 @@ class Report {
                       JOIN cli c ON c.clienteid = d.clienteid
                       JOIN dom ON dom.clienteid = d.clienteid
                       JOIN per p ON p.perid = d.vendedorid
-                      JOIN correos co ON co.clienteid = d.clienteid
-                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
-                        AND d.tipo NOT LIKE 'C'
+                        AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
       $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
       $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
@@ -2052,8 +2064,6 @@ class Report {
                       JOIN cli c ON c.clienteid = d.clienteid
                       JOIN dom ON dom.clienteid = d.clienteid
                       JOIN per p ON p.perid = d.vendedorid
-                      JOIN correos co ON co.clienteid = d.clienteid
-                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
                         AND d.tipo NOT LIKE 'C'
@@ -2075,8 +2085,6 @@ class Report {
                       JOIN cli c ON c.clienteid = d.clienteid
                       JOIN dom ON dom.clienteid = d.clienteid
                       JOIN per p ON p.perid = d.vendedorid
-                      JOIN correos co ON co.clienteid = d.clienteid
-                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
                         AND d.tipo NOT LIKE 'C'
@@ -2098,8 +2106,6 @@ class Report {
                       JOIN cli c ON c.clienteid = d.clienteid
                       JOIN dom ON dom.clienteid = d.clienteid
                       JOIN per p ON p.perid = d.vendedorid
-                      JOIN correos co ON co.clienteid = d.clienteid
-                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
                         AND d.tipo NOT LIKE 'C'
@@ -2121,8 +2127,6 @@ class Report {
                       JOIN cli c ON c.clienteid = d.clienteid
                       JOIN dom ON dom.clienteid = d.clienteid
                       JOIN per p ON p.perid = d.vendedorid
-                      JOIN correos co ON co.clienteid = d.clienteid
-                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado
                         AND d.vendedorid = $perid
                         AND d.tipo NOT LIKE 'C'
@@ -2204,14 +2208,12 @@ class Report {
     $tiempoMor = $paramDb->SecureInput($params["tiempoMor"]);
     $hoyMor = date("Y-m-d");
     // TODO buscar morosidad por el tipo de tiempo, vendedor y lista de cliente
-    $getMor = "SELECT c.clienteid, c.numero, c.nombre, dom.direccion, dom.numero as numerocli, dom.interior, dom.colonia, dom.ciudad, dom.municipio, dom.estado, dom.cp, co.correo, t.tel, cfd.folio, (d.totalpagado - d.total) as total, (SELECT DATEDIFF(d.vence, '".$hoyMor."')) as dias, p.nombre as nombreVen
+    $getMor = "SELECT c.clienteid, c.numero, c.nombre, dom.direccion, dom.numero as numerocli, dom.interior, dom.colonia, dom.ciudad, dom.municipio, dom.estado, dom.cp, cfd.folio, (d.totalpagado - d.total) as total, (SELECT DATEDIFF(d.vence, '".$hoyMor."')) as dias, p.nombre as nombreVen
                     FROM doc d
                       JOIN cfd ON cfd.docid = d.docid
                       JOIN cli c ON c.clienteid = d.clienteid
                       JOIN dom ON dom.clienteid = d.clienteid
                       JOIN per p ON p.perid = d.vendedorid
-                      JOIN correos co ON co.clienteid = d.clienteid
-                      JOIN tel t ON t.clienteid = d.clienteid
                     WHERE d.total > d.totalpagado";
     if($perid > 0){
       $getMor .=      " AND d.vendedorid = $perid
@@ -4607,7 +4609,7 @@ class Report {
                         JOIN per p ON p.perid = d.vendedorid
                       WHERE d.fecha = '$dia'
                         AND p.sermov = $zona
-                        AND d.tipo = 'F'
+                        AND d.tipo = 'C'
                         AND d.subtotal2 > 0
                         AND d.FECCAN = 0";
     $resultQueryDia = $getConnection->query($queryVtaDia);

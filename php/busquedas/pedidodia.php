@@ -8,9 +8,8 @@
     $dia  = date("Y-m-d");
     $buscarPedidosAjax = "SELECT d.docid
                             FROM doc d
-                                JOIN cli c ON c.clienteid = d. clienteid
                             WHERE d.fecha = '".$dia."'
-                                AND d.tipo = 'F'
+                                AND (d.tipo = 'N' OR d.tipo = 'F')
                                 AND d.subtotal2 > 0
                                 AND d.FECCAN = 0";
     $ajaxPedidos = mysqli_query($getConnection, $buscarPedidosAjax);
