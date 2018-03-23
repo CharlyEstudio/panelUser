@@ -213,22 +213,63 @@ class Report {
     $paramDb          = new Database();
     $getConnection    = $paramDb->GetLink();
 
-    //Se hace la busqueda de ventas totales del Dia
+    //Se hace la busqueda de pedidos y ventas totales del Dia
     $dia  = date("Y-m-d");
 
-    $queryVtaDia = "SELECT docid
+    $queryPedDia = "SELECT COUNT(docid) AS Pedidos, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPed
                             FROM doc
                           WHERE fecha = '$dia'
-                            AND (tipo = 'N' OR tipo = 'F')
+                            AND (tipo = 'C' OR tipo = 'N' OR tipo = 'F')
+                            AND tipo NOT LIKE 'CH'
                             AND subtotal2 > 0
                             AND FECCAN = 0";
-    $resultQueryDia = $getConnection->query($queryVtaDia);
-    $qVtaDia = mysqli_num_rows($resultQueryDia);
-    if($qVtaDia === NULL){
-      $totalVentaDia = 0;
+    $resultQueryDia = $getConnection->query($queryPedDia);
+    $qPedDia = mysqli_fetch_array($resultQueryDia);
+    if($qPedDia === NULL){
+      $totalPed = 0;
+      $sumPed = 0;
     } else {
       //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $totalVentaDia = $qVtaDia;
+      $totalPed = $qPedDia["Pedidos"];
+      $sumPed = "$ ".number_format($qPedDia["TotalPed"], 2, '.',',');
+    }
+
+    // Pedidos y ventas por Surtir del día
+    $queryPedDiaSurtir = "SELECT COUNT(docid) AS PedidosSurtir, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedSurtir
+                            FROM doc
+                          WHERE fecha = '$dia'
+                            AND tipo = 'N'
+                            AND tipo NOT LIKE 'CH'
+                            AND subtotal2 > 0
+                            AND FECCAN = 0";
+    $resultQueryDiaSurtir = $getConnection->query($queryPedDiaSurtir);
+    $qPedDiaSurtir = mysqli_fetch_array($resultQueryDiaSurtir);
+    if($qPedDiaSurtir === NULL){
+      $PedSurt = 0;
+      $sumSurt = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      $PedSurt = $qPedDiaSurtir["PedidosSurtir"];
+      $sumSurt = "$ ".number_format($qPedDiaSurtir["TotalPedSurtir"], 2, '.',',');
+    }
+
+    // Pedidos y ventas por Bajar del día
+    $queryPedDiaBajar = "SELECT COUNT(docid) AS PedidosBajar, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedBajar
+                            FROM doc
+                          WHERE fecha = '$dia'
+                            AND tipo = 'C'
+                            AND tipo NOT LIKE 'CH'
+                            AND subtotal2 > 0
+                            AND FECCAN = 0";
+    $resultQueryDiaBajar = $getConnection->query($queryPedDiaBajar);
+    $qPedDiaBajar = mysqli_fetch_array($resultQueryDiaBajar);
+    if($qPedDiaBajar === NULL){
+      $PedBajar = 0;
+      $sumBajar = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      $PedBajar = $qPedDiaBajar["PedidosBajar"];
+      $sumBajar = "$ ".number_format($qPedDiaBajar["TotalPedBajar"], 2, '.',',');
     }
 
     //Se hace la busqueda de ventas totales del Mes
@@ -237,21 +278,20 @@ class Report {
     $dayVtaTotMes = date("d", mktime(0,0,0, $month+1, 0, $year));
     $primerDiaMes = date('Y-m-d', mktime(0,0,0, $month, 1, $year));
     $ultimoDiaMes = date('Y-m-d', mktime(0,0,0, $month, $dayVtaTotMes, $year));
-    $queryVtaMes = "SELECT SUM(SUBTOTAL2) AS total
+    $queryVtaMes = "SELECT SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS Total
                             FROM doc
                           WHERE (
-                                fecha <= '$ultimoDiaMes'
-                                AND fecha >= '$primerDiaMes' 
+                                  fecha <= '$ultimoDiaMes'
+                                  AND fecha >= '$primerDiaMes' 
                                 )
                             AND tipo = 'F'
-                            AND subtotal2 > 0
-                            AND FECCAN = 0";
+                            AND serie NOT LIKE 'CH'";
     $resultQueryMes = $getConnection->query($queryVtaMes);
     $qVtaMes = mysqli_fetch_array($resultQueryMes);
     if($qVtaMes === NULL){
       $totalVentaMes = 0;
     } else {
-      $totalVentaMes = $qVtaMes['total'];
+      $totalVentaMes = $qVtaMes['Total'];
     }
     $formatTotalVentaMes = number_format($totalVentaMes, 2, '.',',');
 
@@ -359,81 +399,175 @@ class Report {
 
     //Se hace la busqueda de pedidos totales de los nuevos clientes
     
-    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT hg910 centrar text-center">
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT centrar text-center">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
                 <div class="row">
-                  <div class="content-wrapper">
-                    <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
-                      <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
-                      <img src="../img/barrafmo2.gif" width="200"/>
-                    </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6 paddingB">
+                    <h4 class="h4">No. PEDIDOS AL DIA</h4>
                     <div class="row">
                       <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                        <h4 class="h4">No. PEDIDOS AL DIA</h4>
-                        <p class="lead text-tomato" id="totalpedidodia" style="font-size: 1.7em !important;">'.$totalVentaDia.'</p>
+                        <p class="lead text-tomato" id="totalpedidodia" style="font-size: 1.7em !important;">'.$totalPed .'</p>
                       </div>
                       <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                        <h4 class="h4">VENTAS AL MES</h4>
-                        <span id="hora" style="display:none;">'.date("G").'</span>
-                        <p class="lead text-tomato" id="totalventames" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</p>
+                      <p class="lead text-tomato" id="impototalpedidodia" style="font-size: 1.7em !important;">'.$sumPed .'</p>
                       </div>
-                      <script type="text/javascript">
-                        var hora = document.getElementById("hora").innerHTML;
-                        if(hora < 20){
-                          $(document).ready(function() {	
-                            function pedidosDia(){
-                              $.ajax({
-                                type: "POST",
-                                url: "../php/busquedas/pedidodia.php",
-                                success: function(pedido) {
-                                  var valorPedidos = document.getElementById("totalpedidodia").innerHTML;
-                                  if(valorPedidos != pedido){
-                                    $("#totalpedidodia").text(pedido);
-                                    $("#totalpedidodia").addClass("aviso");
-                                    // console.log(valorPedidos);
-                                  }
-                                  // console.log(valorPedidos, pedido);
-                                }
-                              });
-                            }
-                            setInterval(pedidosDia, 3000);
-                            function ventasMes(){
-                              $.ajax({
-                                type: "POST",
-                                url: "../php/busquedas/ventames.php",
-                                success: function(venta) {
-                                  var valorVentas = document.getElementById("totalventames").innerHTML;
-                                  if(valorVentas != venta){
-                                    $("#totalventames").text(venta);
-                                    $("#totalventames").addClass("aviso");
-                                    // console.log(valorVentas);
-                                  }
-                                  //console.log(valorVentas, venta);
-                                }
-                              });
-                            }
-                            setInterval(ventasMes, 3000);
-                          });
-                        } else {
-                          console.log("Fuera de Línea");
-                        }
-                      </script>
-                    </div>
-                    <div class="row">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                        <p class="h4">FACTURAS VENCIDAS AL MES</p>
-                        <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
-                      </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                        <h4 class="h4">MOROSIDA TOTAL</h4>
-                        <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
-                      </div>
-                    </div>
-                    <div class="row">
                       <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                        <h4 class="h4">NUEVOS CLIENTES AL MES</h4>
-                        <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesCliNuevos.'</p>
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                            <p class="lead text-bold">POR SURTIR</p>
+                            <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                                <p class="lead text-tomato" id="porsurtir" style="font-size: 1.7em !important;">'.$PedSurt .'</p>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                                <p class="lead text-tomato" id="impoporsurtir" style="font-size: 1.7em !important;">'.$sumSurt.'</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                            <p class="lead text-bold">POR BAJAR</p>
+                            <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                                <p class="lead text-tomato" id="porbajar" style="font-size: 1.7em !important;">'.$PedBajar.'</p>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                                <p class="lead text-tomato" id="impoporbajar" style="font-size: 1.7em !important;">'.$sumBajar.'</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6 paddingB">
+                    <h4 class="h4">VENTAS AL MES</h4>
+                    <span id="hora" style="display:none;">'.date("G").'</span>
+                    <p class="lead text-tomato" id="totalventames" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</p>
+                  </div>
+                  <script type="text/javascript">
+                    var hora = document.getElementById("hora").innerHTML;
+                    if(hora < 20){
+                      $(document).ready(function() {	
+                        function pedidosDia(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodia.php",
+                            success: function(pedido) {
+                              var valorPedidos = $("#totalpedidodia");
+                              if(valorPedidos != pedido){
+                                $("#totalpedidodia").text(pedido);
+                                $("#totalpedidodia").addClass("aviso");
+                                // console.log(valorPedidos);
+                              }
+                              // console.log(valorPedidos, pedido);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDia, 3000);
+
+                        function pedidosDiaSurtir(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiasurtir.php",
+                            success: function(pedidoSurtir) {
+                              var valorPedidosSurtir = $("#porsurtir");
+                              if(valorPedidosSurtir != pedidoSurtir){
+                                $("#porsurtir").text(pedidoSurtir);
+                                $("#porsurtir").addClass("aviso");
+                                // console.log(pedidoSurtir);
+                              }
+                              // console.log(valorPedidosSurtir, pedidoSurtir);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaSurtir, 3000);
+
+                        function pedidosDiaSurtirSaldo(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiasurtirsaldo.php",
+                            success: function(pedidoSurtirSaldo) {
+                              var valorPedidosSurtir = $("#impoporsurtir");
+                              if(valorPedidosSurtir != pedidoSurtirSaldo){
+                                $("#impoporsurtir").text(pedidoSurtirSaldo);
+                                $("#impoporsurtir").addClass("aviso");
+                                // console.log(pedidoSurtirSaldo);
+                              }
+                              // console.log(valorPedidosSurtir, pedidoSurtirSaldo);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaSurtirSaldo, 3000);
+
+                        function pedidosDiaBajar(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiabajar.php",
+                            success: function(pedidoBajar) {
+                              var valorPedidosBajar = $("#porBajar");
+                              if(valorPedidosBajar != pedidoBajar){
+                                $("#porbajar").text(pedidoBajar);
+                                $("#porbajar").addClass("aviso");
+                                // console.log(valorPedidosBajar);
+                              }
+                              // console.log(valorPedidosBajar, pedidoBajar);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaBajar, 3000);
+                        
+                        function pedidosDiaBajarSaldo(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiabajarsaldo.php",
+                            success: function(pedidoBajarSaldo) {
+                              var valorPedidosBajar = $("#impoporbajar");
+                              if(valorPedidosBajar != pedidoBajarSaldo){
+                                $("#impoporbajar").text(pedidoBajarSaldo);
+                                $("#impoporbajar").addClass("aviso");
+                                // console.log(valorPedidosBajar);
+                              }
+                              // console.log(valorPedidosBajar, pedidoBajarSaldo);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaBajarSaldo, 3000);
+
+                        function ventasMes(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/ventames.php",
+                            success: function(venta) {
+                              var valorVentas = $("#totalventames");
+                              if(valorVentas != venta){
+                                $("#totalventames").text(venta);
+                                $("#totalventames").addClass("aviso");
+                                // console.log(valorVentas);
+                              }
+                              //console.log(valorVentas, venta);
+                            }
+                          });
+                        }
+                        setInterval(ventasMes, 3000);
+                      });
+                    } else {
+                      console.log("Fuera de Línea");
+                    }
+                  </script>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                    <p class="h4">FACTURAS VENCIDAS AL MES</p>
+                    <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                    <h4 class="h4">MOROSIDA TOTAL</h4>
+                    <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                    <h4 class="h4">NUEVOS CLIENTES AL MES</h4>
+                    <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesCliNuevos.'</p>
                   </div>
                 </div>
               </div>';
@@ -488,12 +622,13 @@ class Report {
     $formatTotalVentaDia = number_format($totalVentaDia, 2, '.',',');
 
     //Pedidos al día
-    $queryPedDia = "SELECT docid
-                      FROM doc
-                      WHERE fecha = '$dia'
-                        AND tipo = 'F'
-                        AND subtotal2 > 0
-                        AND FECCAN = 0";
+    $queryPedDia = "SELECT d.docid
+                      FROM doc d
+                      WHERE d.fecha = '".$dia."'
+                        AND (tipo = 'C' OR tipo = 'N' OR tipo = 'F')
+                        AND tipo NOT LIKE 'CH'
+                        AND d.subtotal2 > 0
+                        AND d.FECCAN = 0";
     $resultQueryPedDia = $getConnection->query($queryPedDia);
     if($resultQueryPedDia === ''){
       $qPediDia = 0;
@@ -546,26 +681,20 @@ class Report {
     $diaUltimo = date("d", mktime(0,0,0, $month+1, 0, $year));
     $primerDiaMes = date('Y-m-d', mktime(0,0,0, $month, 1, $year));
     $ultimoDiaMes = date('Y-m-d', mktime(0,0,0, $month, $diaUltimo, $year));
-    $queryVtaMes = "SELECT (
-                            SELECT CASE
-                            WHEN TOTAL > 0
-                            THEN SUM((SELECT (SUBTOTAL2) FROM DUAL))
-                            END
-                            ) AS total
-                            FROM doc
-                          WHERE (
-                                fecha <= '$ultimoDiaMes'
-                                AND fecha >= '$primerDiaMes' 
-                                )
-                            AND tipo = 'F'
-                            AND subtotal2 > 0
-                            AND FECCAN = 0";
+    $queryVtaMes = "SELECT SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS Total
+                      FROM doc
+                      WHERE (
+                              fecha <= '$ultimoDiaMes'
+                              AND fecha >= '$primerDiaMes' 
+                              )
+                        AND tipo = 'F'
+                        AND serie NOT LIKE 'CH'";
     $resultQueryMes = $getConnection->query($queryVtaMes);
     $qVtaMes = mysqli_fetch_array($resultQueryMes);
     if($qVtaMes === NULL){
       $totalVentaMes = 0;
     } else {
-      $totalVentaMes = $qVtaMes['total'];
+      $totalVentaMes = $qVtaMes['Total'];
     }
     $formatTotalVentaMes = number_format($totalVentaMes, 2, '.',',');
 
@@ -960,10 +1089,10 @@ class Report {
                               </div>
                             </div>
                           </div>
-                          <span id="hora" style="display:none;">'.date("G").'</span>
                           <script type="text/javascript">
-                            var hora = document.getElementById("hora").innerHTML;
-                            if(hora < 20){
+                            var f=new Date();
+                            var hora=f.getHours();
+                            if(hora < 20 || hora > 8){
                               $(document).ready(function() {	
                                 function ventasDia(){
                                   $.ajax({
@@ -1033,7 +1162,7 @@ class Report {
     $print .=     '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficasGeneral">
                     <div class="row">
                       <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
-                        <h3 class="">Venta Mensual</h3>
+                        <h3 class="display-4">Venta Mensual</h3>
                         <h4>Venta Mensual de <b>'.$mes.'</b> del <b>'.date("Y").'</b></h4>
                         <div class="row text-center">
                           <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficosBarra">
@@ -1042,10 +1171,95 @@ class Report {
                             <p id="mesAnterior" style="display: none;">'.$vAnt.'</p>
                             <p id="mejorMes" style="display: none;">'.$vMejor.'</p>
                             <p id="mesMej" style="display: none;">'.$mesMej.'</p>
-                            <canvas id="areaChart" style="height:250px;"></canvas>
+                            <canvas id="areaChart" style="max-height:350px;"></canvas>
                           </div>
                           <script src="../intranet/js/Chart.js"></script>
-                          <script src="../intranet/js/graficas.js"></script>';
+                          <script src="../intranet/js/graficas.js"></script>
+                          <script type="text/javascript">
+                            var f=new Date();
+                            $.ajax({
+                              type: "POST",
+                              url: "../php/busquedas/ventamesgraf.php",
+                              success: function(ventames) {
+                                $(document).ready(function() {
+                                  function ventasMes(){
+                                    var hora=f.getHours();
+                                    if(hora < 20 || hora > 8){
+                                      // console.log(hora);
+                                      $("#mesActual").text(ventames);
+                                      var mActual = parseFloat(ventames);
+                                      if(document.getElementById("mesAnterior") != null){
+                                        var mAnterior = parseFloat(document.getElementById("mesAnterior").innerHTML);
+                                      }
+                                      if(document.getElementById("mejorMes") != null){
+                                        var mejorMes = parseFloat(document.getElementById("mejorMes").innerHTML);
+                                      }
+                                      if($("#areaChart").get(0) != null){
+                                        var barChartCanvas = $("#areaChart").get(0).getContext("2d");
+                                        var barChart       = new Chart(barChartCanvas);
+                                        var areaChartData = {
+                                          labels  : [""],
+                                          datasets: [
+                                            {
+                                              label               : "Mes Anterior",
+                                              fillColor           : "rgba(225, 49, 90, 1)",
+                                              strokeColor         : "rgba(225, 49, 90, 1)",
+                                              pointColor          : "rgba(225, 49, 90, 1)",
+                                              pointStrokeColor    : "#c1c7d1",
+                                              pointHighlightFill  : "#fff",
+                                              pointHighlightStroke: "rgba(220,220,220,1)",
+                                              data                : [mAnterior]
+                                            },
+                                            {
+                                              label               : "Mes Actual",
+                                              fillColor           : "rgba(95, 124, 250, 1)",
+                                              strokeColor         : "rgba(95, 124, 250, 1)",
+                                              pointColor          : "rgba(95, 124, 250, 1)",
+                                              pointStrokeColor    : "#c1c7d1",
+                                              pointHighlightFill  : "#fff",
+                                              pointHighlightStroke: "rgba(220,220,220,1)",
+                                              data                : [mActual]
+                                            },
+                                            {
+                                              label               : "Mejor Mes",
+                                              fillColor           : "rgba(49, 225, 111, 1)",
+                                              strokeColor         : "rgba(49, 225, 111, 1)",
+                                              pointColor          : "rgba(49, 225, 111, 1)",
+                                              pointStrokeColor    : "#c1c7d1",
+                                              pointHighlightFill  : "#fff",
+                                              pointHighlightStroke: "rgba(220,220,220,1)",
+                                              data                : [mejorMes]
+                                            }
+                                          ]
+                                        };
+                                        var barChartData                     = areaChartData;
+                                        var barChartOptions                  = {
+                                          animation               : false,
+                                          scaleBeginAtZero        : true,
+                                          scaleShowGridLines      : true,
+                                          scaleGridLineColor      : "rgba(0,0,0,.05)",
+                                          scaleGridLineWidth      : 1,
+                                          scaleShowHorizontalLines: true,
+                                          scaleShowVerticalLines  : true,
+                                          barShowStroke           : true,
+                                          barStrokeWidth          : 2,
+                                          barValueSpacing         : 5,
+                                          barDatasetSpacing       : 1,
+                                          responsive              : true,
+                                          maintainAspectRatio     : true
+                                        };
+                                        barChartOptions.datasetFill = false;
+                                        barChart.Bar(barChartData, barChartOptions);
+                                      }
+                                    } else {
+                                      console.log("Fuera de Línea");
+                                    }
+                                  }
+                                  setInterval(ventasMes, 3000);
+                                });
+                              }
+                            });
+                          </script>';
     $print .=           '</div>
                       </div>
                       <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
@@ -1129,7 +1343,7 @@ class Report {
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
                           <div class="row infoCard">
                             <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
-                              <h3>Reporte de Venta</h3>
+                              <h3 class="display-4">Reporte de Venta</h3>
                               <h4><b>'.date("Y").' <em style="font-size: 0.5em;">Vs</em> '.$anioAnterior.' <em style="font-size: 0.5em;">Vs</em> Empresa</b></h4>
                             </div>
                             <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
@@ -1248,7 +1462,7 @@ class Report {
     $print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB">
                 <div class="row">
                   <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
-                    <h3>Cuentas por Cobrar</h3>
+                    <h3 class="display-4">Cuentas por Cobrar</h3>
                     <h4>Cartera Vencida Total</h4>
                     <p class="text-redGraf" style="font-weight:bold;font-size: 2em;">$ '.$Morosidad.'</p>
                     <table class="table table-striped table-dark">
@@ -4604,12 +4818,11 @@ class Report {
     //Se hace la busqueda de ventas totales del Dia
     $dia  = date("Y-m-d");
 
-    $queryVtaDia = "SELECT d. docid
+    $queryVtaDia = "SELECT d.docid
                       FROM doc d
-                        JOIN per p ON p.perid = d.vendedorid
-                      WHERE d.fecha = '$dia'
-                        AND p.sermov = $zona
-                        AND d.tipo = 'C'
+                      WHERE d.fecha = '".$dia."'
+                        AND (tipo = 'C' OR tipo = 'N' OR tipo = 'F')
+                        AND tipo NOT LIKE 'CH'
                         AND d.subtotal2 > 0
                         AND d.FECCAN = 0";
     $resultQueryDia = $getConnection->query($queryVtaDia);
@@ -4627,17 +4840,16 @@ class Report {
     $dayVtaTotMes = date("d", mktime(0,0,0, $month+1, 0, $year));
     $primerDiaMes = date('Y-m-d', mktime(0,0,0, $month, 1, $year));
     $ultimoDiaMes = date('Y-m-d', mktime(0,0,0, $month, $dayVtaTotMes, $year));
-    $queryVtaMes = "SELECT SUM(d.SUBTOTAL2) AS total
+    $queryVtaMes = "SELECT SUM((SELECT (d.SUBTOTAL2 + d.SUBTOTAL1) FROM DUAL)) AS Total
                       FROM doc d
                         JOIN per p ON p.perid = d.vendedorid
                       WHERE (
-                            d.fecha <= '$ultimoDiaMes'
-                            AND d.fecha >= '$primerDiaMes' 
-                            )
-                        AND d.tipo = 'F'
-                        AND p.sermov = $zona
-                        AND d.subtotal2 > 0
-                        AND d.FECCAN = 0";
+                              d.fecha <= '".$ultimoDiaMes."'
+                              AND d.fecha >= '".$primerDiaMes."' 
+                              )
+                          AND d.tipo = 'F'
+                          AND d.serie NOT LIKE 'CH'
+                          AND p.sermov = $zona";
     $resultQueryMes = $getConnection->query($queryVtaMes);
     $qVtaMes = mysqli_fetch_array($resultQueryMes);
     if($qVtaMes === NULL){
