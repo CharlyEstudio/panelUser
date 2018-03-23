@@ -634,11 +634,13 @@ class Report {
                     <h4 class="h4">MOROSIDAD TOTAL</h4>
                     <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6 offset-md-3">
                     <h4 class="h4">NUEVOS CLIENTES AL MES</h4>
-                    <a class="nav-link" href="#" onClick="'.$linkFunctionPersonal.'">
-                      <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesCliNuevos.'</p>
-                    </a>
+                    <p class="lead text-tomato" style="font-size: 1.7em !important;">
+                      <a class="nav-link" href="#" onClick="'.$linkFunctionPersonal.'">
+                      '.$numeroVecesCliNuevos.'
+                      </a>
+                    </p>
                   </div>
                 </div>
               </div>';
