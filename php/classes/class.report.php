@@ -231,6 +231,7 @@ class Report {
     } else {
       //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
       $totalPed = $qPedDia["Pedidos"];
+      $sumP = (float)$qPedDia["TotalPed"];
       $sumPed = "$ ".number_format($qPedDia["TotalPed"], 2, '.',',');
     }
 
@@ -250,6 +251,7 @@ class Report {
     } else {
       //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
       $PedSurt = $qPedDiaSurtir["PedidosSurtir"];
+      $SumSurNs = $qPedDiaSurtir["TotalPedSurtir"];
       $sumSurt = "$ ".number_format($qPedDiaSurtir["TotalPedSurtir"], 2, '.',',');
     }
 
@@ -269,7 +271,28 @@ class Report {
     } else {
       //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
       $PedBajar = $qPedDiaBajar["PedidosBajar"];
+      $SumaBajNs = $qPedDiaBajar["TotalPedBajar"];
       $sumBajar = "$ ".number_format($qPedDiaBajar["TotalPedBajar"], 2, '.',',');
+    }
+
+    // Pedidos y ventas por Factura del día
+    $queryPedDiaFactura = "SELECT COUNT(docid) AS PedidosFactura, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedFactura
+                            FROM doc d
+                            WHERE d.fecha = '$dia'
+                                AND tipo = 'F'
+                                AND tipo NOT LIKE 'CH'
+                                AND d.subtotal2 > 0
+                                AND d.FECCAN = 0";
+    $resultQueryDiaFactura = $getConnection->query($queryPedDiaFactura);
+    $qPedDiaFactura = mysqli_fetch_array($resultQueryDiaFactura);
+    if($qPedDiaFactura === NULL){
+      $PedFactura = 0;
+      $sumFactura = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      $PedFactura = $qPedDiaFactura["PedidosFactura"];
+      $sumFacNS = $qPedDiaFactura["TotalPedFactura"];
+      $sumFactura = "$ ".number_format($qPedDiaFactura["TotalPedFactura"], 2, '.',',');
     }
 
     //Se hace la busqueda de ventas totales del Mes
@@ -294,6 +317,13 @@ class Report {
       $totalVentaMes = $qVtaMes['Total'];
     }
     $formatTotalVentaMes = number_format($totalVentaMes, 2, '.',',');
+
+    //Sacamos el % de Nivel de Servicio
+    $VentasDiaNs = $sumFacNS + $SumaBajNs + $SumSurNs;
+    $divisionVDN = $VentasDiaNs * 100;
+    $ns = bcdiv($divisionVDN,$sumP,2);
+
+    // var_dump($VentasDiaNs,$sumP, $divisionVDN,$ns);
 
     //Sacamos el mes en que estamos
     switch ($month) {
@@ -392,13 +422,15 @@ class Report {
                             WHERE (
 									                  fecaltcli < '$fechaFinalVenc'
 									                  AND fecaltcli > '$fechaInicioVenc'
-									                )";
+                                  )
+                              AND catalogo NOT LIKE 'W'";
 
     $clieMes = mysqli_query($getConnection, $numCliMes);
     $numeroVecesCliNuevos = mysqli_num_rows($clieMes);
 
-    //Se hace la busqueda de pedidos totales de los nuevos clientes
-    
+    // $linkFunctionPersonal = "showPersonal(".$perid.")";
+    $linkFunctionPersonal = "showPersonal()";
+
     $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT centrar text-center">
                 <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
                   <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
@@ -407,79 +439,93 @@ class Report {
                 <div class="row">
                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6 paddingB">
                     <h4 class="h4">No. PEDIDOS AL DIA</h4>
-                    <div class="row">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                        <p class="lead text-tomato" id="totalpedidodia" style="font-size: 1.7em !important;">'.$totalPed .'</p>
-                      </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                      <p class="lead text-tomato" id="impototalpedidodia" style="font-size: 1.7em !important;">'.$sumPed .'</p>
-                      </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                        <div class="row">
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                            <p class="lead text-bold">POR SURTIR</p>
-                            <div class="row">
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                                <p class="lead text-tomato" id="porsurtir" style="font-size: 1.7em !important;">'.$PedSurt .'</p>
-                              </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                                <p class="lead text-tomato" id="impoporsurtir" style="font-size: 1.7em !important;">'.$sumSurt.'</p>
-                              </div>
+                    <table class="table table-striped table-dark">
+                      <thead>
+                        <tr>
+                          <th scope="col">CATEGORIA</th>
+                          <th scope="col">POR BAJAR</th>
+                          <th scope="col">POR SURTIR</th>
+                          <th scope="col">FACTURADO</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th scope="row">PEDIDOS</th>
+                          <td class="text-tomato" id="porbajar" style="font-size: 1.7em !important;">'.$PedBajar .'</td>
+                          <td class="text-tomato" id="porsurtir" style="font-size: 1.7em !important;">'.$PedSurt .'</td>
+                          <td class="text-tomato" id="porfactura" style="font-size: 1.7em !important;">'.$PedFactura .'</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">IMPORTE</th>
+                          <td class="text-tomato" id="impoporbajar" style="font-size: 1.7em !important;">'.$sumBajar.'</td>
+                          <td class="text-tomato" id="impoporsurtir" style="font-size: 1.7em !important;">'.$sumSurt.'</td>
+                          <td class="text-tomato" id="porfacturaSaldo" style="font-size: 1.7em !important;">'.$sumFactura.'</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                      <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                          <h5 class="lead">PEDIDOS DEL DIA</h5>
+                          <div class="row">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                              <p class="lead text-tomato" id="totalpedidodia" style="font-size: 1.7em !important;">'.$totalPed.'</p>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                              <p class="lead text-tomato" id="totalpedidodiaSaldo" style="font-size: 1.7em !important;">'.$sumPed.'</p>
                             </div>
                           </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                            <p class="lead text-bold">POR BAJAR</p>
-                            <div class="row">
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                                <p class="lead text-tomato" id="porbajar" style="font-size: 1.7em !important;">'.$PedBajar.'</p>
-                              </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                                <p class="lead text-tomato" id="impoporbajar" style="font-size: 1.7em !important;">'.$sumBajar.'</p>
-                              </div>
-                            </div>
-                          </div>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                          <h5 class="lead">VENTA DEL DIA</h5>
+                          <p class="lead text-tomato" id="ns" style="font-size: 1.7em !important;">NS '.$ns.'%</p>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6 paddingB">
                     <h4 class="h4">VENTAS AL MES</h4>
-                    <span id="hora" style="display:none;">'.date("G").'</span>
                     <p class="lead text-tomato" id="totalventames" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</p>
                   </div>
                   <script type="text/javascript">
-                    var hora = document.getElementById("hora").innerHTML;
-                    if(hora < 20){
+                    var f=new Date();
+                    var hora=f.getHours();
+                    if(hora < 20 || hora > 8){
                       $(document).ready(function() {	
                         function pedidosDia(){
                           $.ajax({
                             type: "POST",
                             url: "../php/busquedas/pedidodia.php",
                             success: function(pedido) {
-                              var valorPedidos = $("#totalpedidodia");
-                              if(valorPedidos != pedido){
-                                $("#totalpedidodia").text(pedido);
-                                $("#totalpedidodia").addClass("aviso");
-                                // console.log(valorPedidos);
-                              }
-                              // console.log(valorPedidos, pedido);
+                              $("#totalpedidodia").text(pedido);
+                              // $("#totalpedidodia").addClass("aviso");
+                              console.log("No. Pedidos: ",pedido);
                             }
                           });
                         }
                         setInterval(pedidosDia, 3000);
+
+                        function pedidosDiaSaldo(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiasaldo.php",
+                            success: function(pedidoSaldo) {
+                              $("#totalpedidodiaSaldo").text(pedidoSaldo);
+                              // $("#totalpedidodiaSaldo").addClass("aviso");
+                              console.log("Saldo Pedidos Total: ", pedidoSaldo);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaSaldo, 3000);
 
                         function pedidosDiaSurtir(){
                           $.ajax({
                             type: "POST",
                             url: "../php/busquedas/pedidodiasurtir.php",
                             success: function(pedidoSurtir) {
-                              var valorPedidosSurtir = $("#porsurtir");
-                              if(valorPedidosSurtir != pedidoSurtir){
-                                $("#porsurtir").text(pedidoSurtir);
-                                $("#porsurtir").addClass("aviso");
-                                // console.log(pedidoSurtir);
-                              }
-                              // console.log(valorPedidosSurtir, pedidoSurtir);
+                              $("#porsurtir").text(pedidoSurtir);
+                              // $("#porsurtir").addClass("aviso");
+                              console.log("Surti: ", pedidoSurtir);
                             }
                           });
                         }
@@ -490,13 +536,9 @@ class Report {
                             type: "POST",
                             url: "../php/busquedas/pedidodiasurtirsaldo.php",
                             success: function(pedidoSurtirSaldo) {
-                              var valorPedidosSurtir = $("#impoporsurtir");
-                              if(valorPedidosSurtir != pedidoSurtirSaldo){
-                                $("#impoporsurtir").text(pedidoSurtirSaldo);
-                                $("#impoporsurtir").addClass("aviso");
-                                // console.log(pedidoSurtirSaldo);
-                              }
-                              // console.log(valorPedidosSurtir, pedidoSurtirSaldo);
+                              $("#impoporsurtir").text(pedidoSurtirSaldo);
+                              // $("#impoporsurtir").addClass("aviso");
+                              console.log("Saldo por Surtir: ", pedidoSurtirSaldo);
                             }
                           });
                         }
@@ -507,13 +549,9 @@ class Report {
                             type: "POST",
                             url: "../php/busquedas/pedidodiabajar.php",
                             success: function(pedidoBajar) {
-                              var valorPedidosBajar = $("#porBajar");
-                              if(valorPedidosBajar != pedidoBajar){
-                                $("#porbajar").text(pedidoBajar);
-                                $("#porbajar").addClass("aviso");
-                                // console.log(valorPedidosBajar);
-                              }
-                              // console.log(valorPedidosBajar, pedidoBajar);
+                              $("#porbajar").text(pedidoBajar);
+                              // $("#porbajar").addClass("aviso");
+                              console.log("Bajar: ", pedidoBajar);
                             }
                           });
                         }
@@ -524,34 +562,65 @@ class Report {
                             type: "POST",
                             url: "../php/busquedas/pedidodiabajarsaldo.php",
                             success: function(pedidoBajarSaldo) {
-                              var valorPedidosBajar = $("#impoporbajar");
-                              if(valorPedidosBajar != pedidoBajarSaldo){
-                                $("#impoporbajar").text(pedidoBajarSaldo);
-                                $("#impoporbajar").addClass("aviso");
-                                // console.log(valorPedidosBajar);
-                              }
-                              // console.log(valorPedidosBajar, pedidoBajarSaldo);
+                              $("#impoporbajar").text(pedidoBajarSaldo);
+                              // $("#impoporbajar").addClass("aviso");
+                              console.log("Saldo Bajar: ", pedidoBajarSaldo);
                             }
                           });
                         }
                         setInterval(pedidosDiaBajarSaldo, 3000);
 
+                        function pedidosDiaFactura(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiafacturar.php",
+                            success: function(pedidoFactura) {
+                              $("#porfactura").text(pedidoFactura);
+                              // $("#porfactura").addClass("aviso");
+                              console.log("Facturadas: ", pedidoFactura);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaFactura, 3000);
+
+                        function pedidosDiaFacturaSaldo(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiafacturarsaldo.php",
+                            success: function(pedidoFacturaSaldo) {
+                              $("#porfacturaSaldo").text(pedidoFacturaSaldo);
+                              // $("#porfacturaSaldo").addClass("aviso");
+                              console.log("Saldo Facturadas: ", pedidoFacturaSaldo);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaFacturaSaldo, 3000);
+                        
                         function ventasMes(){
                           $.ajax({
                             type: "POST",
                             url: "../php/busquedas/ventames.php",
                             success: function(venta) {
-                              var valorVentas = $("#totalventames");
-                              if(valorVentas != venta){
-                                $("#totalventames").text(venta);
-                                $("#totalventames").addClass("aviso");
-                                // console.log(valorVentas);
-                              }
-                              //console.log(valorVentas, venta);
+                              $("#totalventames").text(venta);
+                              // $("#totalventames").addClass("aviso");
+                              //console.log(venta);
                             }
                           });
                         }
                         setInterval(ventasMes, 3000);
+
+                        function nS(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/ns.php",
+                            success: function(ns) {
+                              $("#ns").text(ns);
+                              // $("#ns").addClass("aviso");
+                              console.log("Nivel de Servicio: ", ns);
+                            }
+                          });
+                        }
+                        setInterval(nS, 3000);
                       });
                     } else {
                       console.log("Fuera de Línea");
@@ -562,12 +631,14 @@ class Report {
                     <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
                   </div>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                    <h4 class="h4">MOROSIDA TOTAL</h4>
+                    <h4 class="h4">MOROSIDAD TOTAL</h4>
                     <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
                   </div>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
                     <h4 class="h4">NUEVOS CLIENTES AL MES</h4>
-                    <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesCliNuevos.'</p>
+                    <a class="nav-link" href="#" onClick="'.$linkFunctionPersonal.'">
+                      <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesCliNuevos.'</p>
+                    </a>
                   </div>
                 </div>
               </div>';

@@ -10,7 +10,7 @@
                             FROM doc d
                             WHERE d.fecha = '".$dia."'
                                 AND (tipo = 'C' OR tipo = 'N' OR tipo = 'F')
-                                AND tipo NOT LIKE 'CH'
+                                AND serie NOT LIKE 'CH'
                                 AND d.subtotal2 > 0
                                 AND d.FECCAN = 0";
     $ajaxPedidos = mysqli_query($getConnection, $buscarPedidosAjax);

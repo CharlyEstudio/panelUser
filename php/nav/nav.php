@@ -108,11 +108,11 @@
             $nextMes = 0;
         }
 ?>
-<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 panel">
+<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 panel">
     <nav class="navbar navbar-expand-lg">
         <a class="nabvar-brand">
             <!-- <img class="d-inline-block align-top" src="../img/logo2.png" width="30" height="30" /> -->
-            FMO<span style="color: tomato!important;">Store</span>
+            Ferre<span style="color: tomato!important;">Mayoristas</span>
         </a>
         <div class="menu">
             <ul class="nav">

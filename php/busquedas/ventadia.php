@@ -11,6 +11,7 @@
                           FROM doc
                           WHERE fecha = '$dia'
                             AND tipo = 'F'
+                            AND serie NOT LIKE 'CH'
                             AND FECCAN = 0";
     $resultQueryDia = mysqli_query($getConnection, $queryVtaDia);
     $qVtaDia = mysqli_fetch_array($resultQueryDia);
