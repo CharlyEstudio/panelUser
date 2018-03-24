@@ -51,6 +51,11 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
                         "perID" => $perID);
         $report->getterGetReporteVendedor($params);
         break;
+      case"getClientesNuevosMes":
+        $session = $_SESSION["data"];
+        $params = array("session"=> $session);
+        $report->getterGetClientesNuevosMes($params);
+        break;
       case "showdetailMor":
         $perid = $paramFunctions->sanitize($_POST["perid"]);
         $tiempoMor = $paramFunctions->sanitize($_POST["tiempoMor"]);

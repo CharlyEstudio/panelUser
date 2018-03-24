@@ -12,7 +12,8 @@
                                 AND tipo = 'C'
                                 AND serie NOT LIKE 'CH'
                                 AND d.subtotal2 > 0
-                                AND d.FECCAN = 0";
+                                AND d.FECCAN = 0
+                                AND estado NOT LIKE 'C'";
     $ajaxPedidosBajar = mysqli_query($getConnection, $buscarPedidosBajarAjax);
     $pedidosBajarAjax = mysqli_num_rows($ajaxPedidosBajar);
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS

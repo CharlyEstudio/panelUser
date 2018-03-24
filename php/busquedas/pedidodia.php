@@ -9,10 +9,7 @@
     $buscarPedidosAjax = "SELECT d.docid
                             FROM doc d
                             WHERE d.fecha = '".$dia."'
-                                AND (tipo = 'C' OR tipo = 'N' OR tipo = 'F')
-                                AND serie NOT LIKE 'CH'
-                                AND d.subtotal2 > 0
-                                AND d.FECCAN = 0";
+                                AND tipo = 'C'";
     $ajaxPedidos = mysqli_query($getConnection, $buscarPedidosAjax);
     $pedidosAjax = mysqli_num_rows($ajaxPedidos);
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS

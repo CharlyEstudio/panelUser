@@ -12,10 +12,11 @@
                                 AND tipo = 'C'
                                 AND serie NOT LIKE 'CH'
                                 AND d.subtotal2 > 0
-                                AND d.FECCAN = 0";
+                                AND d.FECCAN = 0
+                                AND estado NOT LIKE 'C'";
     $ajaxPedidosBajar = mysqli_query($getConnection, $buscarPedidosBajarAjax);
     $pedidosBajarAjax =mysqli_fetch_array($ajaxPedidosBajar);
-    $sumBaja = "$ ".number_format($pedidosBajarAjax["TotalPed"], 2, '.',',');
+    $sumBaja = "$ ".number_format($pedidosBajarAjax["TotalPed"], 2, '.',',')." *";
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
     $pedidoBajarSaldo = $sumBaja;
     echo $pedidoBajarSaldo;

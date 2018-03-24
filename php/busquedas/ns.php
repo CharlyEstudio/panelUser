@@ -11,10 +11,7 @@
     $queryPedDia = "SELECT SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPed
                             FROM doc
                           WHERE fecha = '$dia'
-                            AND (tipo = 'C' OR tipo = 'N' OR tipo = 'F')
-                            AND tipo NOT LIKE 'CH'
-                            AND subtotal2 > 0
-                            AND FECCAN = 0";
+                            AND tipo = 'C'";
     $resultQueryDia = $getConnection->query($queryPedDia);
     $qPedDia = mysqli_fetch_array($resultQueryDia);
     if($qPedDia === NULL){

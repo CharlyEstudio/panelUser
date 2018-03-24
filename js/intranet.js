@@ -808,6 +808,32 @@ function showPersonal(perID) {
   });
 }
 
+function showClientesNuevos() {
+  // console.log("Ingresamos a Clientes Nuevos");
+  var url = '../php/report/report.php';
+  var dataSend = {};
+  dataSend.data = 'empty';
+  dataSend.location = 'getClientesNuevosMes';
+  dataSend.section = 'reports-partner';
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    url: url,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      $('#page-wrapper').html(data);
+    },
+    error: function(err) {
+      showMessage('error', 'Ha ocurrido un error, intentar nuevamente ó contactar al administrador');
+    }
+  });
+}
+
 // TODO encodeURIComponent
 // structure data send to file php to be processed for each location
 function showInformation(location) {

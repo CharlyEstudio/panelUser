@@ -40,6 +40,10 @@ class Report {
     $this->getReporteVendedor($params);
   }
 
+  public function getterGetClientesNuevosMes($params) {
+    $this->getClientesNuevosMes($params);
+  }
+
   public function getterGetShowDetailMor($params){
     $this->ShowDetailMor($params);
   }
@@ -216,23 +220,24 @@ class Report {
     //Se hace la busqueda de pedidos y ventas totales del Dia
     $dia  = date("Y-m-d");
 
-    $queryPedDia = "SELECT COUNT(docid) AS Pedidos, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPed
+    $queryPedDia = "SELECT COUNT(docid) AS Pedidos, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS SubtotalPed, SUM((SELECT (impuesto) FROM DUAL)) AS ImpuestoPed, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1+impuesto) FROM DUAL)) AS TotalPed
                             FROM doc
                           WHERE fecha = '$dia'
-                            AND (tipo = 'C' OR tipo = 'N' OR tipo = 'F')
-                            AND tipo NOT LIKE 'CH'
-                            AND subtotal2 > 0
-                            AND FECCAN = 0";
+                            AND tipo = 'C'";
     $resultQueryDia = $getConnection->query($queryPedDia);
     $qPedDia = mysqli_fetch_array($resultQueryDia);
     if($qPedDia === NULL){
       $totalPed = 0;
       $sumPed = 0;
+      $ivaP = 0;
+      $totalP = 0;
     } else {
       //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
       $totalPed = $qPedDia["Pedidos"];
-      $sumP = (float)$qPedDia["TotalPed"];
-      $sumPed = "$ ".number_format($qPedDia["TotalPed"], 2, '.',',');
+      $sumP = (float)$qPedDia["SubtotalPed"];
+      $sumPed = "$ ".number_format($qPedDia["SubtotalPed"], 2, '.',',');
+      $ivaP = "$ ".number_format($qPedDia["ImpuestoPed"], 2, '.',',');
+      $totalP = "$ ".number_format($qPedDia["TotalPed"], 2, '.',',');
     }
 
     // Pedidos y ventas por Surtir del día
@@ -240,7 +245,7 @@ class Report {
                             FROM doc
                           WHERE fecha = '$dia'
                             AND tipo = 'N'
-                            AND tipo NOT LIKE 'CH'
+                            AND serie NOT LIKE 'CH'
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQueryDiaSurtir = $getConnection->query($queryPedDiaSurtir);
@@ -260,9 +265,10 @@ class Report {
                             FROM doc
                           WHERE fecha = '$dia'
                             AND tipo = 'C'
-                            AND tipo NOT LIKE 'CH'
+                            AND serie NOT LIKE 'CH'
                             AND subtotal2 > 0
-                            AND FECCAN = 0";
+                            AND FECCAN = 0
+                            AND estado NOT LIKE 'C'";
     $resultQueryDiaBajar = $getConnection->query($queryPedDiaBajar);
     $qPedDiaBajar = mysqli_fetch_array($resultQueryDiaBajar);
     if($qPedDiaBajar === NULL){
@@ -279,10 +285,10 @@ class Report {
     $queryPedDiaFactura = "SELECT COUNT(docid) AS PedidosFactura, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedFactura
                             FROM doc d
                             WHERE d.fecha = '$dia'
-                                AND tipo = 'F'
-                                AND tipo NOT LIKE 'CH'
-                                AND d.subtotal2 > 0
-                                AND d.FECCAN = 0";
+                              AND tipo = 'F'
+                              AND serie NOT LIKE 'CH'
+                              AND d.subtotal2 > 0
+                              AND d.FECCAN = 0";
     $resultQueryDiaFactura = $getConnection->query($queryPedDiaFactura);
     $qPedDiaFactura = mysqli_fetch_array($resultQueryDiaFactura);
     if($qPedDiaFactura === NULL){
@@ -293,6 +299,22 @@ class Report {
       $PedFactura = $qPedDiaFactura["PedidosFactura"];
       $sumFacNS = $qPedDiaFactura["TotalPedFactura"];
       $sumFactura = "$ ".number_format($qPedDiaFactura["TotalPedFactura"], 2, '.',',');
+    }
+
+    // Pedidos y ventas por Cancelados del día
+    $queryPedDiaCancelacion = "SELECT COUNT(docid) AS PedidosCancelacion, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedCancelacion
+                            FROM doc d
+                            WHERE d.fecha = '$dia'
+                              AND estado = 'C'";
+    $resultQueryDiaCancelacion = $getConnection->query($queryPedDiaCancelacion);
+    $qPedDiaCancelacion = mysqli_fetch_array($resultQueryDiaCancelacion);
+    if($qPedDiaCancelacion === NULL){
+      $PedCancelacion = 0;
+      $sumCancelacion = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      $PedCancelacion = $qPedDiaCancelacion["PedidosCancelacion"];
+      $sumCancelacion = "$ ".number_format($qPedDiaCancelacion["TotalPedCancelacion"], 2, '.',',');
     }
 
     //Se hace la busqueda de ventas totales del Mes
@@ -429,7 +451,7 @@ class Report {
     $numeroVecesCliNuevos = mysqli_num_rows($clieMes);
 
     // $linkFunctionPersonal = "showPersonal(".$perid.")";
-    $linkFunctionPersonal = "showPersonal()";
+    $linkFunctionPersonal = "showClientesNuevos()";
 
     $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT centrar text-center">
                 <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
@@ -437,55 +459,125 @@ class Report {
                   <img src="../img/barrafmo2.gif" width="200"/>
                 </div>
                 <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6 paddingB">
-                    <h4 class="h4">No. PEDIDOS AL DIA</h4>
-                    <table class="table table-striped table-dark">
-                      <thead>
-                        <tr>
-                          <th scope="col">CATEGORIA</th>
-                          <th scope="col">POR BAJAR</th>
-                          <th scope="col">POR SURTIR</th>
-                          <th scope="col">FACTURADO</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <th scope="row">PEDIDOS</th>
-                          <td class="text-tomato" id="porbajar" style="font-size: 1.7em !important;">'.$PedBajar .'</td>
-                          <td class="text-tomato" id="porsurtir" style="font-size: 1.7em !important;">'.$PedSurt .'</td>
-                          <td class="text-tomato" id="porfactura" style="font-size: 1.7em !important;">'.$PedFactura .'</td>
-                        </tr>
-                        <tr>
-                          <th scope="row">IMPORTE</th>
-                          <td class="text-tomato" id="impoporbajar" style="font-size: 1.7em !important;">'.$sumBajar.'</td>
-                          <td class="text-tomato" id="impoporsurtir" style="font-size: 1.7em !important;">'.$sumSurt.'</td>
-                          <td class="text-tomato" id="porfacturaSaldo" style="font-size: 1.7em !important;">'.$sumFactura.'</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                      <div class="row">
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                          <h5 class="lead">PEDIDOS DEL DIA</h5>
-                          <div class="row">
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                              <p class="lead text-tomato" id="totalpedidodia" style="font-size: 1.7em !important;">'.$totalPed.'</p>
-                            </div>
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                              <p class="lead text-tomato" id="totalpedidodiaSaldo" style="font-size: 1.7em !important;">'.$sumPed.'</p>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8 paddingB">
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                        <h4 class="h4">PEDIDOS</h4>
+                        <table class="table table-dark">
+                          <thead>
+                            <tr>
+                              <th scope="col">CATEGORIA</th>
+                              <th scope="col">POR BAJAR</th>
+                              <th scope="col">POR SURTIR</th>
+                              <th scope="col">FACTURADO</th>
+                              <th scope="col">CANCELADOS</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <th scope="row">PEDIDOS</th>
+                              <td class="text-tomato" id="porbajar" style="font-size: 1.7em !important;">'.$PedBajar .'</td>
+                              <td class="text-tomato" id="porsurtir" style="font-size: 1.7em !important;">'.$PedSurt .'</td>
+                              <td class="text-tomato" id="porfactura" style="font-size: 1.7em !important;">'.$PedFactura .'</td>
+                              <td class="text-tomato" id="porCancelacion" style="font-size: 1.7em !important;">'.$PedCancelacion .'</td>
+                            </tr>
+                            <tr>
+                              <th scope="row">IMPORTE</th>
+                              <td class="text-tomato" id="impoporbajar" style="font-size: 1.7em !important;">'.$sumBajar.' *</td>
+                              <td class="text-tomato" id="impoporsurtir" style="font-size: 1.7em !important;">'.$sumSurt.' *</td>
+                              <td class="text-tomato" id="porfacturaSaldo" style="font-size: 1.7em !important;">'.$sumFactura.' *</td>
+                              <td class="text-tomato" id="porCancelacionSaldo" style="font-size: 1.7em !important;">'.$sumCancelacion.' *</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                            <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 centrar">
+                                <div class="row">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                    <h5 class="lead">PEDIDOS DEL DIA</h5>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                    <p class="lead text-tomato" id="totalpedidodia" style="font-size: 3em !important;">'.$totalPed.'</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                                <div class="row">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                    <div class="row">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+                                        <p class="lead">SUBTOTAL</p>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                                        <span class="lead text-tomato" id="totalpedidodiaSaldo" style="font-size: 1.7em !important;">'.$sumPed.'</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                    <div class="row">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+                                        <p class="lead">I.V.A.</p>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                                        <span class="lead text-tomato" id="ivaPed" style="font-size: 1.7em !important;">'.$ivaP.'</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                    <div class="row">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+                                        <p class="lead">TOTAL</p>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                                        <span class="lead text-tomato" id="totaPed" style="font-size: 1.7em !important;">'.$totalP.'</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                          <h5 class="lead">VENTA DEL DIA</h5>
-                          <p class="lead text-tomato" id="ns" style="font-size: 1.7em !important;">NS '.$ns.'%</p>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 centrar">
+                            <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                <h5 class="lead">VENTA DEL DIA</h5>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                <p class="lead text-tomato" id="ns" style="font-size: 1.7em !important;">NS '.$ns.'%</p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6 paddingB">
-                    <h4 class="h4">VENTAS AL MES</h4>
-                    <p class="lead text-tomato" id="totalventames" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</p>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 paddingB">
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                        <h4 class="h4">VENTAS AL MES</h4>
+                        <p class="lead text-tomato" id="totalventames" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.' *</p>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                        <p class="h4">FACTURAS VENCIDAS AL MES</p>
+                        <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                        <h4 class="h4">MOROSIDAD TOTAL</h4>
+                        <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                        <h4 class="h4">NUEVOS CLIENTES AL MES</h4>
+                        <p class="lead text-tomato" style="font-size: 1.7em !important;">
+                          <a class="nav-link" href="#" onClick="'.$linkFunctionPersonal.'">
+                          '.$numeroVecesCliNuevos.'
+                          </a>
+                        </p>
+                      </div>
+                    </div>
                   </div>
                   <script type="text/javascript">
                     var f=new Date();
@@ -499,7 +591,7 @@ class Report {
                             success: function(pedido) {
                               $("#totalpedidodia").text(pedido);
                               // $("#totalpedidodia").addClass("aviso");
-                              console.log("No. Pedidos: ",pedido);
+                              // console.log("No. Pedidos: ",pedido);
                             }
                           });
                         }
@@ -512,11 +604,37 @@ class Report {
                             success: function(pedidoSaldo) {
                               $("#totalpedidodiaSaldo").text(pedidoSaldo);
                               // $("#totalpedidodiaSaldo").addClass("aviso");
-                              console.log("Saldo Pedidos Total: ", pedidoSaldo);
+                              // console.log("Saldo Pedidos Total: ", pedidoSaldo);
                             }
                           });
                         }
                         setInterval(pedidosDiaSaldo, 3000);
+
+                        function pedidosDiaIva(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiaiva.php",
+                            success: function(pedidoIva) {
+                              $("#ivaPed").text(pedidoIva);
+                              // $("#ivaPed").addClass("aviso");
+                              // console.log("Iva Pedidos Total: ", pedidoIva);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaIva, 3000);
+
+                        function pedidosDiaTotal(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiatotal.php",
+                            success: function(pedidoTotal) {
+                              $("#totalPed").text(pedidoTotal);
+                              // $("#totalPed").addClass("aviso");
+                              // console.log("Total Pedidos Total: ", pedidoTotal);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaTotal, 3000);
 
                         function pedidosDiaSurtir(){
                           $.ajax({
@@ -525,7 +643,7 @@ class Report {
                             success: function(pedidoSurtir) {
                               $("#porsurtir").text(pedidoSurtir);
                               // $("#porsurtir").addClass("aviso");
-                              console.log("Surti: ", pedidoSurtir);
+                              // console.log("Surti: ", pedidoSurtir);
                             }
                           });
                         }
@@ -538,7 +656,7 @@ class Report {
                             success: function(pedidoSurtirSaldo) {
                               $("#impoporsurtir").text(pedidoSurtirSaldo);
                               // $("#impoporsurtir").addClass("aviso");
-                              console.log("Saldo por Surtir: ", pedidoSurtirSaldo);
+                              // console.log("Saldo por Surtir: ", pedidoSurtirSaldo);
                             }
                           });
                         }
@@ -551,7 +669,7 @@ class Report {
                             success: function(pedidoBajar) {
                               $("#porbajar").text(pedidoBajar);
                               // $("#porbajar").addClass("aviso");
-                              console.log("Bajar: ", pedidoBajar);
+                              // console.log("Bajar: ", pedidoBajar);
                             }
                           });
                         }
@@ -564,7 +682,7 @@ class Report {
                             success: function(pedidoBajarSaldo) {
                               $("#impoporbajar").text(pedidoBajarSaldo);
                               // $("#impoporbajar").addClass("aviso");
-                              console.log("Saldo Bajar: ", pedidoBajarSaldo);
+                              // console.log("Saldo Bajar: ", pedidoBajarSaldo);
                             }
                           });
                         }
@@ -577,7 +695,7 @@ class Report {
                             success: function(pedidoFactura) {
                               $("#porfactura").text(pedidoFactura);
                               // $("#porfactura").addClass("aviso");
-                              console.log("Facturadas: ", pedidoFactura);
+                              // console.log("Facturadas: ", pedidoFactura);
                             }
                           });
                         }
@@ -590,11 +708,37 @@ class Report {
                             success: function(pedidoFacturaSaldo) {
                               $("#porfacturaSaldo").text(pedidoFacturaSaldo);
                               // $("#porfacturaSaldo").addClass("aviso");
-                              console.log("Saldo Facturadas: ", pedidoFacturaSaldo);
+                              // console.log("Saldo Facturadas: ", pedidoFacturaSaldo);
                             }
                           });
                         }
                         setInterval(pedidosDiaFacturaSaldo, 3000);
+
+                        function pedidosDiaCancelacion(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiacancelacion.php",
+                            success: function(pedidoCancelacion) {
+                              $("#porCancelacion").text(pedidoCancelacion);
+                              // $("#porCancelacion").addClass("aviso");
+                              // console.log("Cancelaciondas: ", pedidoCancelacion);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaCancelacion, 3000);
+
+                        function pedidosDiaCancelacionSaldo(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiacancelacionsaldo.php",
+                            success: function(pedidoCancelacionSaldo) {
+                              $("#porCancelacionSaldo").text(pedidoCancelacionSaldo);
+                              // $("#porCancelacionSaldo").addClass("aviso");
+                              // console.log("Saldo Canceladas: ", pedidoCancelacionSaldo);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaCancelacionSaldo, 3000);
                         
                         function ventasMes(){
                           $.ajax({
@@ -603,7 +747,7 @@ class Report {
                             success: function(venta) {
                               $("#totalventames").text(venta);
                               // $("#totalventames").addClass("aviso");
-                              //console.log(venta);
+                              // console.log(venta);
                             }
                           });
                         }
@@ -616,7 +760,7 @@ class Report {
                             success: function(ns) {
                               $("#ns").text(ns);
                               // $("#ns").addClass("aviso");
-                              console.log("Nivel de Servicio: ", ns);
+                              // console.log("Nivel de Servicio: ", ns);
                             }
                           });
                         }
@@ -626,21 +770,8 @@ class Report {
                       console.log("Fuera de Línea");
                     }
                   </script>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                    <p class="h4">FACTURAS VENCIDAS AL MES</p>
-                    <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                    <h4 class="h4">MOROSIDAD TOTAL</h4>
-                    <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6 offset-md-3">
-                    <h4 class="h4">NUEVOS CLIENTES AL MES</h4>
-                    <p class="lead text-tomato" style="font-size: 1.7em !important;">
-                      <a class="nav-link" href="#" onClick="'.$linkFunctionPersonal.'">
-                      '.$numeroVecesCliNuevos.'
-                      </a>
-                    </p>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB text-center">
+                    <p class="lead text-center" style="font-size:1.5em;">* Valores considerados sin I.V.A.</p>
                   </div>
                 </div>
               </div>';
@@ -2484,6 +2615,120 @@ class Report {
     echo $print;
     $getConnection->close();
     $mysqliCon->close();
+  }
+
+  private function getClientesNuevosMes($params) {
+    $paramFunctions   = new Util();
+    $paramDb          = new Database();
+    $getConnection    = $paramDb->GetLink();
+
+    $month = date('m');
+
+    //Sacamos el mes en que estamos
+    switch ($month) {
+      case 1:
+        $diasTotalMes = 31;
+      break;
+      case 2:
+        $diasTotalMes = 28;
+      break;
+      case 3:
+        $diasTotalMes = 31;
+      break;
+      case 4:
+        $diasTotalMes = 30;
+      break;
+      case 5:
+        $diasTotalMes = 31;
+      break;
+      case 6:
+        $diasTotalMes = 30;
+      break;
+      case 7:
+        $diasTotalMes = 31;
+      break;
+      case 8:
+        $diasTotalMes = 31;
+      break;
+      case 9:
+        $diasTotalMes = 30;
+      break;
+      case 10:
+        $diasTotalMes = 31;
+      break;
+      case 11:
+        $diasTotalMes = 30;
+      break;
+      case 12:
+        $diasTotalMes = 31;
+      break;
+    }
+
+    $fechaInicioVenc = date('Y-m-01');
+    $fechaFinalVenc = date('Y-m-'.$diasTotalMes.'');
+
+    $queryVendedores = "SELECT perid, nombre FROM per WHERE grupo = 'MV' AND categoria NOT LIKE '00' AND sermov > 0";
+    $vendedoresEncontrados = mysqli_query($getConnection,$queryVendedores);
+    $numRow = mysqli_num_rows($vendedoresEncontrados);
+    $i = 1;
+    $print = '<div class="container paddingT">
+              <h4 class="h4 text-center">CLIENTES NUEVOS <span class="text-tomato">POR VENDEDOR</span></h4>
+              <div id="tablaClientesNuevos" class="table-responsive">
+                <table class="table table-dark">
+                  <thead>
+                    <tr class="text-center">
+                      <th scope="col">#</th>
+                      <th scope="col">VENDEDOR</th>
+                      <th scope="col">CLIENTES NUEVOS</th>
+                    </tr>
+                  </thead>
+                  <tbody>';
+    while($row= mysqli_fetch_array($vendedoresEncontrados)){
+      $vendedor = $row["nombre"];
+      $perid = $row["perid"];
+
+      $queryBuscarCli = "SELECT COUNT(c.clienteid) as cantidad
+                          FROM cli c
+                          WHERE c.vendedorid = $perid
+                            AND (
+                                  c.fecaltcli < '$fechaFinalVenc'
+                                  AND c.fecaltcli > '$fechaInicioVenc'
+                                )
+                            AND c.catalogo NOT LIKE 'W'";
+      $clientesEncontrados = mysqli_query($getConnection, $queryBuscarCli);
+      $rowC = mysqli_fetch_array($clientesEncontrados);
+      $numCl = $rowC["cantidad"];
+      // var_dump($rowC);
+
+      $print .=     '<tr class="text-center">
+                      <th scope="row">'.$i.'</th>
+                      <td>'.$vendedor.'</td>
+                      <td class="text-tomato">'.$numCl.'</td>
+                    </tr>';
+      $i++;
+    }
+    $print .=     '</tbody>
+                </table>
+              </div>
+              // <script type="text/javascript">
+              //   var f=new Date();
+                
+              //   function clientesNuevos(){
+              //     xmlhttp=new XMLHttpRequest();
+              //     xmlhttp.onreadystatechange=function() {
+              //       document.getElementById("tablaClientesNuevos").innerHTML=xmlhttp.responseText;
+              //     }
+              //     xmlhttp.open("POST","../php/busquedas/clientesnuevosvendedores.php", true);
+              //     xmlhttp.send();
+              //     console.log(xmlhttp);
+              //   }
+              //   setInterval(clientesNuevos, 10000);
+                
+              // </script>
+            </div>';
+    echo $print;
+    $getConnection->close();
+    // $mysqliCon->close();
   }
 
   private function ShowDetailMor($params) {

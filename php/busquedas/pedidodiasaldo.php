@@ -9,10 +9,7 @@
     $buscarPedidosAjax = "SELECT  SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPed
                             FROM doc d
                             WHERE d.fecha = '".$dia."'
-                                AND (tipo = 'C' OR tipo = 'N' OR tipo = 'F')
-                                AND serie NOT LIKE 'CH'
-                                AND d.subtotal2 > 0
-                                AND d.FECCAN = 0";
+                                AND tipo = 'C'";
     $ajaxPedidos = mysqli_query($getConnection, $buscarPedidosAjax);
     $pedidosAjax =mysqli_fetch_array($ajaxPedidos);
     $sumBaja = "$ ".number_format($pedidosAjax["TotalPed"], 2, '.',',');
