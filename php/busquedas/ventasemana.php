@@ -28,8 +28,8 @@
     $queryVtaSemana = "SELECT SUM(SUBTOTAL2) AS total
                         FROM doc
                         WHERE (
-                                fecha <= '$ultimoDia'
-                                AND fecha >= '$primerDia' 
+                                fecha <= '".$ultimoDia."'
+                                AND fecha >= '".$primerDia."' 
                                 )
                             AND tipo = 'F'
                             AND subtotal2 > 0

@@ -7,9 +7,9 @@
     $dia  = date("Y-m-d");
 
     //Se hace la busqueda de pedidos y ventas totales del Dia
-    $queryPedDia = "SELECT SUM((SELECT (impuesto) FROM DUAL)) AS ImpuestoPed
+    $queryPedDia = "SELECT SUM(impuesto) AS ImpuestoPed
                             FROM doc
-                          WHERE fecha = '$dia'
+                          WHERE fecha = '".$dia."'
                             AND tipo = 'C'";
     $resultQueryDia = $getConnection->query($queryPedDia);
     $qPedDia = mysqli_fetch_array($resultQueryDia);

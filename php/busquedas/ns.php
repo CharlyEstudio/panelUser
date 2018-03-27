@@ -74,7 +74,7 @@
 
     $VentasDiaNs = $sumFacNS + $SumaBajNs + $SumSurNs;
     $divisionVDN = $VentasDiaNs * 100;
-    $ns = "NS ".bcdiv($divisionVDN,$sumP,2)."%";
+    $ns = bcdiv($divisionVDN,$sumP,2)."%";
     // $ns = "NS ".$divisionVDN/$sumP."%";
 
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS

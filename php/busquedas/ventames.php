@@ -24,6 +24,6 @@
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
     $totalVentaMes = $qVtaMes['Total'];
     $formatTotalVentaMes = "$ ".number_format($totalVentaMes, 2, '.',',')." *";
-    $mensaje = $formatTotalVentaMes;
-    echo $mensaje
+    $venta = $formatTotalVentaMes;
+    echo $venta
 ?>

@@ -9,7 +9,7 @@
 
     $queryVtaDia = "SELECT SUM(SUBTOTAL2) AS total
                           FROM doc
-                          WHERE fecha = '$dia'
+                          WHERE fecha = '".$dia."'
                             AND tipo = 'F'
                             AND serie NOT LIKE 'CH'
                             AND FECCAN = 0";

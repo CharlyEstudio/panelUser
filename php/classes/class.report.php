@@ -155,11 +155,9 @@ class Report {
     $getMorosidad = "SELECT
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
+                    JOIN per p ON p.perid = d.vendedorid
                   WHERE d.total > d.totalpagado
-                    AND (
-                          d.tipo = 'F'
-                          OR d.tipo = 'N'
-                        )'
+                    AND d.tipo = 'F'
                     AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
     $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
     $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
@@ -177,10 +175,7 @@ class Report {
                     FROM doc
                     WHERE totalpagado < total
                       AND feccan = 0
-                      AND (
-                            d.tipo = 'F'
-                            OR d.tipo = 'N'
-                          )
+                      AND tipo = 'F'
                       AND vence < '$dia'
                       AND (
                             feccap < '$fechaFinalVenc'
@@ -199,11 +194,11 @@ class Report {
                     </div>
                   </div>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                    <h4 class="h4">VENCIDAS/MES</h4>
+                    <h4 class="h4">FACTURAS VENCIDAS AL MES</h4>
                     <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
                   </div>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
-                    <h4 class="h4">MOROSIDA TOTAL</h4>
+                    <h4 class="h4">CARTERA VENCIDA</h4>
                     <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
                   </div>
                 </div>
@@ -403,18 +398,16 @@ class Report {
     $getMorosidad = "SELECT
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
+                    JOIN per p ON p.perid = d.vendedorid
                   WHERE d.total > d.totalpagado
-                    AND (
-                          d.tipo = 'F'
-                          OR d.tipo = 'N'
-                        )
+                    AND d.tipo = 'F'
                     AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
     $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
     $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
     if($rowMorosidad === NULL){
       $MorosidadF = 0;
     } else {
-      $MorosidadF = $rowMorosidad[0]*(-1);
+      $MorosidadF = $rowMorosidad["TotalDeuda"]*(-1);
     }
     $Morosidad = number_format($MorosidadF, 2, ".", ",");
 
@@ -533,7 +526,7 @@ class Report {
                                         <p class="lead">TOTAL</p>
                                       </div>
                                       <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
-                                        <span class="lead text-tomato" id="totaPed" style="font-size: 1.7em !important;">'.$totalP.'</span>
+                                        <span class="lead text-tomato" id="totalPed" style="font-size: 1.7em !important;">'.$totalP.'</span>
                                       </div>
                                     </div>
                                   </div>
@@ -544,10 +537,10 @@ class Report {
                           <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 centrar">
                             <div class="row">
                               <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                                <h5 class="lead">VENTA DEL DIA</h5>
+                                <h5 class="lead">NIVEL DE SERVICIO</h5>
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                                <p class="lead text-tomato" id="ns" style="font-size: 1.7em !important;">NS '.$ns.'%</p>
+                                <p class="lead text-tomato" id="ns" style="font-size: 1.7em !important;">'.$ns.'%</p>
                               </div>
                             </div>
                           </div>
@@ -1657,7 +1650,8 @@ class Report {
                           d.tipo = 'F'
                           OR d.tipo = 'N'
                         )
-                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90";
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90
+                      AND (SELECT SUM(d.totalpagado - d.total)) > 1";
     $resultGet90Dist = mysqli_query($getConnection,$get90DiasDist);
     $row90Dist = mysqli_fetch_array($resultGet90Dist);
     $dias90DistF = $row90Dist[0]*(-1);
@@ -1777,7 +1771,7 @@ class Report {
     }
 
     //Se hace la busqueda de ventas totales del Dia
-    $queryVtaDia = "SELECT SUM(SUBTOTAL2) AS total
+    $queryVtaDia = "SELECT SUM(SUBTOTAL2) AS total, COUNT(SUBTOTAL2) AS contar
                             FROM doc
                           WHERE vendedorid = $perid
                             AND fecha = '$dia'
@@ -1786,10 +1780,11 @@ class Report {
                             AND FECCAN = 0";
     $resultQueryDia = mysqli_query($getConnection,$queryVtaDia);
     $qVtaDia = mysqli_fetch_row($resultQueryDia);
-    $qPedDia = mysqli_num_rows($resultQueryDia);
     if($qVtaDia === NULL){
+      $qPedDia = 0;
       $totalVentaDia = 0;
     } else {
+      $qPedDia = $qVtaDia[1];
       $totalVentaDia = $qVtaDia[0];
     }
     $formatTotalVentaDia = number_format($totalVentaDia, 2, '.',',');
@@ -2563,7 +2558,7 @@ class Report {
                     <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
                       <h3>Cuentas por Cobrar</h3>
                       <h4>Cartera Vencida Total</h4>
-                      <p class="text-redGraf" style="font-weight:bold;font-size: 2em;">$ '.$Morosidad.'</p>
+                      <p class="text-red" style="font-weight:bold;font-size: 2em;">$ '.$Morosidad.'</p>
                       <table class="table table-striped table-dark">
                         <thead class="thead-inverse">
                           <tr>
@@ -2842,8 +2837,6 @@ class Report {
           $municipio = $row["municipio"];
           $estado = $row["estado"];
           $cp = $row["cp"];
-          $correo = $row["correo"];
-          $tel = $row["tel"];
           $folio = $row["folio"];
           $importe = $row["total"];
           $diasVencidos = $row["dias"];
@@ -2866,9 +2859,6 @@ class Report {
                                 </div>
                                 <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>
                                   Ciudad: <span class='text-tomato'>$ciudad</span> Municipio: <span class='text-tomato'>$municipio</span> Estado: <span class='text-tomato'>$estado</span> C.P.: <span class='text-tomato'>$cp</span>
-                                </div>
-                                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>
-                                  Correo: <span class='text-tomato'>$correo</span> Tel.: <span class='text-tomato'>$tel</span>
                                 </div>
                           </td>";
           $print .=       "<td class='text-center'>$folio</td>";
@@ -5138,11 +5128,10 @@ class Report {
 
     $queryVtaDia = "SELECT d.docid
                       FROM doc d
+                        JOIN per p ON p.perid = d.vendedorid
                       WHERE d.fecha = '".$dia."'
-                        AND (tipo = 'C' OR tipo = 'N' OR tipo = 'F')
-                        AND tipo NOT LIKE 'CH'
-                        AND d.subtotal2 > 0
-                        AND d.FECCAN = 0";
+                        AND p.sermov = $zona
+                        AND tipo = 'C'";
     $resultQueryDia = $getConnection->query($queryVtaDia);
     $qVtaDia = mysqli_num_rows($resultQueryDia);
     if($qVtaDia === NULL){
@@ -5173,7 +5162,7 @@ class Report {
     if($qVtaMes === NULL){
       $totalVentaMes = 0;
     } else {
-      $totalVentaMes = $qVtaMes['total'];
+      $totalVentaMes = $qVtaMes['Total'];
     }
     $formatTotalVentaMes = number_format($totalVentaMes, 2, '.',',');
 
@@ -5235,10 +5224,7 @@ class Report {
                       FROM doc d
                         JOIN per p ON p.perid = d.vendedorid
                       WHERE d.total > d.totalpagado
-                          AND (
-                                d.tipo = 'F'
-                                OR d.tipo = 'N'
-                              )
+                          AND d.tipo = 'F'
                           AND p.sermov = $zona
                           AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
     $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);

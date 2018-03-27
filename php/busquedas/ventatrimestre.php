@@ -22,8 +22,8 @@
     $queryVtaTrimestre = "SELECT SUM(SUBTOTAL2) AS total
                             FROM doc
                             WHERE (
-                                    fecha <= '$ultimoDiaTrimestre'
-                                    AND fecha >= '$primerDiaTrimestre' 
+                                    fecha <= '".$ultimoDiaTrimestre."'
+                                    AND fecha >= '".$primerDiaTrimestre."' 
                                     )
                                 AND tipo = 'F'
                                 AND subtotal2 > 0

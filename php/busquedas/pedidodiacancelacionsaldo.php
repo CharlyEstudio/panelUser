@@ -9,7 +9,7 @@
     // Pedidos y ventas por Cancelados del día
     $queryPedDiaCancelacion = "SELECT SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedCancelacion
                                 FROM doc d
-                                WHERE d.fecha = '$dia'
+                                WHERE d.fecha = '".$dia."'
                                 AND estado = 'C'";
     $resultQueryDiaCancelacion = $getConnection->query($queryPedDiaCancelacion);
     $qPedDiaCancelacion = mysqli_fetch_array($resultQueryDiaCancelacion);
