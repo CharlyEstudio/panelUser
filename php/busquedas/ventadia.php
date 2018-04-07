@@ -16,7 +16,7 @@
     $resultQueryDia = mysqli_query($getConnection, $queryVtaDia);
     $qVtaDia = mysqli_fetch_array($resultQueryDia);
     $totalVentaDia = $qVtaDia["total"];
-    $formatoTotalVentaDia = "$ ".number_format($totalVentaDia, 2, '.',',')." *";
+    $formatoTotalVentaDia = "$ ".number_format($totalVentaDia, 2, '.',',')."*";
     // var_dump($pedidosAjax);
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
     $mensaje = $formatoTotalVentaDia;

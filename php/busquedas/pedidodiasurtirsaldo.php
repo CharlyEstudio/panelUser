@@ -15,7 +15,7 @@
                                 AND d.FECCAN = 0";
     $ajaxPedidosSurtir = mysqli_query($getConnection, $buscarPedidosSurtirAjax);
     $pedidosSurtirAjax = mysqli_fetch_array($ajaxPedidosSurtir);
-    $sumSurt = "$ ".number_format($pedidosSurtirAjax["TotalPed"], 2, '.',',')." *";
+    $sumSurt = "$ ".number_format($pedidosSurtirAjax["TotalPed"], 2, '.',',')."*";
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
     $pedidosurtirSaldo = $sumSurt;
     echo $pedidosurtirSaldo;

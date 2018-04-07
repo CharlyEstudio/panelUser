@@ -7,17 +7,17 @@
     $dia  = date("Y-m-d");
 
     // Pedidos y ventas por Cancelados del día
-    $queryPedDiaCancelacion = "SELECT COUNT(docid) AS PedidosCancelacion
+    $queryPedDiaCancelacion = "SELECT docid
                             FROM doc d
                             WHERE d.fecha = '$dia'
                               AND estado = 'C'";
     $resultQueryDiaCancelacion = $getConnection->query($queryPedDiaCancelacion);
-    $qPedDiaCancelacion = mysqli_fetch_array($resultQueryDiaCancelacion);
-    if($qPedDiaCancelacion === NULL){
+    $numPedDiaCancelacion = mysqli_num_rows($resultQueryDiaCancelacion);
+    if($numPedDiaCancelacion === NULL){
       $PedCancelacion = 0;
     } else {
       //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $PedCancelacion = $qPedDiaCancelacion["PedidosCancelacion"];
+      $PedCancelacion = $numPedDiaCancelacion;
     }
     
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS

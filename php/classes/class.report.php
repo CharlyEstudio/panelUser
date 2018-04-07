@@ -40,12 +40,24 @@ class Report {
     $this->getReporteVendedor($params);
   }
 
+  public function getterGetReportePedidosDia($params) {
+    $this->getReportePedidosDia($params);
+  }
+
   public function getterGetClientesNuevosMes($params) {
     $this->getClientesNuevosMes($params);
   }
 
   public function getterGetShowDetailMor($params){
     $this->ShowDetailMor($params);
+  }
+
+  public function getterNuevosClientes($params){
+    $this->NuevosClientes($params);
+  }
+
+  public function getterGetNewCustomer($params){
+    $this->getNewCustomer($params);
   }
 
   private function getReport($params) {
@@ -185,19 +197,19 @@ class Report {
     $venFac = mysqli_query($getConnection, $numVenFac);
     $numeroVecesFacVenc = mysqli_num_rows($venFac);
 
-    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT hg910 centrar text-center">
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT hg910 centrar text-center">
                 <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                     <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
                       <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
                       <img src="../img/barrafmo2.gif" width="200"/>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                     <h4 class="h4">FACTURAS VENCIDAS AL MES</h4>
                     <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                     <h4 class="h4">CARTERA VENCIDA</h4>
                     <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
                   </div>
@@ -296,21 +308,38 @@ class Report {
       $sumFactura = "$ ".number_format($qPedDiaFactura["TotalPedFactura"], 2, '.',',');
     }
 
-    // Pedidos y ventas por Cancelados del día
-    $queryPedDiaCancelacion = "SELECT COUNT(docid) AS PedidosCancelacion, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedCancelacion
-                            FROM doc d
-                            WHERE d.fecha = '$dia'
+    //Pedidos y ventas por Cancelados del día
+    $queryPedDiaCancelacion = "SELECT docid
+                            FROM doc
+                            WHERE fecha = '$dia'
                               AND estado = 'C'";
     $resultQueryDiaCancelacion = $getConnection->query($queryPedDiaCancelacion);
-    $qPedDiaCancelacion = mysqli_fetch_array($resultQueryDiaCancelacion);
-    if($qPedDiaCancelacion === NULL){
+    $numPedDiaCancelacion = mysqli_num_rows($resultQueryDiaCancelacion);
+    if($numPedDiaCancelacion === NULL){
       $PedCancelacion = 0;
       $sumCancelacion = 0;
     } else {
-      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $PedCancelacion = $qPedDiaCancelacion["PedidosCancelacion"];
-      $sumCancelacion = "$ ".number_format($qPedDiaCancelacion["TotalPedCancelacion"], 2, '.',',');
+      $sumCan = 0;
+      while($qPedDiaCancelacion = mysqli_fetch_array($resultQueryDiaCancelacion)){
+        $docid = $qPedDiaCancelacion[0];
+        $buscarPartidasCanceladas = "SELECT sum(desventa * descantidad) as SumPedCan
+                                      FROM des
+                                      where descantidad > 0
+                                      and desfecha = '$dia'
+                                      and desdocid = $docid";
+        $resultPartidasCanceladas = $getConnection->query($buscarPartidasCanceladas);
+        $PartidasCanceladas = mysqli_fetch_array($resultPartidasCanceladas);
+        $sumCan = $sumCan + $PartidasCanceladas["SumPedCan"];
+      }
+      $sumCancelacion = '$ '.number_format($sumCan, 2, '.',',');
+      $PedCancelacion = $numPedDiaCancelacion;
     }
+
+    //Sacamos el % de Nivel de Servicio General
+    // $VentasDiaNs = $sumFacNS + $SumaBajNs + $SumSurNs + $sumCan;
+    $VentasDiaNs = $sumFacNS + $SumaBajNs + $SumSurNs;
+    $divisionVDN = $VentasDiaNs * 100;
+    $ns = bcdiv($divisionVDN,$sumP,2);
 
     //Se hace la busqueda de ventas totales del Mes
     $month = date('m');
@@ -318,6 +347,7 @@ class Report {
     $dayVtaTotMes = date("d", mktime(0,0,0, $month+1, 0, $year));
     $primerDiaMes = date('Y-m-d', mktime(0,0,0, $month, 1, $year));
     $ultimoDiaMes = date('Y-m-d', mktime(0,0,0, $month, $dayVtaTotMes, $year));
+    //RESOLVER LAS VENTAS TOTALES MES
     $queryVtaMes = "SELECT SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS Total
                             FROM doc
                           WHERE (
@@ -334,13 +364,6 @@ class Report {
       $totalVentaMes = $qVtaMes['Total'];
     }
     $formatTotalVentaMes = number_format($totalVentaMes, 2, '.',',');
-
-    //Sacamos el % de Nivel de Servicio
-    $VentasDiaNs = $sumFacNS + $SumaBajNs + $SumSurNs;
-    $divisionVDN = $VentasDiaNs * 100;
-    $ns = bcdiv($divisionVDN,$sumP,2);
-
-    // var_dump($VentasDiaNs,$sumP, $divisionVDN,$ns);
 
     //Sacamos el mes en que estamos
     switch ($month) {
@@ -394,11 +417,129 @@ class Report {
       break;
     }
 
+    //Reporte Mes Anterior
+    $mtAnt = date('m')-1;
+    if($mtAnt == 0){
+      $yrAnt = date('Y')-1;
+      $mtAnt = 12;
+    } else {
+      $yrAnt = date('Y');
+    }
+
+    if($diasTotalMes < 30){
+      $fecAnteIni = date(''.$yrAnt.'-'.$mtAnt.'-01');
+      $fecAnteFin = date(''.$yrAnt.'-'.$mtAnt.'-28');
+    } else if($diasTotalMes > 30){
+      $fecAnteIni = date(''.$yrAnt.'-'.$mtAnt.'-01');
+      $fecAnteFin = date(''.$yrAnt.'-'.$mtAnt.'-31');
+    } else {
+      $fecAnteIni = date(''.$yrAnt.'-'.$mtAnt.'-01');
+      $fecAnteFin = date(''.$yrAnt.'-'.$mtAnt.'-30');
+    }
+    $queryVtaTotalDiaAnt = "SELECT SUM(SUBTOTAL2) AS total
+                                  FROM doc
+                                  WHERE fecha >= '".$fecAnteIni."'
+                                    AND fecha <= '".$fecAnteFin."'
+                                    AND tipo = 'F'
+                                    AND serie NOT LIKE 'CH'";
+    $resultQueryvtdAnt = $getConnection->query($queryVtaTotalDiaAnt);
+    $qVtDAnt = mysqli_fetch_array($resultQueryvtdAnt);
+    if($qVtDAnt === NULL){
+      $vAnt = $qVtDAnt['total'];
+    } else {
+      $vAnt = $qVtDAnt['total'];
+    }
+    $mesAnteriorTo = number_format($vAnt, 2, ".", ",");
+
+    //Se hace la busqueda de ventas totales del Mes Zona 1
+    $queryVtaMesZona1 = "SELECT SUM(d.subtotal1 + d.subtotal2) AS Zona1
+                          FROM doc d
+                            JOIN per p ON p.perid = d.vendedorid
+                          WHERE d.tipo = 'F'
+                            AND d.serie NOT LIKE 'CH'
+                            AND p.sermov = 1
+                            AND (
+                                  d.fecha <= '$ultimoDiaMes'
+                                  AND d.fecha >= '$primerDiaMes' 
+                                )";
+    $resultQueryMesZona1 = $getConnection->query($queryVtaMesZona1);
+    $qVtaMesZona1 = mysqli_fetch_array($resultQueryMesZona1);
+    if($qVtaMesZona1 === NULL){
+      $totalVentaMesZona1 = 0;
+    } else {
+      $totalVentaMesZona1 = $qVtaMesZona1['Zona1'];
+    }
+    $formatTotalVentaMesZona1 = number_format($totalVentaMesZona1, 2, '.',',');
+
+    //Se hace la busqueda de ventas totales del Mes Zona 2
+    $queryVtaMesZona2 = "SELECT SUM(d.subtotal1 + d.subtotal2) AS Zona2
+                          FROM doc d
+                            JOIN per p ON p.perid = d.vendedorid
+                          WHERE d.tipo = 'F'
+                            AND d.serie NOT LIKE 'CH'
+                            AND p.sermov = 2
+                            AND (
+                                  d.fecha <= '$ultimoDiaMes'
+                                  AND d.fecha >= '$primerDiaMes' 
+                                )";
+    $resultQueryMesZona2 = $getConnection->query($queryVtaMesZona2);
+    $qVtaMesZona2 = mysqli_fetch_array($resultQueryMesZona2);
+    if($qVtaMesZona2 === NULL){
+      $totalVentaMesZona2 = 0;
+    } else {
+      $totalVentaMesZona2 = $qVtaMesZona2['Zona2'];
+    }
+    $formatTotalVentaMesZona2 = number_format($totalVentaMesZona2, 2, '.',',');
+
+    //Se hace la busqueda de ventas totales del Mes Especiales
+    $queryVtaMesEspeciales = "SELECT SUM(d.subtotal1 + d.subtotal2) AS Especiales
+                                FROM doc d
+                                  JOIN per p ON p.perid = d.vendedorid
+                                WHERE d.tipo = 'F'
+                                  AND d.serie NOT LIKE 'CH'
+                                  AND (
+                                        p.perid = 16
+                                        OR p.perid = 20
+                                        OR p.perid = 21
+                                        OR p.perid = 145
+                                        OR p.perid = 152
+                                      )
+                                  AND (
+                                        d.fecha <= '$ultimoDiaMes'
+                                        AND d.fecha >= '$primerDiaMes' 
+                                      )";
+    $resultQueryMesEspeciales = $getConnection->query($queryVtaMesEspeciales);
+    $qVtaMesEspeciales = mysqli_fetch_array($resultQueryMesEspeciales);
+    if($qVtaMesEspeciales === NULL){
+      $totalVentaMesEspeciales = 0;
+    } else {
+      $totalVentaMesEspeciales = $qVtaMesEspeciales['Especiales'];
+    }
+    $formatTotalVentaMesEspeciales = number_format($totalVentaMesEspeciales, 2, '.',',');
+
+    // Cartera TOTAL
+    $getCarteraTo = "SELECT
+                  SUM(d.total - d.totalpagado) as TotalCartera
+                  FROM doc d
+                  WHERE d.total > d.totalpagado
+                    AND d.tipo = 'F'
+                    AND (
+                          (SELECT DATEDIFF(d.vence, '".$dia."')) < 0
+                          OR (SELECT DATEDIFF(d.vence, '".$dia."')) > 0
+                        )";
+    $resultGetCarteraTo = mysqli_query($getConnection,$getCarteraTo);
+    $rowCarteraTo = mysqli_fetch_array($resultGetCarteraTo);
+    if($rowCarteraTo === NULL){
+      $CarteraToF = 0;
+    } else {
+      $CarteraToF = $rowCarteraTo["TotalCartera"];
+    }
+    $CarteraTo = number_format($CarteraToF, 2, ".", ",");
+
     // Morosidad TOTAL.
     $getMorosidad = "SELECT
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
-                    JOIN per p ON p.perid = d.vendedorid
                   WHERE d.total > d.totalpagado
                     AND d.tipo = 'F'
                     AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
@@ -410,6 +551,22 @@ class Report {
       $MorosidadF = $rowMorosidad["TotalDeuda"]*(-1);
     }
     $Morosidad = number_format($MorosidadF, 2, ".", ",");
+
+    // Cartera Sana TOTAL.
+    $getCarteraSana = "SELECT
+                  SUM(d.total - d.totalpagado) as TotalCarteraSana
+                  FROM doc d
+                  WHERE d.total > d.totalpagado
+                    AND d.tipo = 'F'
+                    AND (SELECT DATEDIFF(d.vence, '".$dia."')) > 0";
+    $resultGetCarteraSana = mysqli_query($getConnection,$getCarteraSana);
+    $rowCarteraSana = mysqli_fetch_array($resultGetCarteraSana);
+    if($rowCarteraSana === NULL){
+      $CarteraSanaF = 0;
+    } else {
+      $CarteraSanaF = $rowCarteraSana["TotalCarteraSana"];
+    }
+    $CarteraSana = number_format($CarteraSanaF, 2, ".", ",");
 
     //Facturas Vencidas al mes
     $fechaInicioVenc = date('Y-m-01');
@@ -443,19 +600,225 @@ class Report {
     $clieMes = mysqli_query($getConnection, $numCliMes);
     $numeroVecesCliNuevos = mysqli_num_rows($clieMes);
 
+    //Se saca nivel de servico Truper
+
+    //Sacamos el % de Nivel de Servicio de Truper Tipo C
+    $queryNsTruperC = "SELECT SUM(des.descantidad * des.desventa) AS importeSolicitadoC
+                        FROM des
+                          join inv i on i.articuloid = des.desartid
+                        where des.desfecha = '$dia'
+                            AND des.destipo = 'C'
+                            AND i.clvprov NOT LIKE '8%'";
+    $resultQueryDiaTruperC = $getConnection->query($queryNsTruperC);
+    $qNsTruperC = mysqli_fetch_array($resultQueryDiaTruperC);
+    if($qNsTruperC === NULL){
+        $importeSolicitadoTruperC = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      $importeSolicitadoTruperC = $qNsTruperC["importeSolicitadoC"];
+    }
+
+    //Sacamos el % de Nivel de Servicio de Truper Tipo F Solicitado
+    $queryNsTruperSolicitadoF = "SELECT sum(des.descantidad * des.desventa) as importeSolicitadoF
+                        FROM des
+                          join inv i on i.articuloid = des.desartid
+                        where des.desfecha = '$dia'
+                          and des.descantidad > 0
+                          and des.destipo = 'F'
+                          and i.clvprov NOT LIKE '8%'";
+    $resultQueryDiaTruperSolicitadoF = $getConnection->query($queryNsTruperSolicitadoF);
+    $qNsTruperSolicitadoF = mysqli_fetch_array($resultQueryDiaTruperSolicitadoF);
+    if($qNsTruperSolicitadoF === NULL){
+      $importeTruperSolicitadoF = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      $importeTruperSolicitadoF = $qNsTruperSolicitadoF["importeSolicitadoF"];
+    }
+
+    //Sacamos el % de Nivel de Servicio de Truper Tipo F Entregado
+    $queryNsTruperEntregadoF = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoF
+                        FROM des
+                          join inv i on i.articuloid = des.desartid
+                        where des.desfecha = '$dia'
+                          and des.desentregado > 0
+                          and des.destipo = 'F'
+                          and i.clvprov NOT LIKE '8%'";
+    $resultQueryDiaTruperEntregadoF = $getConnection->query($queryNsTruperEntregadoF);
+    $qNsTruperEntregadoF = mysqli_fetch_array($resultQueryDiaTruperEntregadoF);
+    if($qNsTruperEntregadoF === NULL){
+        $importeTruperEntregadoF = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      $importeTruperEntregadoF = $qNsTruperEntregadoF["importeEntregadoF"];
+    }
+
+    //Sacamos el % de Nivel de Servicio de Truper Tipo N Solicitado
+    $queryNsTruperSolicitadoN = "SELECT sum(des.descantidad * des.desventa) as importeSolicitadoN
+                        FROM des
+                          join inv i on i.articuloid = des.desartid
+                        where des.desfecha = '$dia'
+                          and des.descantidad > 0
+                          and des.destipo = 'N'
+                          and i.clvprov NOT LIKE '8%'";
+    $resultQueryDiaTruperSolicitadoN = $getConnection->query($queryNsTruperSolicitadoN);
+    $qNsTruperSolicitadoN = mysqli_fetch_array($resultQueryDiaTruperSolicitadoN);
+    if($qNsTruperSolicitadoN === NULL){
+        $importeSolicitadoTruperN = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      // $importeSolicitadoTruperN = $qNsTruperSolicitadoN["importeSolicitadoN"];
+      $importeSolicitadoTruperN = $qNsTruperSolicitadoN["importeSolicitadoN"];
+    }
+
+    //Sacamos el % de Nivel de Servicio de Truper Tipo N Entregado
+    $queryNsTruperEntregadoN = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoN
+                        FROM des
+                          join inv i on i.articuloid = des.desartid
+                        where des.desfecha = '$dia'
+                          and des.desentregado > 0
+                          and des.destipo = 'N'
+                          and i.clvprov NOT LIKE '8%'";
+    $resultQueryDiaTruperEntregadoN = $getConnection->query($queryNsTruperEntregadoN);
+    $qNsTruperEntregadoN = mysqli_fetch_array($resultQueryDiaTruperEntregadoN);
+    if($qNsTruperEntregadoN === NULL){
+        $importeEntregadoTruperN = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      // $importeSolicitadoTruperEntregadoN = $qNsTruperEntregadoN["importeSolicitadoN"];
+      $importeEntregadoTruperN = $qNsTruperEntregadoN["importeEntregadoN"];
+    }
+
+    // Porcentaje Estimado Truper
+    if($importeSolicitadoTruperN === NULL){
+      $EstimadoTruper = '0.00';
+    }else{
+      $EstimadoT = $importeTruperSolicitadoF * 100;
+      $EstimadoTruper = bcdiv($EstimadoT,$importeSolicitadoTruperN,2);
+    }
+    // Porcentaje Real Truper
+    if($importeEntregadoTruperN === NULL){
+      $RealTruper = '0.00';
+    }else{
+      $RealT = $importeTruperEntregadoF * 100;
+      $RealTruper = bcdiv($RealT,$importeEntregadoTruperN,2);
+    }
+    
+    //Se saca nivel de servico FMO
+
+    //Sacamos el % de Nivel de Servicio de FMO Tipo C
+    $queryNsFMOC = "SELECT SUM(des.descantidad * des.desventa) AS importeSolicitadoFMOC
+                        FROM des
+                          join inv i on i.articuloid = des.desartid
+                        where des.desfecha = '$dia'
+                            AND des.destipo = 'C'
+                            and i.clvprov LIKE '8%'";
+    $resultQueryDiaFMOC = $getConnection->query($queryNsFMOC);
+    $qNsFMOC = mysqli_fetch_array($resultQueryDiaFMOC);
+    if($qNsFMOC === NULL){
+        $importeSolicitadoFMOC = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      $importeSolicitadoFMOC = $qNsFMOC["importeSolicitadoFMOC"];
+    }
+
+    //Sacamos el % de Nivel de Servicio de FMO Tipo F Solicitado
+    $queryNsFMOSolicitadoF = "SELECT sum(des.descantidad * des.desventa) as importeSolicitadoFMOF
+                        FROM des
+                          join inv i on i.articuloid = des.desartid
+                        where des.desfecha = '$dia'
+                          and des.descantidad > 0
+                          and des.destipo = 'F'
+                          and i.clvprov LIKE '8%'";
+    $resultQueryDiaFMOF = $getConnection->query($queryNsFMOSolicitadoF);
+    $qNsFMOSolicitadoF = mysqli_fetch_array($resultQueryDiaFMOF);
+    if($qNsFMOSolicitadoF === NULL){
+        $importeSolicitadoFMOF = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      $importeSolicitadoFMOF = $qNsFMOSolicitadoF["importeSolicitadoFMOF"];
+    }
+
+    //Sacamos el % de Nivel de Servicio de FMO Tipo F Entregado
+    $queryNsFMOEntregadoF = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoFMOF
+                        FROM des
+                          join inv i on i.articuloid = des.desartid
+                        where des.desfecha = '$dia'
+                          and des.desentregado > 0
+                          and des.destipo = 'F'
+                          and i.clvprov LIKE '8%'";
+    $resultQueryDiaFMOF = $getConnection->query($queryNsFMOEntregadoF);
+    $qNsFMOEntregadoF = mysqli_fetch_array($resultQueryDiaFMOF);
+    if($qNsFMOEntregadoF === NULL){
+        $importeEntregadoFMOF = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      $importeEntregadoFMOF = $qNsFMOEntregadoF["importeEntregadoFMOF"];
+    }
+
+    //Sacamos el % de Nivel de Servicio de FMO Tipo N Solicitado
+    $queryNsFMOSolicitadoN = "SELECT sum(des.descantidad * des.desventa) as importeSolicitadoFMON
+                        FROM des
+                          join inv i on i.articuloid = des.desartid
+                        where des.desfecha = '$dia'
+                          and des.descantidad > 0
+                          and des.destipo = 'N'
+                          and i.clvprov LIKE '8%'";
+    $resultQueryDiaFMON = $getConnection->query($queryNsFMOSolicitadoN);
+    $qNsFMOSolicitadoN = mysqli_fetch_array($resultQueryDiaFMON);
+    if($qNsFMOSolicitadoN === NULL){
+        $importeSolicitadoFMON = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      // $importeSolicitadoFMON = $qNsFMOSolicitadoN["importeSolicitadoN"];
+      $importeSolicitadoFMON = $qNsFMOSolicitadoN["importeSolicitadoFMON"];
+    }
+
+    //Sacamos el % de Nivel de Servicio de FMO Tipo N Entregado
+    $queryNsFMOEntregadoN = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoFMON
+                        FROM des
+                          join inv i on i.articuloid = des.desartid
+                        where des.desfecha = '$dia'
+                          and des.desentregado > 0
+                          and des.destipo = 'N'
+                          and i.clvprov LIKE '8%'";
+    $resultQueryDiaFMON = $getConnection->query($queryNsFMOEntregadoN);
+    $qNsFMOEntregadoN = mysqli_fetch_array($resultQueryDiaFMON);
+    if($qNsFMOEntregadoN === NULL){
+        $importeEntregadoFMON = 0;
+    } else {
+      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+      // $importeEntregadoFMON = $qNsFMOEntregadoN["importeEntregadoN"];
+      $importeEntregadoFMON = $qNsFMOEntregadoN["importeEntregadoFMON"];
+    }
+
+    // Porcentaje Estimado FMO
+    if($importeSolicitadoFMON === NULL){
+      $EstimadoFMO = '0.00';
+    }else{
+      $EstimadoT = $importeSolicitadoFMOF * 100;
+      $EstimadoFMO = bcdiv($EstimadoT,$importeSolicitadoFMON,2);
+    }
+    // Porcentaje Real FMO
+    if($importeEntregadoFMON === NULL){
+      $RealFMO = '0.00';
+    }else{
+      $RealT = $importeEntregadoFMOF * 100;
+      $RealFMO = bcdiv($RealT,$importeEntregadoFMON,2);
+    }
+
     // $linkFunctionPersonal = "showPersonal(".$perid.")";
     $linkFunctionPersonal = "showClientesNuevos()";
 
-    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT centrar text-center">
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT centrar text-center">
                 <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
                   <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
                   <img src="../img/barrafmo2.gif" width="200"/>
                 </div>
                 <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8 paddingB">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 paddingB">
                     <div class="row">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                        <h4 class="h4">PEDIDOS</h4>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB table-responsive-sm">
+                        <h4 class="lead" style="font-size: 2.2em !important;">PEDIDOS</h4>
                         <table class="table table-dark">
                           <thead>
                             <tr>
@@ -469,63 +832,66 @@ class Report {
                           <tbody>
                             <tr>
                               <th scope="row">PEDIDOS</th>
-                              <td class="text-tomato" id="porbajar" style="font-size: 1.7em !important;">'.$PedBajar .'</td>
-                              <td class="text-tomato" id="porsurtir" style="font-size: 1.7em !important;">'.$PedSurt .'</td>
-                              <td class="text-tomato" id="porfactura" style="font-size: 1.7em !important;">'.$PedFactura .'</td>
-                              <td class="text-tomato" id="porCancelacion" style="font-size: 1.7em !important;">'.$PedCancelacion .'</td>
+                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porbajar" style="cursor:pointer;" onClick="">'.$PedBajar .'</span></td>
+                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porsurtir" style="cursor:pointer;" onClick="showPedidosDia(3)">'.$PedSurt .'</span></td>
+                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porfactura" style="cursor:pointer;" onClick="showPedidosDia(4)">'.$PedFactura .'</span></td>
+                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porCancelacion" style="cursor:pointer;" onClick="showPedidosDia(5)">'.$PedCancelacion .'</span></td>
                             </tr>
                             <tr>
                               <th scope="row">IMPORTE</th>
-                              <td class="text-tomato" id="impoporbajar" style="font-size: 1.7em !important;">'.$sumBajar.' *</td>
-                              <td class="text-tomato" id="impoporsurtir" style="font-size: 1.7em !important;">'.$sumSurt.' *</td>
-                              <td class="text-tomato" id="porfacturaSaldo" style="font-size: 1.7em !important;">'.$sumFactura.' *</td>
-                              <td class="text-tomato" id="porCancelacionSaldo" style="font-size: 1.7em !important;">'.$sumCancelacion.' *</td>
+                              <td class="text-tomato" id="impoporbajar" style="font-size: 1.7em !important;">'.$sumBajar.'*</td>
+                              <td class="text-tomato" id="impoporsurtir" style="font-size: 1.7em !important;">'.$sumSurt.'*</td>
+                              <td class="text-tomato" id="porfacturaSaldo" style="font-size: 1.7em !important;">'.$sumFactura.'*</td>
+                              <td class="text-tomato" id="porCancelacionSaldo" style="font-size: 1.7em !important;">'.$sumCancelacion.'*</td>
                             </tr>
                           </tbody>
                         </table>
                       </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                         <div class="row">
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 centrar">
                             <div class="row">
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 centrar">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 centrar">
+                                <h5 class="lead">PEDIDOS DEL DIA</h5>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 centrar">
                                 <div class="row">
-                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                                    <h5 class="lead">PEDIDOS DEL DIA</h5>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                    <h5 class="lead">CANTIDAD</h5>
                                   </div>
-                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                                    <p class="lead text-tomato" id="totalpedidodia" style="font-size: 3em !important;">'.$totalPed.'</p>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                    <p class="lead text-tomato" style="font-size: 3em !important;"><span class="enlaces" id="totalpedidodia" style="cursor:pointer;" onClick="showPedidosDia(1)">'.$totalPed.'</span></p>
                                   </div>
                                 </div>
                               </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
                                 <div class="row">
-                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                     <div class="row">
-                                      <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-left">
                                         <p class="lead">SUBTOTAL</p>
                                       </div>
-                                      <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
                                         <span class="lead text-tomato" id="totalpedidodiaSaldo" style="font-size: 1.7em !important;">'.$sumPed.'</span>
                                       </div>
                                     </div>
                                   </div>
-                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                     <div class="row">
-                                      <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-left">
                                         <p class="lead">I.V.A.</p>
                                       </div>
-                                      <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
                                         <span class="lead text-tomato" id="ivaPed" style="font-size: 1.7em !important;">'.$ivaP.'</span>
                                       </div>
                                     </div>
                                   </div>
-                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                     <div class="row">
-                                      <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-left">
                                         <p class="lead">TOTAL</p>
                                       </div>
-                                      <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
                                         <span class="lead text-tomato" id="totalPed" style="font-size: 1.7em !important;">'.$totalP.'</span>
                                       </div>
                                     </div>
@@ -534,13 +900,45 @@ class Report {
                               </div>
                             </div>
                           </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 centrar">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 centrar">
                             <div class="row">
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                                <h5 class="lead">NIVEL DE SERVICIO</h5>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                <h5 class="lead">NIVEL DE SERVICIO ESTIMADO</h5>
+                                <p class="lead text-tomato" id="ns" style="font-size: 3em !important;">'.$ns.'%</p>
                               </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                                <p class="lead text-tomato" id="ns" style="font-size: 1.7em !important;">'.$ns.'%</p>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                                <h4 class="lead" style="font-size: 1em !important;">TRUPER</h4>
+                                <p class="lead text-tomato" id="">REMISIONADO Solicitado: '.number_format($importeSolicitadoTruperN, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">REMISIONADO Entregado: '.number_format($importeEntregadoTruperN, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">FACTURADO Solicitado: '.number_format($importeTruperSolicitadoF, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">FACTURADO Entregado: '.number_format($importeTruperEntregadoF, 2, ".", ",").'</p>
+                                <div class="row">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                                    <p class="lead" style="font-size: 1em !important;">Estimado</p>
+                                    <p class="lead text-tomato" id="nsTruEstimado">'.$EstimadoTruper.'%</p>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                                    <p class="lead" style="font-size: 1em !important;">Real</p>
+                                    <p class="lead text-tomato" id="nsTruReal">'.$RealTruper.'%</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                                <h4 class="lead" style="font-size: 1em !important;">FMO</h4>
+                                <p class="lead text-tomato" id="">REMISIONADO Solicitado: '.number_format($importeSolicitadoFMON, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">REMISIONADO Entregado: '.number_format($importeEntregadoFMON, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">FACTURADO Solicitado: '.number_format($importeSolicitadoFMOF, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">FACTURADO Entregado: '.number_format($importeEntregadoFMOF, 2, ".", ",").'</p>
+                                <div class="row">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                                    <p class="lead" style="font-size: 1em !important;">Estimado</p>
+                                    <p class="lead text-tomato" id="nsFerreMEstimado">'.$EstimadoFMO.'%</p>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                                    <p class="lead" style="font-size: 1em !important;">Real</p>
+                                    <p class="lead text-tomato" id="nsFMOReal">'.$RealFMO.'%</p>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -548,27 +946,63 @@ class Report {
                       </div>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 paddingB">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 paddingB">
                     <div class="row">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                        <h4 class="h4">VENTAS AL MES</h4>
-                        <p class="lead text-tomato" id="totalventames" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.' *</p>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
+                        <h4 class="lead" style="font-size: 2.2em !important;">VENTAS MENSUALES</h4>
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <h4 class="lead">MES ANTERIOR</h4>
+                            <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$mesAnteriorTo.'*</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <h4 class="lead">MES ACTUAL</h4>
+                            <p class="lead text-tomato" id="totalventames" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'*</p>
+                          </div>
+                        </div>
+                        <h4 class="lead">DETALLE</h4>
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                            <h4 class="lead">ZONA 1</h4>
+                            <p class="lead text-tomato" id="vtaZona1" style="font-size: 1.1em !important;">$ '.$formatTotalVentaMesZona1.'*</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                            <h4 class="lead">ZONA 2</h4>
+                            <p class="lead text-tomato" id="vtaZona2" style="font-size: 1.1em !important;">$ '.$formatTotalVentaMesZona2.'*</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                            <h4 class="lead">ESPECIALES</h4>
+                            <p class="lead text-tomato" id="vtaEspecial" style="font-size: 1.1em !important;">$ '.$formatTotalVentaMesEspeciales.'*</p>
+                          </div>
+                        </div>
                       </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                        <p class="h4">FACTURAS VENCIDAS AL MES</p>
-                        <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
+                        <h4 class="lead" style="font-size: 2.2em !important;">CARTERA TOTAL</h4>
+                        <p class="lead text-tomato" id="carteratotal" style="font-size: 1.7em !important;">$ '.$CarteraTo.'</p>
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <h4 class="lead">CARTERA VENCIDA</h4>
+                            <p class="lead text-tomato" id="morosidad" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <h4 class="lead">CARTERA AL DIA</h4>
+                            <p class="lead text-tomato" id="carterasana" style="font-size: 1.7em !important;">$ '.$CarteraSana.'</p>
+                          </div>
+                        </div>
                       </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                        <h4 class="h4">MOROSIDAD TOTAL</h4>
-                        <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
-                      </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
-                        <h4 class="h4">NUEVOS CLIENTES AL MES</h4>
-                        <p class="lead text-tomato" style="font-size: 1.7em !important;">
-                          <a class="nav-link" href="#" onClick="'.$linkFunctionPersonal.'">
-                          '.$numeroVecesCliNuevos.'
-                          </a>
-                        </p>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <h4 class="lead">NUEVOS CLIENTES AL MES</h4>
+                            <p class="lead text-tomato" style="font-size: 1.7em !important;">
+                              <span class="enlaces" style="cursor:pointer;" onClick="'.$linkFunctionPersonal.'">'.$numeroVecesCliNuevos.'</span>
+                            </p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <p class="lead">FACTURAS VENCIDAS AL MES</p>
+                            <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -746,6 +1180,32 @@ class Report {
                         }
                         setInterval(ventasMes, 3000);
 
+                        // function nsFMOCot(){
+                        //   $.ajax({
+                        //     type: "POST",
+                        //     url: "../php/busquedas/nsFMOCotizado.php",
+                        //     success: function(nsFMOCotizado ) {
+                        //       $("#FMOCot").text(nsFMOCotizado );
+                        //       $("#FMOCot").addClass("aviso");
+                        //       console.log("Cotizado FMO: ", nsFMOCotizado );
+                        //     }
+                        //   });
+                        // }
+                        // setInterval(nsFMOCot, 3000);
+
+                        // function nsTruCot(){
+                        //   $.ajax({
+                        //     type: "POST",
+                        //     url: "../php/busquedas/nsTruperCotizado.php",
+                        //     success: function(nsTruCotizado ) {
+                        //       $("#TruCot").text(nsTruCotizado );
+                        //       $("#TruCot").addClass("aviso");
+                        //       console.log("Cotizado Truper: ", nsTruCotizado );
+                        //     }
+                        //   });
+                        // }
+                        // setInterval(nsTruCot, 3000);
+
                         function nS(){
                           $.ajax({
                             type: "POST",
@@ -758,12 +1218,142 @@ class Report {
                           });
                         }
                         setInterval(nS, 3000);
+
+                        function nsTruperEst(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/nsTruperEstimado.php",
+                            success: function(nsTruEstimado) {
+                              $("#nsTruEstimado").text(nsTruEstimado);
+                              // $("#nsTruEstimado").addClass("aviso");
+                              // console.log("Nivel de Servicio Truper Estimado: ", nsTruEstimado);
+                            }
+                          });
+                        }
+                        setInterval(nsTruperEst, 3000);
+
+                        function nsTruperRe(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/nsTruperReal.php",
+                            success: function(nsTruReal) {
+                              $("#nsTruReal").text(nsTruReal);
+                              // $("#nsTruReal").addClass("aviso");
+                              // console.log("Nivel de Servicio Truper Estimado: ", nsTruReal);
+                            }
+                          });
+                        }
+                        setInterval(nsTruperRe, 3000);
+
+                        function nsFerreEstimado(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/nsFMOEstimado.php",
+                            success: function(nsFMOEstimado) {
+                              $("#nsFerreMEstimado").text(nsFMOEstimado);
+                              // $("#nsFerreMEstimado").addClass("aviso");
+                              // console.log("Nivel de Servicio FMO: ", nsFMOEstimado);
+                            }
+                          });
+                        }
+                        setInterval(nsFerreEstimado, 3000);
+
+                        function nsFerreReal(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/nsFMOReal.php",
+                            success: function(nsFMOReal) {
+                              $("#nsFMOReal").text(nsFMOReal);
+                              // $("#nsFMOReal").addClass("aviso");
+                              // console.log("Nivel de Servicio FMO: ", nsFMOReal);
+                            }
+                          });
+                        }
+                        setInterval(nsFerreReal, 3000);
+                        
+                        function carteraTotal(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/carteratotal.php",
+                            success: function(carterato) {
+                              $("#carteratotal").text(carterato);
+                              // $("#carteratotal").addClass("aviso");
+                              // console.log("Cartera Total: ", carterato);
+                            }
+                          });
+                        }
+                        setInterval(carteraTotal, 60000);
+                        
+                        function morosidad(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/morosidad.php",
+                            success: function(moros) {
+                              $("#morosidad").text(moros);
+                              // $("#morosidad").addClass("aviso");
+                              // console.log("Cartera Vencida: ", moros);
+                            }
+                          });
+                        }
+                        setInterval(morosidad, 60000);
+                        
+                        function carteraSana(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/carterasana.php",
+                            success: function(carteraS) {
+                              $("#carterasana").text(carteraS);
+                              // $("#carterasana").addClass("aviso");
+                              // console.log("Cartera al Día: ", carteraS);
+                            }
+                          });
+                        }
+                        setInterval(carteraSana, 60000);
+                        
+                        function vtaZN1(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/vtazona1.php",
+                            success: function(vtaZ1) {
+                              $("#vtaZona1 ").text(vtaZ1);
+                              // $("#vtaZona1 ").addClass("aviso");
+                              // console.log("Zona1: ", vtaZ1);
+                            }
+                          });
+                        }
+                        setInterval(vtaZN1, 3000);
+                        
+                        function vtaZN2(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/vtazona2.php",
+                            success: function(vtaZ2) {
+                              $("#vtaZona2 ").text(vtaZ2);
+                              // $("#vtaZona2 ").addClass("aviso");
+                              // console.log("Zona2: ", vtaZ2);
+                            }
+                          });
+                        }
+                        setInterval(vtaZN2, 3000);
+                        
+                        function vtaEspec(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/vtaespecial.php",
+                            success: function(vtaEspe) {
+                              $("#vtaEspecial  ").text(vtaEspe);
+                              // $("#vtaEspecial  ").addClass("aviso");
+                              // console.log("Especial: ", vtaEspe);
+                            }
+                          });
+                        }
+                        setInterval(vtaEspec, 3000);
                       });
                     } else {
                       console.log("Fuera de Línea");
                     }
                   </script>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB text-center">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB text-center">
                     <p class="lead text-center" style="font-size:1.5em;">* Valores considerados sin I.V.A.</p>
                   </div>
                 </div>
@@ -1214,74 +1804,74 @@ class Report {
       break;
     }
 
-    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT">
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
                 <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
                   <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
                   <img src="../img/barrafmo2.gif" width="200"/>
                 </div>
                 <div class="content-wrapper">
                   <div class="row">
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                       <div class="row infoCard">
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                           <div class="form-group">
                             <div class="row">
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
                                 <span>Ventas al día</span>
                               </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                 <p id="totalventadia" class="input-falso text-green text-bold">$ '.$formatTotalVentaDia.'</p>
 										          </div>
 									          </div>
 								          </div>
 								          <div class="form-group">
 									          <div class="row">
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
                                 <span>Pedidos al día</span>
                               </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                 <p id="totalpedidodia" class="input-falso text-green text-bold">'.$qPediDia.'</p>
                               </div>
                             </div>
                           </div>
                           <div class="form-group">
                             <div class="row">
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
                                 <span>Ventas al mes</span>
                               </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                 <p class="input-falso text-green text-bold" id="totalVentaMes">$ '.$formatTotalVentaMes.'</p>
                               </div>
                             </div>
                           </div>
                         </div>
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                           <div class="form-group">
                             <div class="row">
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
                                 <span>Ventas a la semana</span>
                               </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                 <p id="totalventasemana" class="input-falso text-green text-bold">$ '.$formatTotalVentaSemana.'</p>
 										          </div>
 									          </div>
 								          </div>
 								          <div class="form-group">
 									          <div class="row">
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
                                 <span>Ventas al trimestre</span>
                               </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                 <p id="totalventatrimestre" class="input-falso text-green text-bold">$ '.$formatTotalVentaTrimestre.'</p>
                               </div>
                             </div>
                           </div>
                           <div class="form-group">
                             <div class="row">
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
                                 <span>Estatus</span>
                               </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                 <p class="input-falso text-green text-bold">Aqui va un estatus de como esta la compañia</p>
                               </div>
                             </div>
@@ -1356,13 +1946,13 @@ class Report {
                     </div>
                   </div>';
                   
-    $print .=     '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficasGeneral">
+    $print .=     '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 graficasGeneral">
                     <div class="row">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                         <h3 class="display-4">Venta Mensual</h3>
                         <h4>Venta Mensual de <b>'.$mes.'</b> del <b>'.date("Y").'</b></h4>
                         <div class="row text-center">
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficosBarra">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 graficosBarra">
                             <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
                             <p id="mesActual" style="display: none;">'.$totalVentaMes.'</p>
                             <p id="mesAnterior" style="display: none;">'.$vAnt.'</p>
@@ -1459,74 +2049,74 @@ class Report {
                           </script>';
     $print .=           '</div>
                       </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                         <div class="row">
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                             <div class="row">';
-    $print .=                 '<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+    $print .=                 '<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                                 <span class="text-redGraf">
                                   Ventas del Mes pasado<br /><b style="font-size: 2em;">$ '.number_format($vAnt, 2, ".", ",").'</b>
                                 </span>
                               </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                                 <span class="text-blue">
                                   Venta Actual<br /><b style="font-size: 2em;">$ '.number_format($totalVentaMes, 2, ".", ",").'</b>
                                 </span>
                               </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                                 <span class="text-green">
                                   Ventas del Mejor Mes<br /><b style="font-size: 2em;">$ '.number_format($vMejor, 2, ".", ",").'</b>
                                 </span>
                                 <p class="text-green" style="font-weight:bold">'.$mesMej.' '.$anioAnterior.'</p>
                               </div>
                             </div>
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                               <h1 class="display-4">Proyección de Cierre</h1>
                               <div class="row">
-                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                                   <div class="row">
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                       <p class="lead"><b>Ingrese los días del mes actual a calcular</b></p>
                                     </div>
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                       <input id="diasActual" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 25" required>
                                     </div>
                                   </div>
                                 </div>
-                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                                   <div class="row">
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                       <p class="lead"><b>Ingrese los días del mes anterior a calcular</b></p>
                                     </div>
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                       <input id="diasAnterior" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 20" required>
                                     </div>
                                   </div>
                                 </div>
-                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                                   <div class="row">
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                       <p class="lead"><b>Ingrese los días que han pasado</b></p>
                                     </div>
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                       <input id="diasConteo" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 11" required>
                                     </div>
                                   </div>
                                 </div>
                               </div>
-                              <div id="botonCalcular" class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12" style="padding: 10px;">
+                              <div id="botonCalcular" class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="padding: 10px;">
                                 <input class="btn btn-success" type="submit" name="" value="Calcular" onClick="calcular();">
                               </div>
                               <div class="row">
-                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="ventaPorDiaActual"></div>
-                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="ventaPorDiaAnterior"></div>
-                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="pronosticoMensual"></div>
-                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="proyeccionCierre"></div>
-                                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12" id="ventaPorDiaIgualar"></div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="ventaPorDiaActual"></div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="ventaPorDiaAnterior"></div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="pronosticoMensual"></div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="proyeccionCierre"></div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" id="ventaPorDiaIgualar"></div>
                               </div>
                               <script src="../intranet/js/calculos.js"></script>
                             </div>';
-    $print .=               '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+    $print .=               '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                               <h5 class="text-center lead">Se presenta el reporte de ventas al mes, en comparación con el anterior y con el mejor mes.</h5>
                               <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
                             </div>
@@ -1535,23 +2125,23 @@ class Report {
                       </div>
                     </div>';
     $vtaAnualActual = date("Y");
-    $print .=       '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB">
+    $print .=       '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
                       <div class="row">
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                           <div class="row infoCard">
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                               <h3 class="display-4">Reporte de Venta</h3>
                               <h4><b>'.date("Y").' <em style="font-size: 0.5em;">Vs</em> '.$anioAnterior.' <em style="font-size: 0.5em;">Vs</em> Empresa</b></h4>
                             </div>
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                               <canvas id="areaChartAnual" style="height:250px"></canvas>
                             </div>
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                               <div class="row">
-                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                   <p class="lead" style="color:#3adcf4"><b style="font-size: 1em;">'.$anioAnterior.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearAnterior, 2, ".", ",").'</b></p>
                                 </div>
-                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                   <p class="lead text-redGraf"><b style="font-size: 1em;">'.$vtaAnualActual.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearEmpresa, 2, ".", ",").'</b></p>
                                 </div>
                               </div>
@@ -1584,10 +2174,6 @@ class Report {
     $get030DiasDist = "SELECT 
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
-                    JOIN cfd ON cfd.docid = d.docid
-                    JOIN cli c ON c.clienteid = d.clienteid
-                    JOIN dom ON dom.clienteid = d.clienteid
-                    JOIN per p ON p.perid = d.vendedorid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
@@ -1603,10 +2189,6 @@ class Report {
     $get3060DiasDist = "SELECT
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
-                    JOIN cfd ON cfd.docid = d.docid
-                    JOIN cli c ON c.clienteid = d.clienteid
-                    JOIN dom ON dom.clienteid = d.clienteid
-                    JOIN per p ON p.perid = d.vendedorid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
@@ -1622,10 +2204,6 @@ class Report {
     $get6090DiasDist = "SELECT 
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
-                    JOIN cfd ON cfd.docid = d.docid
-                    JOIN cli c ON c.clienteid = d.clienteid
-                    JOIN dom ON dom.clienteid = d.clienteid
-                    JOIN per p ON p.perid = d.vendedorid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
@@ -1641,25 +2219,20 @@ class Report {
     $get90DiasDist = "SELECT
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
-                    JOIN cfd ON cfd.docid = d.docid
-                    JOIN cli c ON c.clienteid = d.clienteid
-                    JOIN dom ON dom.clienteid = d.clienteid
-                    JOIN per p ON p.perid = d.vendedorid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
                           OR d.tipo = 'N'
                         )
-                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90
-                      AND (SELECT SUM(d.totalpagado - d.total)) > 1";
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90";
     $resultGet90Dist = mysqli_query($getConnection,$get90DiasDist);
     $row90Dist = mysqli_fetch_array($resultGet90Dist);
     $dias90DistF = $row90Dist[0]*(-1);
     $dias90Dist = number_format($dias90DistF, 2, ".", ",");
 
-    $print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB">
+    $print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
                 <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                     <h3 class="display-4">Cuentas por Cobrar</h3>
                     <h4>Cartera Vencida Total</h4>
                     <p class="text-redGraf" style="font-weight:bold;font-size: 2em;">$ '.$Morosidad.'</p>
@@ -1714,11 +2287,123 @@ class Report {
     $getConnection->close();
   }
 
+  private function getReportePedidosDia($params) {
+    $paramFunctions   = new Util();
+    $paramDb          = new Database();
+    $tipoPedido       = $paramDb->SecureInput($params["tipoPedido"]);
+    $getConnection    = $paramDb->GetLink();
+
+    $dia  = date("Y-m-d");
+
+    switch ($tipoPedido) {
+      case 1:
+        $titulo = "TOTALES";
+        //Pedidos Totales
+        $queryPedDia = "SELECT des.desdocid, des.destipo, des.desartid, i.clave, des.descantidad, des.desentregado, (des.descantidad * des.desventa) as importe
+                          FROM des
+                            JOIN inv i ON i.articuloid = des.desartid
+                          WHERE des.desfecha = '$dia'
+                            AND des.destipo = 'C'
+                            AND des.descantidad > 0";
+        $resultado = $getConnection->query($queryPedDia);
+      break;
+      case 2:
+        $titulo = "POR BAJAR";
+        //Pedidos por bajar
+        
+      break;
+      case 3:
+        $titulo = "POR SURTIR";
+        //Pedidos por surtir
+        $queryPedDiaSurtir = "SELECT des.desdocid, des.destipo, des.desartid, i.clave, des.descantidad, des.desentregado, (des.descantidad * des.desventa) as importe
+                                FROM des
+                                JOIN inv i ON i.articuloid = des.desartid
+                                WHERE des.desfecha = '$dia'
+                                  AND des.destipo = 'N'
+                                  AND des.desentregado > 0";
+        $resultado = $getConnection->query($queryPedDiaSurtir);
+      break;
+      case 4:
+        $titulo = "FACTURADOS";
+        //Pedidos Facturados
+        $queryPedDiaFactura = "SELECT des.desdocid, des.destipo, des.desartid, i.clave, des.descantidad, des.desentregado, (des.descantidad * des.desventa) as importe
+                                FROM des
+                                  JOIN inv i ON i.articuloid = des.desartid
+                                WHERE des.desfecha = '$dia'
+                                  AND des.destipo = 'F'
+                                  AND des.desentregado > 0";
+        $resultado = $getConnection->query($queryPedDiaFactura);
+      break;
+      case 5:
+        $titulo = "CANCELADOS";
+        //Pedidos Cancelados
+        
+      break;
+    }
+    $print = '<div class="container paddingT">
+              <h4 class="h4 text-center">PEDIDOS <span class="text-tomato">'.$titulo.'</span></h4>
+              <div class="table-responsive">
+                <table class="table table-dark">
+                  <thead>
+                    <tr class="text-center">
+                      <th scope="col">DOCUMENTO</th>
+                      <th scope="col">TIPO</th>
+                      <th scope="col">CLAVE</th>
+                      <th scope="col">ARTICULO</th>
+                      <th scope="col">CANTIDAD</th>
+                      <th scope="col">ENTREGADO</th>
+                      <th scope="col">IMPORTE</th>
+                    </tr>
+                  </thead>
+                  <tbody>';
+    while($row= mysqli_fetch_array($resultado)){
+      $desdocid = $row["desdocid"];
+      $destipo = $row["destipo"];
+      $desartid = $row["desartid"];
+      $clave = $row["clave"];
+      $descantidad = $row["descantidad"];
+      $desentregado = $row["desentregado"];
+      $importe = $row["importe"];
+
+      if($desentregado > $descantidad){
+        $print .=   '<tr class="text-center">
+                      <td style="background: #99ffcc!important;">'.$desdocid.'</td>
+                      <td style="background: #99ffcc!important;">'.$destipo.'</td>
+                      <td style="background: #99ffcc!important;">'.$clave.'</td>
+                      <td style="background: #99ffcc!important;">'.$desartid.'</td>
+                      <td style="background: #99ffcc!important;">'.$descantidad.'</td>
+                      <td style="background: #99ffcc!important;">'.$desentregado.'</td>
+                      <td style="background: #99ffcc!important;">'.number_format($importe, 2, ".", ",").'</td>
+                    </tr>';
+      }else{
+        $print .=   '<tr class="text-center">
+                      <td style="background: tomato!important;">'.$desdocid.'</td>
+                      <td>'.$destipo.'</td>
+                      <td>'.$clave.'</td>
+                      <td>'.$desartid.'</td>
+                      <td>'.$descantidad.'</td>
+                      <td>'.$desentregado.'</td>
+                      <td>'.number_format($importe, 2, ".", ",").'</td>
+                    </tr>';
+      }
+    }
+    $print .=     '</tbody>
+                </table>
+              </div>
+            </div>';
+    echo $print;
+    $getConnection->close();
+  }
+
   private function getReporteVendedor($params) {
     $paramFunctions   = new Util();
     $paramDb          = new Database();
-    $perid            = $paramDb->SecureInput($params["perID"]);
     $getConnection    = $paramDb->GetLink();
+    if($params["perID"]){
+      $perid            = $paramDb->SecureInput($params["perID"]);
+    }else{
+      $perid = $_SESSION["data"]["id"];
+    }
     /*$perid = $_SESSION["personal"];*/
 
     //Se define las fechas y trimestres
@@ -2117,22 +2802,10 @@ class Report {
     $vMejor = 0;
     $anioAnterior = date('Y')-1;
     for($mAnt = 1; $mAnt <= 12; $mAnt++){
-
-      // if($diasTotalMes < 30){
-      //   ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
-      //   ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-28');
-      // } else if($diasTotalMes > 30){
-      //   ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
-      //   ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-31');
-      // } else {
-      //   ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
-      //   ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-30');
-      // }
-
       if($mAnt == 1 || $mAnt == 3 || $mAnt == 5 || $mAnt == 7 || $mAnt == 8 || $mAnt == 10 || $mAnt == 12){
         ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
         ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-31');
-      } elseif($mAnt == 4 || $mAnt == 6 || $mAnt == 9 || $mAnt == 7 || $mAnt == 11){
+      } elseif($mAnt == 4 || $mAnt == 6 || $mAnt == 9 || $mAnt == 11){
         ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
         ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-30');
       } elseif($mAnt == 2){
@@ -2167,9 +2840,13 @@ class Report {
           $vMejor = ${'mes'.$mAnt};
           $mMes = $mAnt;
         }
+        $mMes = 0;
       }
     }
     switch ($mMes) {
+      case 0:
+        $mesMej='Sin Historial';
+      break;
       case 1:
         $mesMej='Enero';
       break;
@@ -2214,16 +2891,16 @@ class Report {
                 </div>
               </div>";*/
 
-    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT">
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
                 <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                     <div class="row infoCard">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                         <div class="row">
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3 text-input">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 text-input">
                             <img src="../img/vendedores/'.$foto.'" class="rounded-circle img-fluid" alt="'.$foto.'" />
                           </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xs-9">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
                             <h5>
                               <span><b>#'.$perid.'</b></span> - '.$nombre.'
                               <small class="text-green">ZONA '.$zona.'</small>
@@ -2234,19 +2911,19 @@ class Report {
                           </div>
                         </div>
                       </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                         <div class="row">
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                             <div class="row">
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                 <div class="form-group">
                                   <div class="row">
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
                                       <span>Ventas al día</span>
                                     </div>
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                       <div class="row">
-                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
                                           <input type="text" class="form-control" value="$ '.$formatTotalVentaDia.'" readonly />
                                         </div>
                                       </div>
@@ -2255,12 +2932,12 @@ class Report {
                                 </div>
                                 <div class="form-group">
                                   <div class="row">
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
                                       <span>Pedidos al día</span>
                                     </div>
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                       <div class="row">
-                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
                                           <input type="text" class="form-control" value="'.$qPedDia.'" readonly />
                                         </div>
                                       </div>
@@ -2269,12 +2946,12 @@ class Report {
                                 </div>
                                 <div class="form-group">
                                   <div class="row">
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
                                       <span>Ventas al mes</span>
                                     </div>
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                       <div class="row">
-                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
                                           <input type="text" class="form-control" value="$ '.$formatTotalVentaMes.'" readonly />
                                         </div>
                                       </div>
@@ -2282,15 +2959,15 @@ class Report {
                                   </div>
                                 </div>
                               </div>
-                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                 <div class="form-group">
                                   <div class="row">
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
                                       <span>Ventas a la semana</span>
                                     </div>
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                       <div class="row">
-                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
                                           <input type="text" class="form-control" value="$ '.$formatTotalVentaSemana.'" readonly />
                                         </div>
                                       </div>
@@ -2299,12 +2976,12 @@ class Report {
                                 </div>
                                 <div class="form-group">
                                   <div class="row">
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4 text-input">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
                                       <span>Ventas al trimestre</span>
                                     </div>
-                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xs-8">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                       <div class="row">
-                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xs-10">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
                                           <input type="text" class="form-control" value="$ '.$formatTotalVentaTrimestre.'" readonly />
                                         </div>
                                       </div>
@@ -2320,13 +2997,13 @@ class Report {
                   </div>
                 </div>
               </div>
-              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficasGeneral">
+              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 graficasGeneral">
                 <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                     <h3>Venta Mensual</h3>
                     <h4Venta Mensual de <b>'.$mes.'</b> del <b>'.date("Y").'</b></h4>
                       <div class="row">
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 graficos">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 graficos">
                           <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
                           <p id="mesActual" style="display: none;">'.$totalVentaMes.'</p>
                           <p id="mesAnterior" style="display: none;">'.$vAnt.'</p>
@@ -2340,102 +3017,102 @@ class Report {
                   </div>
                 </div>
               </div>
-              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                 <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                     <div class="row">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                         <span class="text-redGraf">
                           Ventas del Mes pasado<br /><b style="font-size: 2em;">$ '.number_format($vAnt, 2, ".", ",").'</b>
                         </span>
                       </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                         <span class="text-blue">
                           Venta Actual<br /><b style="font-size: 2em;">$ '.number_format($totalVentaMes, 2, ".", ",").'</b>
                         </span>
                       </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                         <span class="text-green">
                           Ventas del Mejor Mes<br /><b style="font-size: 2em;">$ '.number_format($vMejor, 2, ".", ",").'</b>
                         </span>
                         <p class="text-green" style="font-weight:bold">'.$mesMej.' '.$anioAnterior.'</p>
                       </div>
                     </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                       <h1 class="display-4">Proyección de Cierre</h1>
                       <div class="row">
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                           <div class="row">
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                               <p class="lead"><b>Ingrese los días del mes actual a calcular</b></p>
                             </div>
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                               <input id="diasActual" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 25" required>
                             </div>
                           </div>
                         </div>
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                           <div class="row">
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                               <p class="lead"><b>Ingrese los días del mes anterior a calcular</b></p>
                             </div>
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                               <input id="diasAnterior" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 20" required>
                             </div>
                           </div>
                         </div>
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                           <div class="row">
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                               <p class="lead"><b>Ingrese los días que han pasado</b></p>
                             </div>
-                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                               <input id="diasConteo" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 11" required>
                             </div>
                           </div>
                         </div>
                       </div>
-                      <div id="botonCalcular" class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12" style="padding: 10px;">
+                      <div id="botonCalcular" class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="padding: 10px;">
                         <input class="btn btn-success" type="submit" name="" value="Calcular" onClick="calcular();">
                       </div>
                       <div class="row">
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="ventaPorDiaActual"></div>
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="ventaPorDiaAnterior"></div>
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="pronosticoMensual"></div>
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6" id="proyeccionCierre"></div>
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12" id="ventaPorDiaIgualar"></div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="ventaPorDiaActual"></div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="ventaPorDiaAnterior"></div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="pronosticoMensual"></div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="proyeccionCierre"></div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" id="ventaPorDiaIgualar"></div>
                       </div>
                       <script src="../intranet/js/calculos.js"></script>
                     </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                       <h5 class="text-center lead">Se presenta el reporte de ventas al mes, en comparación con el anterior y con el mejor mes.</h5>
                       <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB">
+              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
                 <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                     <div class="row infoCard">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                         <h3>Reporte de Venta</h3>
                         <h4 class="text-center"><b>'.date("Y").' <em style="font-size: 0.5em;">Vs</em> '.$anioAnterior.' <em style="font-size: 0.5em;">Vs</em> Empresa</b></h4>
                       </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                         <canvas id="areaChartAnual" style="height:250px"></canvas>
                       </div>
                       <script src="../intranet/js/Chart.js"></script>
                       <script src="../intranet/js/graficas.js"></script>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                         <div class="row">
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                             <p class="lead" style="color:#3adcf4"><b style="font-size: 1em;">'.$anioAnterior.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearAnterior, 2, ".", ",").'</b></p>
                           </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                             <p class="lead text-redGraf" style="color:#b109ab"><b style="font-size: 1em;">'.date("Y").'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearActual , 2, ".", ",").'</b></p>
                           </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xs-4">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                           <p class="lead text-redGraf"><b style="font-size: 1em;">Empresa '.date("Y").'</b><br /><b style="font-size: 1.5em;">$ '.number_format($totalYearEmpresa, 2, ".", ",").'</b></p>
                           </div>
                         </div>
@@ -2450,12 +3127,9 @@ class Report {
       $getMorosidad = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cfd ON cfd.docid = d.docid
                       JOIN cli c ON c.clienteid = d.clienteid
-                      JOIN dom ON dom.clienteid = d.clienteid
-                      JOIN per p ON p.perid = d.vendedorid
                     WHERE d.total > d.totalpagado
-                        AND d.vendedorid = $perid
+                        AND c.vendedorid = $perid
                         AND (
                               d.tipo = 'F'
                               OR d.tipo = 'N'
@@ -2473,13 +3147,13 @@ class Report {
       $get030DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cfd ON cfd.docid = d.docid
                       JOIN cli c ON c.clienteid = d.clienteid
-                      JOIN dom ON dom.clienteid = d.clienteid
-                      JOIN per p ON p.perid = d.vendedorid
                     WHERE d.total > d.totalpagado
-                        AND d.vendedorid = $perid
-                        AND d.tipo NOT LIKE 'C'
+                        AND c.vendedorid = $perid
+                        AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -30
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
       $resultGet030Dist = mysqli_query($getConnection,$get030DiasDist);
@@ -2494,13 +3168,13 @@ class Report {
       $get3060DiasDist = "SELECT
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cfd ON cfd.docid = d.docid
                       JOIN cli c ON c.clienteid = d.clienteid
-                      JOIN dom ON dom.clienteid = d.clienteid
-                      JOIN per p ON p.perid = d.vendedorid
                     WHERE d.total > d.totalpagado
-                        AND d.vendedorid = $perid
-                        AND d.tipo NOT LIKE 'C'
+                        AND c.vendedorid = $perid
+                        AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -60
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -30";
       $resultGet3060Dist = mysqli_query($getConnection,$get3060DiasDist);
@@ -2515,15 +3189,15 @@ class Report {
       $get6090DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cfd ON cfd.docid = d.docid
                       JOIN cli c ON c.clienteid = d.clienteid
-                      JOIN dom ON dom.clienteid = d.clienteid
-                      JOIN per p ON p.perid = d.vendedorid
                     WHERE d.total > d.totalpagado
-                        AND d.vendedorid = $perid
-                        AND d.tipo NOT LIKE 'C'
-                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -90
-                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -60";
+                      AND c.vendedorid = $perid
+                      AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -90
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -60";
       $resultGet6090Dist = mysqli_query($getConnection,$get6090DiasDist);
       $row6090Dist = mysqli_fetch_array($resultGet6090Dist);
       if($row6090Dist === NULL){
@@ -2536,13 +3210,13 @@ class Report {
       $get90DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cfd ON cfd.docid = d.docid
                       JOIN cli c ON c.clienteid = d.clienteid
-                      JOIN dom ON dom.clienteid = d.clienteid
-                      JOIN per p ON p.perid = d.vendedorid
                     WHERE d.total > d.totalpagado
-                        AND d.vendedorid = $perid
-                        AND d.tipo NOT LIKE 'C'
+                        AND c.vendedorid = $perid
+                        AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
                         AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90";
       $resultGet90Dist = mysqli_query($getConnection,$get90DiasDist);
       $row90Dist = mysqli_fetch_array($resultGet90Dist);
@@ -2553,9 +3227,9 @@ class Report {
       }
       $dias90Dist = number_format($dias90DistF, 2, ".", ",");
 
-      $print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingB">
+      $print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
                   <div class="row">
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                       <h3>Cuentas por Cobrar</h3>
                       <h4>Cartera Vencida Total</h4>
                       <p class="text-red" style="font-weight:bold;font-size: 2em;">$ '.$Morosidad.'</p>
@@ -2740,13 +3414,19 @@ class Report {
                       JOIN cfd ON cfd.docid = d.docid
                       JOIN cli c ON c.clienteid = d.clienteid
                       JOIN dom ON dom.clienteid = d.clienteid
-                      JOIN per p ON p.perid = d.vendedorid
+                      JOIN per p ON p.perid = c.vendedorid
                     WHERE d.total > d.totalpagado";
     if($perid > 0){
-      $getMor .=      " AND d.vendedorid = $perid
-                        AND d.tipo NOT LIKE 'C'";
+      $getMor .=      " AND c.vendedorid = $perid
+                        AND (
+                          d.tipo = 'F'
+                          OR d.tipo = 'N'
+                        )";
     } else {
-      $getMor .=      " AND d.tipo NOT LIKE 'C'";
+      $getMor .=      " AND (
+                          d.tipo = 'F'
+                          OR d.tipo = 'N'
+                        )";
     }
     // dependiendo del tiempo de morosidad (0-30 dias, etc) será el tipo de busqueda
     if($tiempoMor == 1){
@@ -2785,37 +3465,37 @@ class Report {
         $headers = ["#", "NUMERO", "CLIENTE", "FACTURA", "VENDEDOR", "DIAS VENCIDOS", "IMPORTE"];
         $classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
 
-        echo '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+        echo '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                 <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
                   <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
                   <img src="../img/barrafmo2.gif" width="200"/>
                 </div>
                 <h3>CARTERA <spam class="text-tomato">VENCIDA</spam></h3>
                 <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 edoctaScroll">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 edoctaScroll">
                     <div class="row">';
 
         // TODO hacer boton de regresar para el vendedor
         if($perid > 0){
           $linkFunctionPersonal = "showPersonal(".$perid.")";
-          echo        '<div class="col-1 col-sm-1 col-md-1 col-lg-1 col-xs-1" style="max-width:30px;padding:0;">
+          echo        '<div class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1" style="max-width:30px;padding:0;">
                         <a class="nav-link" href="#" onClick="'.$linkFunctionPersonal.'">
                           <i class="fas fa-arrow-alt-circle-left fa-lg" aria-hidden="true"></i>
                         </a>
                       </div>
-                      <div class="col-11 col-sm-11 col-md-11 col-lg-11 col-xs-11">
+                      <div class="col-11 col-sm-11 col-md-11 col-lg-11 col-xl-11">
                         <h4>
                           Clientes Morosos en <b>'.$periodo.'</b> a la fecha de <b>'.$hoyMor.'</b>
                         </h4>
                       </div>';
         } else {
           $linkFunctionPersonal = 'showInformation("dashBoardDireccion")';
-          echo        '<div class="col-1 col-sm-1 col-md-1 col-lg-1 col-xs-1" style="max-width:30px;padding:0;">
+          echo        '<div class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1" style="max-width:30px;padding:0;">
                         <a class="nav-link" href="#" onClick="'.$linkFunctionPersonal.'">
                           <i class="fas fa-arrow-alt-circle-left fa-lg" aria-hidden="true"></i>
                         </a>
                       </div>
-                      <div class="col-11 col-sm-11 col-md-11 col-lg-11 col-xs-11">
+                      <div class="col-11 col-sm-11 col-md-11 col-lg-11 col-xl-11">
                         <h4>
                           Clientes Morosos en <b>'.$periodo.'</b> a la fecha de <b>'.$hoyMor.'</b>
                         </h4>
@@ -2849,15 +3529,15 @@ class Report {
           $print .=       "<td class='text-center'>$i</td>";
           $print .=       "<td class='text-center'>$numero</td>";
           $print .=       "<td class='text-center' width='700'>
-                            <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>
+                            <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12'>
                               <div class='row'>
-                                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 hr'>
+                                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 hr'>
                                   $cliente
                                 </div>
-                                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>
+                                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12'>
                                   Dirección: <span class='text-tomato'>$direccion</span> No. <span class='text-tomato'>$numerocli</span> Int. <span class='text-tomato'>$interior</span> Colonia: <span class='text-tomato'>$colonia</span>
                                 </div>
-                                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12'>
+                                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12'>
                                   Ciudad: <span class='text-tomato'>$ciudad</span> Municipio: <span class='text-tomato'>$municipio</span> Estado: <span class='text-tomato'>$estado</span> C.P.: <span class='text-tomato'>$cp</span>
                                 </div>
                           </td>";
@@ -2877,7 +3557,7 @@ class Report {
                 </div>";
         echo $print;
       } else {
-        $print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 hg910 centrarSep">';
+        $print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 hg910 centrarSep">';
         $print .= "<div class='row'>
                     <div class='col-md-12 text-center'>
                       <h4>No hay cuentas pendiente o con saldo.</h4>
@@ -3108,7 +3788,7 @@ class Report {
             <section class="content">
               <!-- Info boxes -->
               <div class="row">
-                <div class="col-md-4 col-sm-4 col-xs-12">
+                <div class="col-md-4 col-sm-4 col-xl-12">
                   <div class="info-box">
                     <span class="info-box-icon bg-red"><i class="fa fa-usd fa-lg" aria-hidden="true"></i></span>
                     <div class="info-box-content">
@@ -3120,7 +3800,7 @@ class Report {
                   <!-- /.info-box -->
                 </div>
                 <!-- /.col -->
-                <div class="col-md-4 col-sm-4 col-xs-12">
+                <div class="col-md-4 col-sm-4 col-xl-12">
                   <div class="info-box">
                     <span class="info-box-icon bg-aqua"><i class="fa fa-credit-card" aria-hidden="true"></i></span>
                     <div class="info-box-content">
@@ -3132,7 +3812,7 @@ class Report {
                   <!-- /.info-box -->
                 </div>
                 <!-- /.col -->
-                <div class="col-md-4 col-sm-4 col-xs-12">
+                <div class="col-md-4 col-sm-4 col-xl-12">
                   <div class="info-box">
                     <span class="info-box-icon bg-green"><i class="fa fa-lock" aria-hidden="true"></i></span>
                     <div class="info-box-content">
@@ -3147,7 +3827,7 @@ class Report {
               <!-- /.row -->
 
               <div class="row">
-                <div class="col-md-4 col-sm-4 col-xs-12">
+                <div class="col-md-4 col-sm-4 col-xl-12">
                   <div class="info-box">
                     <span class="info-box-icon bg-yellow"><i class="fa fa-calendar-check-o" aria-hidden="true"></i></span>
                     <div class="info-box-content">
@@ -3159,7 +3839,7 @@ class Report {
                   <!-- /.info-box -->
                 </div>
                 <!-- /.col -->
-                <div class="col-md-4 col-sm-4 col-xs-12">
+                <div class="col-md-4 col-sm-4 col-xl-12">
                   <div class="info-box">
                     <span class="info-box-icon bg-fuchsia"><i class="fa fa-linode" aria-hidden="true"></i></span>
                     <div class="info-box-content">
@@ -3171,7 +3851,7 @@ class Report {
                   <!-- /.info-box -->
                 </div>
                 <!-- /.col -->
-                <div class="col-md-4 col-sm-4 col-xs-12">
+                <div class="col-md-4 col-sm-4 col-xl-12">
                   <div class="info-box">
                     <span class="info-box-icon bg-maroon"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></span>
                     <div class="info-box-content">
@@ -4377,7 +5057,7 @@ class Report {
                     <!-- ./box-body -->
                     <div class="box-footer">
                       <div class="row">
-                        <div class="col-sm-4 col-xs-6">';
+                        <div class="col-sm-4 col-xl-6">';
   if($total >= 20000){
     $print .=                   '<div class="description-block border-right">
                             <span class="description-percentage text-green"><i class="fa fa-check"></i> Aprobando</span>';
@@ -4392,7 +5072,7 @@ class Report {
                             <!-- /.description-block -->
                         </div>
                         <!-- /.col -->
-                        <div class="col-sm-4 col-xs-6">
+                        <div class="col-sm-4 col-xl-6">
                             <div class="description-block border-right">';
   if($numeroVeces == 0){
     $print .=                     '<span class="description-percentage text-green"><i class="fa fa-check"></i> Aprobando</span>';
@@ -4405,7 +5085,7 @@ class Report {
                             <!-- /.description-block -->
                         </div>
                         <!-- /.col -->
-                        <div class="col-sm-4 col-xs-6">
+                        <div class="col-sm-4 col-xl-6">
                           <div class="description-block border-right">';
   $print .=                     '<h5 class="description-header">Debe de tener registrado por lo menos 2 compras por semana distinita.</h5>
                             <span class="description-text">No se puede registrar 8 compras al principio o al final del mes.</span>
@@ -4805,7 +5485,7 @@ class Report {
             <h3 class="box-title">Facebook</h3>
           </div>
           <div class="box-body">
-            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
               <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FFerremayoristasOlvera%2F&tabs=timeline&width=500&height=500&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId=279354469090128" width="100%" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>
             </div>
           </div>
@@ -4916,7 +5596,7 @@ class Report {
     $rows = $paramDb->Rows();
 
     $email = 0;
-    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT hg910">
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT hg910">
                 <div class="row">
                   <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
                     <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
@@ -4934,7 +5614,7 @@ class Report {
       $fotoVen =mysqli_fetch_array($FotoVenEnc);
       $foto = $fotoVen["foto"];
 
-      $print .=   '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+      $print .=   '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
                     <div class="text-center">
                       <a href="#" onclick="'.$linkFunctionPersonal.'">
                         <img class="img-fluid rounded-circle" src="../img/vendedores/'.$foto.'" alt="'.$foto.'" width="200">
@@ -5046,7 +5726,7 @@ class Report {
     $rows = $paramDb->Rows();
 
     $email = 0;
-    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT hg910">
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT hg910">
                 <div class="row">
                   <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
                     <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
@@ -5064,7 +5744,7 @@ class Report {
       $fotoVen =mysqli_fetch_array($FotoVenEnc);
       $foto = $fotoVen["foto"];
 
-      $print .=   '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+      $print .=   '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
                     <div class="text-center">
                       <a href="#" onclick="'.$linkFunctionPersonal.'">
                         <img class="img-fluid rounded-circle" src="../img/vendedores/'.$foto.'" alt="'.$foto.'" width="200">
@@ -5337,34 +6017,34 @@ class Report {
     $rows = $paramDb->Rows();
 
     $email = 0;
-    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT">
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
                 <div class="row">
                   <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
                     <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
                     <img src="../img/barrafmo2.gif" width="200"/>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 infoCard paddingT paddingB centrar text-center">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 infoCard paddingT paddingB centrar text-center">
                     <div class="row">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                         <h3>DATOS DE <spam class="text-tomato">ZONA '.$zona.'</spam></h3>
                         <div class="row">
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                             <h4 class="h4">No. PEDIDOS AL DIA</h4>
                             <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$totalVentaDia.'</p>
                           </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                             <h4 class="h4">VENTAS AL MES</h4>
                             <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</p>
                           </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                             <p class="h4">FACTURAS VENCIDAS AL MES</p>
                             <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
                           </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xs-6">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                             <h4 class="h4">MOROSIDAD TOTAL</h4>
                             <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
                           </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                             <h4 class="h4">NUEVOS CLIENTES AL MES</h4>
                             <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesCliNuevos.'</p>
                           </div>
@@ -5372,12 +6052,12 @@ class Report {
                       </div>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
                     <div class="row">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 paddingT paddingB text-center">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT paddingB text-center">
                         <h3>VENDEDORES DE <spam class="text-tomato">ZONA '.$zona.'</spam></h3>
                       </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                         <div class="row">';
     foreach($rows as $row) {
       $nombre = $row["nombre"];
@@ -5393,7 +6073,7 @@ class Report {
 
       $linkFunctionPersonal = "showPersonal(".$perid.")";
 
-      $print .=           '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3">
+      $print .=           '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
                             <div class="text-center">
                               <a href="#" onclick="'.$linkFunctionPersonal.'">
                                 <img class="img-fluid rounded-circle" src="../img/vendedores/'.$foto.'" alt="'.$foto.'" width="200">
@@ -5413,6 +6093,1188 @@ class Report {
     echo $print;
     $getConnection->close();
     $mysqliCon->close();
+  }
+  private function NuevosClientes($params){
+    $paramDb = new Database();
+    $paramFunctions = new Util();
+    $getConnection = $paramDb->GetLink();
+    $mysqliCon      = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+    $perid = $_SESSION["data"]["id"];
+    $rol = $_SESSION["data"]["rol"];
+    // var_dump($_SESSION["data"]);
+
+    $rs = "SELECT * FROM nuevoscli";
+    $rsB = mysqli_query($mysqliCon, $rs);
+    $rsNR = mysqli_num_rows($rsB);
+    if($rsNR > 0){
+      if($perid == 0 || $perid == NULL || $rol == 'cartera'){
+        $perid = 0;
+
+        $linkFunctionPersonal = "newCustomer(".$perid.")";
+        $print = '<div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                      <h4 class="display-4">NUEVOS <span class="tomato">CLIENTES</span></h4>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                      <div class="row">';
+        while($row = mysqli_fetch_row($rsB)){
+          $clienteid          = $row[0];
+          $nombre             = utf8_encode($row[1]);
+          $comercial          = utf8_encode($row[2]);
+          $rfc                = $row[3];
+          $fecalta            = $row[4];
+          $direccion          = utf8_encode($row[5]);
+          $cp                 = $row[6];
+          $colonia            = utf8_encode($row[7]);
+          $ciudad             = utf8_encode($row[8]);
+          $tel                = $row[9];
+          $cel                = $row[10];
+          $email              = utf8_encode($row[11]);
+          $credito            = number_format($row[12], 2, '.', ',');
+          $diascred           = $row[13];
+          $metpag             = $row[14];
+          $hacerped           = utf8_encode($row[15]);
+          $recibirped         = utf8_encode($row[16]);
+          $mlocal             = $row[17];
+          $tlocal             = $row[18];
+          $ladode             = utf8_encode($row[19]);
+          $frentede           = utf8_encode($row[20]);
+          $vendedorid         = $row[21];
+          $activo             = $row[22];
+          $fichero_Solicitud  = $row[23];
+          $fichero_Politica   = $row[24];
+          $fichero_Fachada    = $row[25];
+          $fichero_Domicilio  = $row[26];
+          $fichero_INEFre     = $row[27];
+          $fichero_INERev     = $row[28];
+          $fichero_Cedula     = $row[29];
+          $observacion        = $row[34];
+          $status             = $row[35];
+
+          $perid = $vendedorid;
+
+          $buscarVendedor = "SELECT nombre FROM per WHERE perid = $vendedorid";
+          $vendedorEncontrado = $getConnection->query($buscarVendedor);
+          $rowVen = mysqli_fetch_array($vendedorEncontrado);
+          $nombreVendedor = $rowVen["nombre"];
+
+          $buscarFotos = 'docs/';
+
+          if($row[29] <> $buscarFotos){
+            $fichero_Moral      = $row[30];
+            $fichero_Repre      = $row[31];
+            $fichero_INERepF    = $row[32];
+            $fichero_INERepR    = $row[33];
+          } else {
+            $fichero_Moral      = 'Sin imagen';
+            $fichero_Repre      = 'Sin imagen';
+            $fichero_INERepF    = 'Sin imagen';
+            $fichero_INERepR    = 'Sin imagen';
+          }
+
+          $print .=   '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
+                        <div class="row">';
+          if($activo === 'N'){
+          $print .=       '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 infoCard">
+                            <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                <div class="row">
+                                  <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                    <label>Nombre:</label>
+                                  </div>
+                                  <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                    <span>'.$nombre.'</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                <div class="row">
+                                  <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                    <label>Negocio:</label>
+                                  </div>
+                                  <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                    <span>'.$comercial.'</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                <div class="row">
+                                  <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                    <label>R.F.C.:</label>
+                                  </div>
+                                  <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                    <span>'.$rfc.'</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                <div class="row">
+                                  <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5">
+                                    <label>Fecha de Alta:</label>
+                                  </div>
+                                  <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7 input-falsoComersRight">
+                                    <span>'.$fecalta.'</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
+                                <div class="row">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                    <div class="row">
+                                      <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                        <label>Dirección:</label>
+                                      </div>
+                                      <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                        <span>'.$direccion.'</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                    <div class="row">
+                                      <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                        <label>C.P.:</label>
+                                      </div>
+                                      <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                        <span>'.$cp.'</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                    <div class="row">
+                                      <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                        <label>Colonia:</label>
+                                      </div>
+                                      <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                        <span>'.$colonia.'</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                    <div class="row">
+                                      <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                        <label>Ciudad:</label>
+                                      </div>
+                                      <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                        <span>'.$ciudad.'</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                    <div class="row">
+                                      <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                        <label>Local:</label>
+                                      </div>
+                                      <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                        <span>'.$tel.'</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                    <div class="row">
+                                      <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                        <label>Celular:</label>
+                                      </div>
+                                      <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                        <span>'.$cel.'</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                    <div class="row">
+                                      <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                        <label>Email:</label>
+                                      </div>
+                                      <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                        <span>'.$email.'</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                    <div class="row">
+                                      <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                        <label>Estatus</label>
+                                      </div>';
+          if($status == 1){
+            $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight autorizado">
+                                          <span>Autorizado</span>
+                                        </div>';
+          }else if($status == 2){
+            $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight proceso">
+                                          <span>Devuelto por Crédito y Cobranza</span>
+                                        </div>';
+          }else if($status == 3){
+            $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight proceso">
+                                          <span>Devuelto por Vendedor</span>
+                                        </div>';
+          }else{
+            $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                          <span>Ninguno</span>
+                                        </div>';
+          }
+          $print .=                   '</div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
+                                <div class="row">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                    <div class="row">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                        <div class="row">
+                                          <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7">
+                                            <label>Límite de Credito:</label>
+                                          </div>
+                                          <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5 input-falsoComersRight">
+                                            <span>'.$credito.'</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                        <div class="row">
+                                          <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7">
+                                            <label>Días de Credito:</label>
+                                          </div>
+                                          <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5 input-falsoComersRight">
+                                            <span>'.$diascred.'</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                        <div class="row">
+                                          <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7">
+                                            <label>Método de Pago:</label>
+                                          </div>
+                                          <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5 input-falsoComersRight">
+                                            <span>'.$metpag.'</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                    <div class="row">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                        <div class="row">
+                                          <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7">
+                                            <label>Medidas del Local:</label>
+                                          </div>
+                                          <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5 input-falsoComersRight">
+                                            <span>'.$mlocal.'</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                        <div class="row">
+                                          <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7">
+                                            <label>El local es:</label>
+                                          </div>
+                                          <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5 input-falsoComersRight">
+                                            <span>'.$tlocal.'</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                        <div class="row">
+                                          <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                                            <label>Vendedor:</label>
+                                          </div>
+                                          <div class="col-8 col-sm-8 col-md-8 col-lg-8 col-xl-8 input-falsoComersRight">
+                                            <span>'.$nombreVendedor.'</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 centrar">
+                                    <div class="row">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                        <div class="row">
+                                          <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                                            <label>Levanta Pedido:</label>
+                                          </div>
+                                          <div class="col-8 col-sm-8 col-md-8 col-lg-8 col-xl-8 input-falsoComersRight">
+                                            <span>'.$hacerped.'</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                        <div class="row">
+                                          <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                                            <label>Recibe Pedido:</label>
+                                          </div>
+                                          <div class="col-8 col-sm-8 col-md-8 col-lg-8 col-xl-8 input-falsoComersRight">
+                                            <span>'.$recibirped.'</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                    <label>A lado de:</label>
+                                  </div>
+                                  <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10 input-falsoComersLeft">
+                                    <span>'.$ladode.'</span>
+                                  </div>
+                                  <div class="col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                    <label>Frente de:</label>
+                                  </div>
+                                  <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10 input-falsoComersLeft">
+                                    <span>'.$frentede.'</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT paddingB">
+                                <div class="row">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                    <ul class="navImg">
+                                      <p>Imágenes</p>';
+          if($fichero_Solicitud <> $buscarFotos){
+            $print .=                 '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Solicitud.'" target="_blanck">Solicitud</a></li>';
+          }
+          if($fichero_Politica <> $buscarFotos){
+            $print .=                 '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Politica  .'" target="_blanck">Política Comercial</a></li>';
+          }
+          if($fichero_Fachada <> $buscarFotos){
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Fachada.'" target="_blanck">Fachada</a></li>';
+          }
+          if($fichero_Domicilio <> $buscarFotos){
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Domicilio.'" target="_blanck">Comprobante de Domicilio</a></li>';
+          }
+          if($fichero_INEFre <> $buscarFotos){
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INEFre.'" target="_blanck">Credencial de Elector frente</a></li>';
+          }
+          if($fichero_INERev <> $buscarFotos){
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERev.'" target="_blanck">Credencial de Elector reverso</a></li>';
+          }
+          if($fichero_Cedula <> $buscarFotos){
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Cedula.'" target="_blanck">Alta en Hacienda</a></li>';
+          }
+          if($row[30] <> $buscarFotos){
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Moral.'" target="_blanck">Acta Constitutiva</a></li>';
+          }
+          if($row[31] <> $buscarFotos){
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Repre.'" target="_blanck">representante Moral</a></li>';
+          }
+          if($row[32] <> $buscarFotos){
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepF.'" target="_blanck">INE Representante Frente</a></li>';
+          }
+          if($row[33] <> $buscarFotos){
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepR.'" target="_blanck">INE Representante Reverso</a></li>';
+          }
+          $print .=                 '</ul>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9 charlaCard">
+                                    <ul class="navChar">
+                                      <p>Historial de Charla</p>';
+          $buscarCharla = 'SELECT charla, feccharla
+                            FROM converCliNue
+                            WHERE vendedorid = '.$vendedorid.'
+                              AND clienteid = '.$clienteid.'
+                            ORDER BY feccharla DESC';
+          $charlaEncontrado = $mysqliCon->query($buscarCharla);
+          $numRowsCha = mysqli_num_rows($charlaEncontrado);
+          // var_dump($numRowsCha);
+          if($numRowsCha > 0){
+            while($rowChar = mysqli_fetch_array($charlaEncontrado)){
+              $charla = $rowChar["charla"];
+              $feccharla = $rowChar["feccharla"];
+
+              $print .=               '<li>'.$feccharla.' - '.$charla.'</li>';
+            }
+          }else{
+            $print .=                 '<li>Sin historial</li>';
+          }
+          $print .=                 '</ul>
+                                  </div>
+                                </div>
+                              </div>';
+          if($observacion <> NULL){
+            $print .=         '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                <p>Observaciónes anteriores</p>
+                                <div class="form-group">
+                                  <textarea class="form-control" rows="2" readonly>'.utf8_encode($observacion).'</textarea>
+                                </div>
+                              </div>';
+          }
+          if($status <> 1){
+            $linkEnviarComentario = "EnviarObservacion($clienteid, $perid, '$rol')";
+            $datosAutorizado = array("clienteid" => $clienteid,
+                                      "nombre" => $nombre,
+                                      "nombreVendedor" => $nombreVendedor);
+            $sendAuto = json_encode($datosAutorizado);
+            // $linkDatosEmail = "Autorizar('$nombre', '$nombreVendedor')";
+            $linkDatosEmail = 'Autorizar('.$sendAuto.')';
+            $print .=         '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                <div class=row>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                    <div class="row">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 centrar">
+                                        <button type="button" class="btn btn-outline-danger btn-lg btn-block" onClick="Activar('.$clienteid.')">Mensaje</button>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10 comentario" id="comentario'.$clienteid.'">
+                                        <div class="row">
+                                          <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                            <form>
+                                              <div class="form-group">
+                                                <label>Ingresar comentario</label>
+                                                <textarea class="form-control" id="observacion'.$clienteid.'" rows="2"></textarea>
+                                              </div>
+                                            </form>
+                                          </div>
+                                          <div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 centrar">
+                                            <form>
+                                              <div class="form-group">
+                                                <button type="button" class="btn btn-outline-warning btn-lg btn-block" onClick="'.$linkEnviarComentario.'">Enviar Informe</button>
+                                              </div>
+                                              <div class="form-group">
+                                                <button type="button" class="btn btn-outline-info btn-lg btn-block" onClick="Cancelar('.$clienteid.')">Cancelar</button>
+                                              </form>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 centrar">';
+          $print .=                 "<button type='button' class='btn btn-outline-success btn-lg btn-block' onClick='$linkDatosEmail'>Autorizado</button>";
+          $print .=               '</div>
+                                </div>
+                              </div>';
+          }
+          $print .=         '</div>
+                          </div>';
+          }
+          $print .=       '</div>
+                      </div>';
+        }
+        $print .=   '</div>
+                  </div>
+                </div>';
+      }else{
+        $rs .= " WHERE vendedorid = $perid";
+        $rsB = mysqli_query($mysqliCon, $rs);
+        $linkFunctionPersonal = "newCustomer(".$perid.")";
+        $print = '<div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                    <h4 class="display-4">NUEVOS <span class="tomato">CLIENTES</span></h4>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center paddingB">
+                    <button type="button" class="btn btn-outline-success" onClick="'.$linkFunctionPersonal.'">Nuevo Cliente</button>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                    <div class="row">
+                      <form>';
+        while($row = mysqli_fetch_row($rsB)){
+          $clienteid          = $row[0];
+          $nombre             = utf8_encode($row[1]);
+          $comercial          = utf8_encode($row[2]);
+          $rfc                = $row[3];
+          $fecalta            = $row[4];
+          $direccion          = utf8_encode($row[5]);
+          $cp                 = $row[6];
+          $colonia            = utf8_encode($row[7]);
+          $ciudad             = utf8_encode($row[8]);
+          $tel                = $row[9];
+          $cel                = $row[10];
+          $email              = utf8_encode($row[11]);
+          $credito            = $row[12];
+          $diascred           = $row[13];
+          $metpag             = $row[14];
+          $hacerped           = utf8_encode($row[15]);
+          $recibirped         = utf8_encode($row[16]);
+          $mlocal             = $row[17];
+          $tlocal             = $row[18];
+          $ladode             = utf8_encode($row[19]);
+          $frentede           = utf8_encode($row[20]);
+          $vendedorid         = $row[21];
+          $activo             = $row[22];
+          $fichero_Solicitud  = $row[23];
+          $fichero_Politica   = $row[24];
+          $fichero_Fachada    = $row[25];
+          $fichero_Domicilio  = $row[26];
+          $fichero_INEFre     = $row[27];
+          $fichero_INERev     = $row[28];
+          $fichero_Cedula     = $row[29];
+          $observacion        = $row[34];
+          $status             = $row[35];
+
+          $buscarVendedor = "SELECT nombre FROM per WHERE perid = $vendedorid";
+          $vendedorEncontrado = $getConnection->query($buscarVendedor);
+          $rowVen = mysqli_fetch_array($vendedorEncontrado);
+          $nombreVendedor = $rowVen["nombre"];
+
+          $buscarFotos = 'docs/';
+          if($row[29] <> $buscarFotos){
+            $fichero_Moral      = $row[30];
+            $fichero_Repre      = $row[31];
+            $fichero_INERepF    = $row[32];
+            $fichero_INERepR    = $row[33];
+          } else {
+            $fichero_Moral      = 'Sin imagen';
+            $fichero_Repre      = 'Sin imagen';
+            $fichero_INERepF    = 'Sin imagen';
+            $fichero_INERepR    = 'Sin imagen';
+          }
+          $print .=     '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                          <div class="row">';
+          if($activo === 'N'){
+          $print .=         '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 infoCard">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                  <div class="row">
+                                    <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                      <label>Nombre:</label>
+                                    </div>
+                                    <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+                                      <input type="text" name="nombre'.$clienteid.'" value="'.$nombre.'">
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                  <div class="row">
+                                    <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                      <label>Negocio:</label>
+                                    </div>
+                                    <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+                                      <input type="text" name="comercial'.$clienteid.'" value="'.$comercial.'">
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                  <div class="row">
+                                    <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                      <label>R.F.C.:</label>
+                                    </div>
+                                    <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+                                      <input type="text" name="rfc'.$clienteid.'" value="'.$rfc.'">
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                  <div class="row">
+                                    <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5">
+                                      <label>Fecha de Alta:</label>
+                                    </div>
+                                    <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7">
+                                      <input type="text" name="fecalta'.$clienteid.'" value="'.$fecalta.'" readonly>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                      <div class="row">
+                                        <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                          <label>Dirección:</label>
+                                        </div>
+                                        <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+                                          <input type="text" name="direccion'.$clienteid.'" value="'.$direccion.'">
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                      <div class="row">
+                                        <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                          <label>C.P.:</label>
+                                        </div>
+                                        <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+                                          <input type="number" name="cp'.$clienteid.'" value="'.$cp.'">
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                      <div class="row">
+                                        <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                          <label>Colonia:</label>
+                                        </div>
+                                        <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+                                          <input type="text" name="colonia'.$clienteid.'" value="'.$colonia.'">
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                      <div class="row">
+                                        <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                          <label>Ciudad:</label>
+                                        </div>
+                                        <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+                                          <input type="text" name="ciudad'.$clienteid.'" value="'.$ciudad.'">
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                      <div class="row">
+                                        <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                          <label>Local:</label>
+                                        </div>
+                                        <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+                                          <input type="tel" name="tel'.$clienteid.'" value="'.$tel.'">
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                      <div class="row">
+                                        <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                          <label>Celular:</label>
+                                        </div>
+                                        <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+                                          <input type="tel" name="cel'.$clienteid.'" value="'.$cel.'">
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                      <div class="row">
+                                        <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                          <label>Email:</label>
+                                        </div>
+                                        <div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+                                          <input type="email" name="email'.$clienteid.'" value="'.$email.'">
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                      <div class="row">
+                                        <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                                          <label>Estatus</label>
+                                        </div>';
+          if($status == 1){
+            $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight autorizado">
+                                          <span>Autorizado</span>
+                                        </div>';
+          }else if($status == 2){
+            $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight proceso">
+                                          <span>Devuelto por Crédito y Cobranza</span>
+                                        </div>';
+          }else if($status == 3){
+            $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight proceso">
+                                          <span>Devuelto por Vendedor</span>
+                                        </div>';
+          }else{
+            $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
+                                          <span>En lista</span>
+                                        </div>';
+          }
+          $print .=                   '</div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                      <div class="row">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                          <div class="row">
+                                            <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7">
+                                              <label>Límite de Credito:</label>
+                                            </div>
+                                            <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5">
+                                              <input type="number" name="credito'.$clienteid.'" value="'.$credito.'" readonly>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                          <div class="row">
+                                            <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7">
+                                              <label>Días de Credito:</label>
+                                            </div>
+                                            <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5">
+                                              <select class="form-control" name="selectDiasCredito'.$clienteid.'">
+                                                <option value="'.$diascred.'">'.$diascred.'</option>
+                                                <option value="7">7</option>
+                                                <option value="13">13</option>
+                                                <option value="21">21</option>
+                                                <option value="28">28</option>
+                                              </select>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                          <div class="row">
+                                            <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7">
+                                              <label>Método de Pago:</label>
+                                            </div>
+                                            <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5">
+                                              <select class="form-control" name="inputMetPago'.$clienteid.'">
+                                                <option value="'.$metpag.'">'.$metpag.'</option>
+                                                <option value="Efectivo">7</option>
+                                                <option value="Cheque">13</option>
+                                                <option value="T. Débito">21</option>
+                                                <option value="T. Crédito">28</option>
+                                              </select>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                                      <div class="row">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                          <div class="row">
+                                            <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7">
+                                              <label>Medidas del Local:</label>
+                                            </div>
+                                            <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5">
+                                              <input type="number" name="mlocal'.$clienteid.'" value="'.$mlocal.'">
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                          <div class="row">
+                                            <div class="col-7 col-sm-7 col-md-7 col-lg-7 col-xl-7">
+                                              <label>El local es:</label>
+                                            </div>
+                                            <div class="col-5 col-sm-5 col-md-5 col-lg-5 col-xl-5">
+                                              <select class="form-control" name="selectPropiedad'.$clienteid.'" value="'.$tlocal.'">
+                                                <option value="'.$tlocal.'">'.$tlocal.'</option>
+                                                <option value="Propio">Propio</option>
+                                                <option value="Rentado">Rentado</option>
+                                              </select>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                          <div class="row">
+                                            <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                                              <label>Vendedor:</label>
+                                            </div>
+                                            <div class="col-8 col-sm-8 col-md-8 col-lg-8 col-xl-8">
+                                              <input type="text" name="nombreVendedor'.$clienteid.'" value="'.$nombreVendedor.'" readonly>
+                                              <input type="text" name="idVendedor'.$clienteid.'" value="'.$vendedorid.'" readonly style="display:none;">
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 centrar">
+                                      <div class="row">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                          <div class="row">
+                                            <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                                              <label>Levanta Pedido:</label>
+                                            </div>
+                                            <div class="col-8 col-sm-8 col-md-8 col-lg-8 col-xl-8">
+                                              <input type="text" name="hacerPed'.$clienteid.'" value="'.$hacerped.'" style="width: 100%; text-align: left!important;">
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                          <div class="row">
+                                            <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                                              <label>Recibe Pedido:</label>
+                                            </div>
+                                            <div class="col-8 col-sm-8 col-md-8 col-lg-8 col-xl-8">
+                                              <input type="text" name="recibirPed'.$clienteid.'" value="'.$recibirped.'" style="width: 100%; text-align: left!important;">
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                      <label>A lado de:</label>
+                                    </div>
+                                    <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
+                                      <input type="text" name="ladoDe'.$clienteid.'" value="'.$ladode.'" style="width: 100%; text-align: left!important;">
+                                    </div>
+                                    <div class="col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                      <label>Frente de:</label>
+                                    </div>
+                                    <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
+                                      <input type="text" name="frenteDe'.$clienteid.'" value="'.$frentede.'" style="width: 100%; text-align: left!important;">
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 centrar paddingT paddingB">
+                                  <div class="row">
+                                    <ul class="navImg list-inline">';
+          if($fichero_Solicitud <> $buscarFotos){
+            $print .=                 '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Solicitud.'" target="_blanck">Solicitud</a></li>';
+          }
+          if($fichero_Politica <> $buscarFotos){
+            $print .=                 '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Politica  .'" target="_blanck">Política Comercial</a></li>';
+          }
+          if($fichero_Fachada <> $buscarFotos){
+            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Fachada.'" target="_blanck">Fachada</a></li>';
+          }
+          if($fichero_Domicilio <> $buscarFotos){
+            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Domicilio.'" target="_blanck">Comprobante de Domicilio</a></li>';
+          }
+          if($fichero_INEFre <> $buscarFotos){
+            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INEFre.'" target="_blanck">Credencial de Elector frente</a></li>';
+          }
+          if($fichero_INERev <> $buscarFotos){
+            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERev.'" target="_blanck">Credencial de Elector reverso</a></li>';
+          }
+          if($fichero_Cedula <> $buscarFotos){
+            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Cedula.'" target="_blanck">Alta en Hacienda</a></li>';
+          }
+          if($row[30] <> $buscarFotos){
+            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Moral.'" target="_blanck">Acta Constitutiva</a></li>';
+          }
+          if($row[31] <> $buscarFotos){
+            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Repre.'" target="_blanck">representante Moral</a></li>';
+          }
+          if($row[32] <> $buscarFotos){
+            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepF.'" target="_blanck">INE Representante Frente</a></li>';
+          }
+          if($row[33] <> $buscarFotos){
+            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepR.'" target="_blanck">INE Representante Reverso</a></li>';
+          }
+          $print .=                 '</ul>
+                                  </div>
+                                </div>';
+          if($observacion <> NULL){
+            $print .=           '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                  <p>Observaciónes anteriores</p>
+                                  <div class="form-group">
+                                    <textarea class="form-control" rows="2" readonly>'.utf8_encode($observacion).'</textarea>
+                                  </div>
+                                </div>';
+          }
+          if($status <> 1){
+            $print .=           '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                  <div class=row>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 centrar">';
+            if($status == 2 || $rol == 'cartera'){
+              $print .=               '<button type="button" class="btn btn-outline-danger btn-lg btn-block" onClick="Activar('.$clienteid.')">Mensaje</button>';
+            }
+            $linkEnviarComentario = "EnviarObservacion($clienteid, $perid, '$rol')";
+            $print .=               '</div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10 comentario" id="comentario'.$clienteid.'">
+                                      <div class="row">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                          <form>
+                                            <div class="form-group">
+                                              <label>Ingresar comentario</label>
+                                              <textarea class="form-control" id="observacion'.$clienteid.'" rows="2"></textarea>
+                                            </div>
+                                          </form>
+                                        </div>
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 centrar">
+                                          <form>
+                                            <div class="form-group">
+                                              <button type="button" class="btn btn-outline-warning btn-lg btn-block" onClick="'.$linkEnviarComentario.'">Enviar Informe</button>
+                                            </div>
+                                            <div class="form-group">
+                                              <button type="button" class="btn btn-outline-info btn-lg btn-block" onClick="Cancelar('.$clienteid.')">Cancelar</button>
+                                            </form>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>';
+          }
+        }
+        $print .=             '</div>
+                            </div>';
+      }
+      $print .=           '</div>
+                        </div>';
+      }
+    }else{
+      $linkFunctionPersonal = "newCustomer(".$perid.")";
+      $print = '<div class="row">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                  <h4 class="display-4">NUEVOS <span class="text-tomato">CLIENTES</span></h4>
+                  <p class="lead">No se encontrarón nuevos clientes</p>
+                </div>';
+      if($rol <> "cartera"){
+        $print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center paddingB">
+                  <button type="button" class="btn btn-outline-success" onClick="'.$linkFunctionPersonal.'">Nuevo Cliente</button>
+                </div>
+';
+      }
+      $print .= '</div>';
+    }
+    echo $print;
+    $getConnection->close();
+    $mysqliCon->close();
+  }
+
+  private function getNewCustomer($params){
+    $paramDb = new Database();
+    $paramFunctions = new Util();
+    $getConnection = $paramDb->GetLink();
+    $perid = $paramDb->SecureInput($params["perid"]);
+
+    if($perid == 0 || $perid == NULL){
+      $perid = 0;
+    }
+
+    $print = '<div class="container">
+              <h4 class="display-4 text-center">Alta de Nuevos Clientes</h4>
+              <form enctype="multipart/form-data" action="../php/agregar/nuevocli.php" method="POST">';
+    if($perid == 0){
+      $print .= '<div class="form-group">
+                  <label>Asesor</label>
+                  <input type="text" class="form-control" name="inputVendedor" id="inputVendedor" placeholder="Ingrese el número del asesor" required>
+                </div>';
+    }else{
+      $print .= '<input type="text" class="form-control" style="display:none;" name="inputVendedor" value="'.$perid.'">';
+    }
+    $print .=   '<div class="form-group">
+                  <select class="form-control" name="selectTipoCompra" id="tipoCompra" onChange="tipoCompraCustomer(event);">
+                    <option>Contado o Financiado</option>
+                    <option value="1">Contado</option>
+                    <option value="2">Financiado</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <select class="form-control" name="selectTipoCliente" id="tipoCliente" onChange="tipoClienteCustomer(event);">
+                    <option>Física o Moral</option>
+                    <option value="1">Física</option>
+                    <option value="2">Moral</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Razon Social</label>
+                  <input type="text" class="form-control" name="inputRazonSocial" id="inputRazonSocial" placeholder="Como aparece en su RFC o en su caso nombre completo" required>
+                </div>
+                <div class="form-group">
+                  <label>Nombre Comercial</label>
+                  <input type="text" class="form-control" name="inputNombreComercial" id="inputNombreComercial" placeholder="Nombre del nogocio" required>
+                </div>
+                <div class="form-group">
+                  <label>El cliente factura?</label>
+                  <select class="form-control" id="selectFactura" onChange="factura(event)" required>
+                    <option>Selecciona...</option>
+                    <option value="1">Si</option>
+                    <option value="0">No</option>
+                  </select>
+                </div>
+                <div class="row" id="Factura">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>RFC del Cliente</label>
+                      <input type="text" class="form-control" name="inputFRCSi" id="inputFRCSi" placeholder="R.F.C." required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Fecha de Alta en Hacienda</label>
+                      <input type="date" class="form-control" name="inputAltaHaciendaSi" id="inputAltaHaciendaSi" required>
+                    </div>
+                  </div>
+                </div>
+                <div class="row" id="NoFactura">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>RFC del Cliente</label>
+                      <input type="text" class="form-control" name="inputFRCNo" id="inputFRCNo" value="XAXX 010101 000" readonly required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Fecha de Alta en Hacienda</label>
+                      <input type="date" class="form-control" name="inputAltaHaciendaNo" id="inputAltaHaciendaNo" value="'.date("Y-01-01").'" readonly required>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Dirección</label>
+                  <input type="text" class="form-control" name="inputDireccion" id="inputDireccion" placeholder="Ingresar dirección correcta" required>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                    <div class="form-group">
+                      <label>C.P.</label>
+                      <input type="number" min="1" class="form-control" name="inputCP" id="inputCP" placeholder="Ej. 79000" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                    <div class="form-group">
+                      <label>Colonia</label>
+                      <input type="text" class="form-control" name="inputColonia" id="inputColonia" placeholder="Colonia" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                    <div class="form-group">
+                      <label>Ciudad</label>
+                      <input type="text" class="form-control" name="inputCiudad" id="inputCiudad" placeholder="Ciudad" required>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                    <div class="form-group">
+                      <label>Teléfono Fijo</label>
+                      <input type="tel" min="1" class="form-control" name="inputTelFijo" id="inputTelFijo" placeholder="(LADA) Número de 10 dígitos" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                    <div class="form-group">
+                      <label>Celular</label>
+                      <input type="tel" min="1" class="form-control" name="inputCel" id="inputCel" placeholder="(LADA) Número de 10 dígitos" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                    <div class="form-group">
+                      <label>Email</label>
+                      <input type="email" class="form-control" name="inputEmail" id="inputEmail" placeholder="name@example.com">
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                    <div class="form-group">
+                      <label>Cantida de Crédito</label>
+                      <input type="number" class="form-control" name="inputCantidadCredito" id="inputCantidadCredito" value="9000" readonly required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                    <div class="form-group">
+                      <label>Días de Crédito</label>
+                      <select class="form-control" name="selectDiasCredito" id="selectDiasCredito" required>
+                        <option>Selecciona...</option>
+                        <option value="7">7</option>
+                        <option value="13">13</option>
+                        <option value="21">21</option>
+                        <option value="28">28</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                    <div class="form-group">
+                      <label>Método de Pago</label>
+                      <select class="form-control" name="inputMetPago" id="inputMetPago" required>
+                        <option>Selecciona...</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="T. Débito">T. Débito</option>
+                        <option value="T. Crédito">T. Crédito</option>
+                        <option value="Transferencia">Transferencia</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Nombre del responsable de hacer el pedido</label>
+                  <input type="text" class="form-control" name="inputResponsableHacerPedidos" id="inputResponsableHacerPedidos" placeholder="Responsable de hacer el Pedido" required>
+                </div>
+                <div class="form-group">
+                  <label>Nombre del responsable de recibir el pedido</label>
+                  <input type="text" class="form-control" name="inputResponsableRecibirPedidos" id="inputResponsableRecibirPedidos" placeholder="Responsable de recibir el Pedido" required>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>M2 del Local</label>
+                      <input type="number" min="1" class="form-control" name="inputM2" id="inputM2" placeholder="Metros Cuadrados" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Propiedad</label>
+                      <select class="form-control" name="selectPropiedad" id="selectPropiedad" required>
+                        <option>Selecciona...</option>
+                        <option value="Propio">Propio</option>
+                        <option value="Rentado">Rentado</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>A un lado de</label>
+                  <textarea class="form-control" name="textareaALado" id="textareaALado" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Frente de</label>
+                  <textarea class="form-control" name="textareaFrente" id="textareaFrente" rows="3" required></textarea>
+                </div>
+                <div class="row text-center">
+                  <h4>Favor de subir imagenes preliminares para poder empezar con la verificación con el cliente y poder autorizar su línea de crédito</h4>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Solicitud</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgSolicitud" id="imgSolicitud" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Política Comercial</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgPolitica" id="imgPolitica" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Fachada</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgFachada" id="imgFachada" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Comprobante de Domicilio</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgDomicilio" id="imgDomicilio" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Credencial de Elector frente</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgINEFre" id="imgINEFre" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Credencial de Elector reverso</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgINERev" id="imgINERev" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                    <div class="form-group">
+                      <label>Cedula Fiscal</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgCedula" id="imgCedula" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Acta Constitutiva</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgActaMoral" id="imgActaMoral" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Comprobante de domicilio del representante legal</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgDomRepLeg" id="imgDomRepLeg" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Credencial de Elector del representante legal frente</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgINEFreLegal" id="imgINEFreLegal" required>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Credencial de Elector del representante legal reverso</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgINERevLegal" id="imgINERevLegal" required>
+                    </div>
+                  </div>
+                </div>
+                <script>
+                  document.getElementById("Factura").style.display = "none";
+                  document.getElementById("NoFactura").style.display = "none";
+                  function factura(event){
+                    var decision = parseInt(event.path[0].value);
+                    if(decision == 0){
+                      document.getElementById("NoFactura").style.display = "inline";
+                      document.getElementById("Factura").style.display = "none";
+                      $("#inputFRCSi").removeAttr("required");
+                      $("#inputAltaHaciendaSi").removeAttr("required");
+                    } else if(decision == 1){
+                      document.getElementById("Factura").style.display = "inline";
+                      document.getElementById("NoFactura").style.display = "none";
+                      $("#inputFRCNo").removeAttr("required");
+                      $("#inputAltaHaciendaNo").removeAttr("required");
+                    }
+                  }
+                </script>
+                <div class="form-group">';
+    $print .=     "<button type='submit' class='btn btn-success btn-lg btn-block' id='autoriza' onClick='enviarEmail($perid)'>Subir</button>";
+    $print .=   '</div>
+              </form>
+            </div>';
+    echo $print;
+    $getConnection->close();
   }
 }
 

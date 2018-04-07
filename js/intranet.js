@@ -23,6 +23,128 @@ function calculatePiezas(params) {
   }
 }
 
+function Activar($clienteid){
+  // console.log($clienteid);
+  $("#comentario"+$clienteid).show();
+}
+
+function Cancelar($clienteid){
+  // console.log($clienteid);
+  $("#comentario"+$clienteid).hide();
+}
+
+function Autorizar($sendAuto){
+  var url = null;
+  var dataSend = {};
+  bootbox.confirm({
+    message: "Al realizar la autorización se eleminirá de la lista y ya no podrá realizar cambios.",
+    buttons: {
+        confirm: {
+            label: 'Ok',
+            className: 'btn-success'
+        },
+        cancel: {
+            label: 'Cancelar',
+            className: 'btn-danger'
+        }
+    },
+    callback: function (result) {
+      var clienteid = $sendAuto["clienteid"];
+      var vendedorid = $sendAuto["vendedorid"];
+      var nombre = $sendAuto["nombre"];
+      var vendedor = $sendAuto["nombreVendedor"];
+      if(result === true){
+        $.post("../php/agregar/autorizar.php", {clienteid: clienteid}, function(mensaje){
+          bootbox.alert({
+            message: mensaje,
+            backdrop: true
+          });
+        });
+
+        $.post("../php/agregar/enviaemail.php", {nombre: nombre, vendedor: vendedor}, function(mensaje){
+        });
+
+        $("#autoriza").hide();
+      }
+    },
+  });
+}
+
+function enviarEmail($perid){
+  var perid = $perid;
+  var nombre = $("input#inputRazonSocial").val();
+  // console.log(perid, nombre);
+  $.post("../php/agregar/enviaemail.php", {nombre: nombre, vendedor: perid}, function(mensaje){
+    bootbox.alert({
+      message: mensaje,
+      backdrop: true
+    });
+  });
+}
+
+function EnviarObservacion($clienteid, $perid, $rol){
+  var clienteid = $clienteid;
+  var perid = $perid;
+  var rol = $rol;
+  var observacion = $("textarea#observacion"+$clienteid).val();
+  // console.log(clienteid,observacion,perid, rol);
+  if(rol === "cartera"){
+    $.post("../php/agregar/observaciones.php", {clienteid: clienteid, observacion: observacion, perid: perid}, function(mensaje){
+      bootbox.alert({
+        message: mensaje,
+        backdrop: true
+      });
+    });
+    $.post("../php/agregar/enviaemailObservacion.php", {clienteid: clienteid, perid: perid, rol: rol, observacion: observacion}, function(mensaje){
+    });
+  }if(rol === "VENDEDORES"){
+    console.log(rol);
+    $.post("../php/agregar/observacionesVendedor.php", {clienteid: clienteid, observacion: observacion, perid: perid}, function(mensaje){
+      bootbox.alert({
+        message: mensaje,
+        backdrop: true
+      });
+    });
+    $.post("../php/agregar/enviaemailObservacion.php", {clienteid: clienteid, perid: perid, rol: rol, observacion: observacion}, function(mensaje){
+    });
+  }
+  $("#comentario"+$clienteid).hide();
+}
+
+function tipoCompraCustomer(event){
+  var comprar = parseInt(event.path[0].value);
+  console.log(comprar);
+  if(comprar == 1){
+    $("#imgINEFre").removeAttr("required");
+    $("#imgINERev").removeAttr("required");
+    $("#imgCedula").removeAttr("required");
+    $("#imgActaMoral").removeAttr("required");
+    $("#imgDomRepLeg").removeAttr("required");
+    $("#imgINEFreLegal").removeAttr("required");
+    $("#imgINERevLegal").removeAttr("required");
+  } else if(comprar == 2){
+    document.getElementById("imgINEFre").setAttribute("required", "required");
+    document.getElementById("imgINERev").setAttribute("required", "required");
+    document.getElementById("imgCedula").setAttribute("required", "required");
+  }
+}
+
+function tipoClienteCustomer(event){
+  var tipoCliente = parseInt(event.path[0].value);
+  console.log(tipoCliente);
+  if(tipoCliente == 1){
+    $("#imgActaMoral").removeAttr("required");
+    $("#imgDomRepLeg").removeAttr("required");
+    $("#imgINEFreLegal").removeAttr("required");
+    $("#imgINERevLegal").removeAttr("required");
+  } else if(tipoCliente == 2){
+    document.getElementById("imgActaMoral").setAttribute("required", "required");
+    document.getElementById("imgDomRepLeg").setAttribute("required", "required");
+    document.getElementById("imgINEFreLegal").setAttribute("required", "required");
+    document.getElementById("imgINERevLegal").setAttribute("required", "required");
+  }
+}
+
 function deleteProductShoppinCarPartner(productID) {
   if(typeof productID === 'undefined') return false;
 
@@ -808,6 +930,61 @@ function showPersonal(perID) {
   });
 }
 
+function showPedidosDia(tipoPedido) {
+  if(typeof tipoPedido === 'undefined') return false;
+  // console.log("El tipo de pedido es ", tipoPedido);
+  var url = '../php/report/report.php';
+  var dataSend = {};
+  dataSend.data = 'empty';
+  dataSend.location = 'getReportePedidosDia';
+  dataSend.tipoPedido = tipoPedido;
+  dataSend.section = 'reports-partner';
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    url: url,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      $('#page-wrapper').html(data);
+    },
+    error: function(err) {
+      showMessage('error', 'Ha ocurrido un error, intentar nuevamente ó contactar al administrador');
+    }
+  });
+}
+
+function newCustomer(perid) {
+  // console.log("Ingresamos a Clientes Nuevos");
+  var url = '../php/report/report.php';
+  var dataSend = {};
+  dataSend.data = 'empty';
+  dataSend.location = 'getNewCustomer';
+  dataSend.perid = perid;
+  dataSend.section = 'reports-partner';
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    url: url,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      $('#page-wrapper').html(data);
+    },
+    error: function(err) {
+      showMessage('error', 'Ha ocurrido un error, intentar nuevamente ó contactar al administrador');
+    }
+  });
+}
+
 function showClientesNuevos() {
   // console.log("Ingresamos a Clientes Nuevos");
   var url = '../php/report/report.php';
@@ -937,6 +1114,12 @@ function showInformation(location) {
       dataSend.location = 'getDashBoardDireccion';
       dataSend.section = 'reports-partner';
       break;
+    case 'dashBoardVendedores':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getReporteVendedorSession';
+      dataSend.section = 'reports-partner';
+      break;
     case 'enlaceZona1':
       url = '../php/report/report.php';
       dataSend.data = 'empty';
@@ -947,6 +1130,18 @@ function showInformation(location) {
       url = '../php/report/report.php';
       dataSend.data = 'empty';
       dataSend.location = 'getEnlaceZona2';
+      dataSend.section = 'reports-partner';
+      break;
+    case 'nuevosClientes':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getNuevosClientes';
+      dataSend.section = 'reports-partner';
+      break;
+    case 'newCustomer':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getNewCustomerVen';
       dataSend.section = 'reports-partner';
       break;
     case 'user':

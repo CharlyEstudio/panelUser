@@ -4,10 +4,9 @@
     date_default_timezone_set('America/Mexico_City');
     $paramDb = new Database();
     $getConnection = $paramDb->GetLink();
-
-    //Se hace la busqueda de ventas totales del Dia
     $dia  = date("Y-m-d");
 
+    //Se hace la busqueda de ventas totales del Dia
     $queryPedDia = "SELECT SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPed
                             FROM doc
                           WHERE fecha = '$dia'
@@ -26,7 +25,7 @@
                             FROM doc
                           WHERE fecha = '$dia'
                             AND tipo = 'N'
-                            AND tipo NOT LIKE 'CH'
+                            AND serie NOT LIKE 'CH'
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQueryDiaSurtir = $getConnection->query($queryPedDiaSurtir);
@@ -43,9 +42,10 @@
                             FROM doc
                           WHERE fecha = '$dia'
                             AND tipo = 'C'
-                            AND tipo NOT LIKE 'CH'
+                            AND serie NOT LIKE 'CH'
                             AND subtotal2 > 0
-                            AND FECCAN = 0";
+                            AND FECCAN = 0
+                            AND estado NOT LIKE 'C'";
     $resultQueryDiaBajar = $getConnection->query($queryPedDiaBajar);
     $qPedDiaBajar = mysqli_fetch_array($resultQueryDiaBajar);
     if($qPedDiaBajar === NULL){
@@ -60,7 +60,7 @@
                             FROM doc d
                             WHERE d.fecha = '$dia'
                                 AND tipo = 'F'
-                                AND tipo NOT LIKE 'CH'
+                                AND serie NOT LIKE 'CH'
                                 AND d.subtotal2 > 0
                                 AND d.FECCAN = 0";
     $resultQueryDiaFactura = $getConnection->query($queryPedDiaFactura);
@@ -72,10 +72,35 @@
       $sumFacNS = $qPedDiaFactura["TotalPedFactura"];
     }
 
+    // Pedidos y ventas por Cancelados del día
+    // $queryPedDiaCancelacion = "SELECT docid
+    //                         FROM doc
+    //                         WHERE fecha = '$dia'
+    //                           AND estado = 'C'";
+    // $resultQueryDiaCancelacion = $getConnection->query($queryPedDiaCancelacion);
+    // $numPedDiaCancelacion = mysqli_num_rows($resultQueryDiaCancelacion);
+    // if($numPedDiaCancelacion === NULL){
+    //   $sumCancelacion = 0;
+    // } else {
+    //   TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+    //   $sumCan = 0;
+    //   while($qPedDiaCancelacion = mysqli_fetch_array($resultQueryDiaCancelacion)){
+    //     $docid = $qPedDiaCancelacion[0];
+    //     $buscarPartidasCanceladas = "SELECT sum(desventa * descantidad) as SumPedCan
+    //                                   FROM des
+    //                                   where descantidad > 0
+    //                                   and desfecha = '$dia'
+    //                                   and desdocid = $docid";
+    //     $resultPartidasCanceladas = $getConnection->query($buscarPartidasCanceladas);
+    //     $PartidasCanceladas = mysqli_fetch_array($resultPartidasCanceladas);
+    //     $sumCan = $sumCan + $PartidasCanceladas["SumPedCan"];
+    //   }
+    // }
+
+    // $VentasDiaNs = $sumFacNS + $SumaBajNs + $SumSurNs + $sumCan;
     $VentasDiaNs = $sumFacNS + $SumaBajNs + $SumSurNs;
     $divisionVDN = $VentasDiaNs * 100;
     $ns = bcdiv($divisionVDN,$sumP,2)."%";
-    // $ns = "NS ".$divisionVDN/$sumP."%";
 
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
     echo $ns;

@@ -23,7 +23,7 @@
     $qVtaMes = mysqli_fetch_array($resultQueryMes);
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
     $totalVentaMes = $qVtaMes['Total'];
-    $formatTotalVentaMes = "$ ".number_format($totalVentaMes, 2, '.',',')." *";
+    $formatTotalVentaMes = "$ ".number_format($totalVentaMes, 2, '.',',')."*";
     $venta = $formatTotalVentaMes;
     echo $venta
 ?>

@@ -40,6 +40,10 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $session = $_SESSION["data"];
         $report->getterEnlaceZona2($session);
         break;
+      case"getNuevosClientes":
+        $session = $_SESSION["data"];
+        $report->getterNuevosClientes($session);
+        break;
       case"getreport":
         $session = $_SESSION["data"];
         $report->getterGetReport($session);
@@ -51,10 +55,38 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
                         "perID" => $perID);
         $report->getterGetReporteVendedor($params);
         break;
+      case"getReporteVendedorSession":
+        $perID = $_SESSION["data"]["id"];
+        $session = $_SESSION["data"];
+        $params = array("session"=> $session,
+                        "perID" => $perID);
+        $report->getterGetReporteVendedor($params);
+        break;
+      case"getReportePedidosDia":
+        $pedidosDia = $paramFunctions->sanitize($_POST["tipoPedido"]);
+        $session = $_SESSION["data"];
+        $params = array("session"=> $session,
+                        "tipoPedido" => $pedidosDia);
+        $report->getterGetReportePedidosDia($params);
+        break;
       case"getClientesNuevosMes":
         $session = $_SESSION["data"];
         $params = array("session"=> $session);
         $report->getterGetClientesNuevosMes($params);
+        break;
+      case"getNewCustomer":
+        $perid = $paramFunctions->sanitize($_POST["perid"]);
+        $session = $_SESSION["data"];
+        $params = array("session"=> $session,
+                        "perid" => $perid);
+        $report->getterGetNewCustomer($params);
+        break;
+      case"getNewCustomerVen":
+        $perid = $_SESSION["data"]["id"];
+        $session = $_SESSION["data"];
+        $params = array("session"=> $session,
+                        "perid" => $perid);
+        $report->getterGetNewCustomer($params);
         break;
       case "showdetailMor":
         $perid = $paramFunctions->sanitize($_POST["perid"]);

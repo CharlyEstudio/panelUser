@@ -1342,7 +1342,7 @@ private function getDashBoardPartner() {
 		} else {
 			$numComprasMes3Sem4 = 0;
 		}
-	} elseif($MesActual < 7){
+	} elseif($fechaActualMes < 7){
 		$semana1 = "feccap >= '$year-04-01' AND feccap <= '$year-04-07' ";
 		$semana2 = "feccap >= '$year-04-08' AND feccap <= '$year-04-14' ";
 		$semana3 = "feccap >= '$year-04-15' AND feccap <= '$year-04-21' ";

@@ -16,7 +16,7 @@
                                 AND estado NOT LIKE 'C'";
     $ajaxPedidosBajar = mysqli_query($getConnection, $buscarPedidosBajarAjax);
     $pedidosBajarAjax =mysqli_fetch_array($ajaxPedidosBajar);
-    $sumBaja = "$ ".number_format($pedidosBajarAjax["TotalPed"], 2, '.',',')." *";
+    $sumBaja = "$ ".number_format($pedidosBajarAjax["TotalPed"], 2, '.',',')."*";
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
     $pedidoBajarSaldo = $sumBaja;
     echo $pedidoBajarSaldo;

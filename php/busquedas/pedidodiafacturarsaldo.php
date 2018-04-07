@@ -15,7 +15,7 @@
                                 AND d.FECCAN = 0";
     $ajaxPedidosFactura = mysqli_query($getConnection, $buscarPedidosFacturaAjax);
     $pedidosFacturaAjax =mysqli_fetch_array($ajaxPedidosFactura);
-    $sumFactura = "$ ".number_format($pedidosFacturaAjax["TotalPed"], 2, '.',',')." *";
+    $sumFactura = "$ ".number_format($pedidosFacturaAjax["TotalPed"], 2, '.',',')."*";
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
     $pedidoFacturaSaldo = $sumFactura;
     echo $pedidoFacturaSaldo;

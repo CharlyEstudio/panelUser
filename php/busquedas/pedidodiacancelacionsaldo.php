@@ -7,17 +7,32 @@
     $dia  = date("Y-m-d");
 
     // Pedidos y ventas por Cancelados del día
-    $queryPedDiaCancelacion = "SELECT SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedCancelacion
-                                FROM doc d
-                                WHERE d.fecha = '".$dia."'
-                                AND estado = 'C'";
+    $queryPedDiaCancelacion = "SELECT docid
+                            FROM doc
+                            WHERE fecha = '$dia'
+                              AND estado = 'C'";
     $resultQueryDiaCancelacion = $getConnection->query($queryPedDiaCancelacion);
-    $qPedDiaCancelacion = mysqli_fetch_array($resultQueryDiaCancelacion);
-    if($qPedDiaCancelacion === NULL){
+    // $qPedDiaCancelacion = mysqli_fetch_row($resultQueryDiaCancelacion);
+    $numPedDiaCancelacion = mysqli_num_rows($resultQueryDiaCancelacion);
+    if($numPedDiaCancelacion === NULL){
       $sumCancelacion = 0;
     } else {
       //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $sumCancelacion = "$ ".number_format($qPedDiaCancelacion["TotalPedCancelacion"], 2, '.',',')." *";
+      $sumCan = 0;
+      while($qPedDiaCancelacion = mysqli_fetch_array($resultQueryDiaCancelacion)){
+      // foreach($qPedDiaCancelacion as $row){
+        $docid = $qPedDiaCancelacion[0];
+        $buscarPartidasCanceladas = "SELECT sum(desventa * descantidad) as SumPedCan
+                                      FROM des
+                                      where descantidad > 0
+                                      and desfecha = '$dia'
+                                      and desdocid = $docid";
+        $resultPartidasCanceladas = $getConnection->query($buscarPartidasCanceladas);
+        $PartidasCanceladas = mysqli_fetch_array($resultPartidasCanceladas);
+        $sumCan = $sumCan + $PartidasCanceladas["SumPedCan"];
+        // var_dump($qPedDiaCancelacion);
+      }
+      $sumCancelacion = "$ ".number_format($sumCan, 2, '.',',').'*';
     }
     
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
