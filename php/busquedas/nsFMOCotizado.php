@@ -7,7 +7,7 @@
     $dia  = date("Y-m-d");
 
     //Sacamos el % de Nivel de Servicio de FMO Tipo C
-    $queryNsFMOC = "SELECT SUM(des.descantidad * des.desventa) AS importeSolicitadoFMOC
+    $queryNsFMOC = "SELECT sum((des.descantidad * des.desventa) - ((des.descantidad * des.desventa) * (des.desdescuento / 100))) AS importeSolicitadoFMOC
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'

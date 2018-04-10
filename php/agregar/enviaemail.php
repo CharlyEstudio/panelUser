@@ -1521,6 +1521,7 @@ if((int)$_POST["vendedor"] > 0){
 } else {
     $nombre = $paramFunctions->sanitize($_POST["nombre"]);
     $nombreVendedor = $paramFunctions->sanitize($_POST["vendedor"]);
+    $perid = $paramFunctions->sanitize($_POST["vendedorid"]);
 
     $buscarEmailVendedor = "SELECT correo FROM vendedores WHERE vendedorid = $perid";
     $EmailEncontrado = mysqli_query($mysqliCon, $buscarEmailVendedor);

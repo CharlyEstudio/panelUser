@@ -31,7 +31,10 @@ $fichero_INERev = $dir_subida . basename($_FILES['imgINERev']['name']);
 move_uploaded_file($_FILES['imgINERev']['tmp_name'], $fichero_INERev);
 
 $fichero_Cedula = $dir_subida . basename($_FILES['imgCedula']['name']);
-move_uploaded_file($_FILES['imgCedula']['tmp_name'], $fichero_Cedula);
+move_uploaded_file($_FILES['imgCedula']['tmp_name'], $fichero_Hacienda);
+
+$fichero_Hacienda = $dir_subida . basename($_FILES['imgHacienda']['name']);
+move_uploaded_file($_FILES['imgHacienda']['tmp_name'], $fichero_Hacienda);
 
 //Doc's obligados para Persona Moral
 $fichero_Moral = $dir_subida . basename($_FILES['imgActaMoral']['name']);
@@ -54,12 +57,18 @@ $vendedorid     = $_POST["inputVendedor"];
 $nombre         = utf8_decode($_POST["inputRazonSocial"]);
 $comercial      = utf8_decode($_POST["inputNombreComercial"]);
 
-if($_POST["inputFRCNo"] === "XAXX 010101 000"){
+if($_POST["inputAltaHaciendaSi"] === ""){
     $rfc        = utf8_decode($_POST["inputFRCNo"]);
     $fecalta    = date("Y-01-01");
 } else {
     $rfc        = utf8_decode($_POST["inputFRCSi"]);
     $fecalta    = $_POST["inputAltaHaciendaSi"];
+}
+
+if($_POST["inputEmailSi"] === ""){
+    $email      = utf8_decode($_POST["inputEmailNo"]);
+} else {
+    $email      = utf8_decode($_POST["inputEmailSi"]);
 }
 
 $direccion      = utf8_decode($_POST["inputDireccion"]);
@@ -68,7 +77,6 @@ $colonia        = utf8_decode($_POST["inputColonia"]);
 $ciudad         = utf8_decode($_POST["inputCiudad"]);
 $tel            = $_POST["inputTelFijo"];
 $cel            = $_POST["inputCel"];
-$email          = utf8_decode($_POST["inputEmail"]);
 $credito        = $_POST["inputCantidadCredito"];
 $diascred       = $_POST["selectDiasCredito"];
 $metpag         = utf8_decode($_POST["inputMetPago"]);
@@ -78,17 +86,20 @@ $mlocal         = $_POST["inputM2"];
 $tlocal         = utf8_decode($_POST["selectPropiedad"]);
 $ladode         = utf8_decode($_POST["textareaALado"]);
 $frentede       = utf8_decode($_POST["textareaFrente"]);
+$notas          = utf8_decode($_POST["textareaNota"]);
 
 $activo         = 'N';
 
 $insertar       = "INSERT INTO nuevoscli(NOMBRE, COMERCIAL, RFC, FECALTA, DIRECCION, CP, COLONIA, CIUDAD, TEL, CEL, EMAIL,
                     CREDITO, DIASCRED, METPAG, HACERPED, RECIBIRPED, MLOCAL, TLOCAL, LADODE, FRENTEDE, VENDEDORID, ACTIVO,
-                    IMGSOLICITUD, IMGPOLITICA, IMGFACHADA, IMGDOM, IMGINEFRE, IMGINEREV, IMGCEDULA, MORAL, REPRESENTANTE, INEREPF, INEREPR)
+                    IMGSOLICITUD, IMGPOLITICA, IMGFACHADA, IMGDOM, IMGINEFRE, IMGINEREV, IMGCEDULA, IMGHACIENDA, MORAL, REPRESENTANTE,
+                    INEREPF, INEREPR, NOTAS)
                         VALUES ('$nombre','$comercial','$rfc',$fecalta,'$direccion',$cp,'$colonia',
                         '$ciudad',$tel,$cel,'$email',$credito,$diascred,'$metpag','$hacerped',
                         '$recibirped',$mlocal,'$tlocal','$ladode','$frentede',$vendedorid, '$activo','$fichero_Solicitud',
-                        '$fichero_Politica', '$fichero_Fachada', '$fichero_Domicilio','$fichero_INEFre','$fichero_INERev','$fichero_Cedula',
-                        '$fichero_Moral','$fichero_Repre','$fichero_INERepF','$fichero_INERepR')";
+                        '$fichero_Politica', '$fichero_Fachada', '$fichero_Domicilio','$fichero_INEFre',
+                        '$fichero_INERev','$fichero_Cedula','$fichero_Hacienda','$fichero_Moral',
+                        '$fichero_Repre','$fichero_INERepF','$fichero_INERepR', '$notas')";
 if($mysqliCon->query($insertar) === TRUE){
     header("location: ../../intranet/index.php");
 } else {

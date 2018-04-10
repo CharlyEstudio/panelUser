@@ -7,7 +7,7 @@
     $dia  = date("Y-m-d");
 
     //Sacamos el % de Nivel de Servicio de Truper Tipo N Entregado
-    $queryNsTruperEntregadoN = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoN
+    $queryNsTruperEntregadoN = "SELECT sum((des.desentregado * des.desventa) - ((des.desentregado * des.desventa) * (des.desdescuento / 100))) as importeEntregadoN
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'
@@ -24,7 +24,7 @@
     }
 
     //Sacamos el % de Nivel de Servicio de Truper Tipo F Entregado
-    $queryNsTruperEntregadoF = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoF
+    $queryNsTruperEntregadoF = "SELECT sum((des.desentregado * des.desventa) - ((des.desentregado * des.desventa) * (des.desdescuento / 100))) as importeEntregadoF
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'

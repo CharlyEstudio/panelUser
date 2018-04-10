@@ -32,6 +32,10 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $session = $_SESSION["data"];
         $report->getterDashBoardDireccion($session);
         break;
+      case"getReportService":
+        $session = $_SESSION["data"];
+        $report->getterReportService($session);
+        break;
       case"getEnlaceZona1":
         $session = $_SESSION["data"];
         $report->getterEnlaceZona1($session);

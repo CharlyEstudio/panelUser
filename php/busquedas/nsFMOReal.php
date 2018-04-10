@@ -7,7 +7,7 @@
     $dia  = date("Y-m-d");
 
     //Sacamos el % de Nivel de Servicio de FMO Tipo N Entregado
-    $queryNsFMOEntregadoN = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoFMON
+    $queryNsFMOEntregadoN = "SELECT sum((des.desentregado * des.desventa) - ((des.desentregado * des.desventa) * (des.desdescuento / 100))) as importeEntregadoFMON
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'
@@ -24,7 +24,7 @@
     }
 
     //Sacamos el % de Nivel de Servicio de FMO Tipo F Entregado
-    $queryNsFMOEntregadoF = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoFMOF
+    $queryNsFMOEntregadoF = "SELECT sum((des.desentregado * des.desventa) - ((des.desentregado * des.desventa) * (des.desdescuento / 100))) as importeEntregadoFMOF
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'

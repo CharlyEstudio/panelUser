@@ -23,6 +23,40 @@ function calculatePiezas(params) {
   }
 }
 
+function factura(event){
+  var decision = parseInt(event.path[0].value);
+  if(decision == 0){
+    // document.getElementById("NoFactura").style.display = "inline";
+    // document.getElementById("Factura").style.display = "none";
+    $("#NoFactura").show();
+    $("#Factura").hide();
+    $("#inputFRCSi").removeAttr("required");
+    $("#inputAltaHaciendaSi").removeAttr("required");
+  } else if(decision == 1){
+    // document.getElementById("Factura").style.display = "inline";
+    // document.getElementById("NoFactura").style.display = "none";
+    $("#Factura").show();
+    $("#NoFactura").hide();
+    $("#inputFRCNo").removeAttr("required");
+    $("#inputAltaHaciendaNo").removeAttr("required");
+  }
+}
+
+function emailEvento(event){
+  var decision = parseInt(event.path[0].value);
+  if(decision == 0){
+    $("#inputEmailSi").hide();
+    $("#inputEmailNo").show();
+    $("#inputEmailSi").removeAttr("required");
+  } else if(decision == 1){
+    $("#inputEmailNo").hide();
+    $("#inputEmailSi").show();
+    $("#inputEmailNo").removeAttr("required");
+    document.getElementById("inputEmailSi").setAttribute("required", "required");
+    
+  }
+}
+
 function Activar($clienteid){
   // console.log($clienteid);
   $("#comentario"+$clienteid).show();
@@ -54,14 +88,14 @@ function Autorizar($sendAuto){
       var nombre = $sendAuto["nombre"];
       var vendedor = $sendAuto["nombreVendedor"];
       if(result === true){
-        $.post("../php/agregar/autorizar.php", {clienteid: clienteid}, function(mensaje){
+        $.post("../php/agregar/autorizar.php", {clienteid: clienteid, vendedorid: vendedorid}, function(mensaje){
           bootbox.alert({
             message: mensaje,
             backdrop: true
           });
         });
 
-        $.post("../php/agregar/enviaemail.php", {nombre: nombre, vendedor: vendedor}, function(mensaje){
+        $.post("../php/agregar/enviaemail.php", {nombre: nombre, vendedor: vendedor, vendedorid: vendedorid}, function(mensaje){
         });
 
         $("#autoriza").hide();
@@ -122,10 +156,18 @@ function tipoCompraCustomer(event){
     $("#imgDomRepLeg").removeAttr("required");
     $("#imgINEFreLegal").removeAttr("required");
     $("#imgINERevLegal").removeAttr("required");
+    document.getElementById("inputCantidadCredito").value = 0;
+    document.getElementById("inputCantidadCredito").setAttribute("readonly", "true");
+    document.getElementById("selectDiasCredito").value = 0;
+    // document.getElementById("selectDiasCredito").setAttribute("readonly", "true");
+    document.getElementById("selectDiasCredito").disable = true;
   } else if(comprar == 2){
     document.getElementById("imgINEFre").setAttribute("required", "required");
     document.getElementById("imgINERev").setAttribute("required", "required");
     document.getElementById("imgCedula").setAttribute("required", "required");
+    document.getElementById("inputCantidadCredito").value = 9000;
+    document.getElementById("inputCantidadCredito").setAttribute("readonly", "true");
+    document.getElementById("selectDiasCredito").value = 1;
   }
 }
 
@@ -1102,6 +1144,12 @@ function showInformation(location) {
       dataSend.location = 'getDashBoardDirIndex';
       dataSend.section = 'reports-partner';
       break;
+    case 'reportService':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getReportService';
+      dataSend.section = 'reports-partner';
+      break;
     case 'dashBoardCartera':
       url = '../php/report/report.php';
       dataSend.data = 'empty';
@@ -1281,4 +1329,56 @@ function validateMaxLength() {
   } else {
     return false;
   }
+}
+
+function buscarReporteServicio(){
+  var fecInicio = document.getElementById("fecInicio").value;
+  var fecFinal = document.getElementById("fecFinal").value;
+  
+  // console.log(fecInicio, fecFinal);
+
+  // Se busca el numero de pedidos dentro el rango que se manda de Jquery
+  $.post("../php/reporteService/numPed.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numPed){
+    $("#numPed").text(numPed);
+  });
+
+  // Se busca el importe de ventas dentro el rango que se manda de Jquery
+  $.post("../php/reporteService/importeVenta.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(importeVenta){
+    $("#importeVenta").text(importeVenta);
+  });
+
+  // Se busca el importe de ventas de zona1 dentro el rango que se manda de Jquery
+  $.post("../php/reporteService/zona1.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(zona1){
+    $("#zona1").text(zona1);
+  });
+
+  // Se busca el importe de ventas de zona2 dentro el rango que se manda de Jquery
+  $.post("../php/reporteService/zona2.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(zona2){
+    $("#zona2").text(zona2);
+  });
+
+  // Se busca el importe de ventas de especiales dentro el rango que se manda de Jquery
+  $.post("../php/reporteService/especiales.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(especiales){
+    $("#especiales").text(especiales);
+  });
+
+  // Se busca el importe de ventas de numFact dentro el rango que se manda de Jquery
+  $.post("../php/reporteService/numFact.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numFact){
+    $("#numFact").text(numFact);
+  });
+
+  // Se busca el importe de ventas de impoFact dentro el rango que se manda de Jquery
+  $.post("../php/reporteService/impoFact.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(impoFact){
+    $("#impoFact").text(impoFact);
+  });
+
+  // Se busca el importe de ventas de numCancelados dentro el rango que se manda de Jquery
+  $.post("../php/reporteService/numCancelados.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numCancelados){
+    $("#numCancelados").text(numCancelados);
+  });
+
+  // Se busca el importe de ventas de impoCancelados dentro el rango que se manda de Jquery
+  $.post("../php/reporteService/impoCancelados.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(impoCancelados){
+    $("#impoCancelados").text(impoCancelados);
+  });
 }

@@ -20,6 +20,10 @@ class Report {
     $this->getDashBoardDireccion($params);
   }
 
+  public function getterReportService($params) {
+    $this->getReportService($params);
+  }
+
   public function getterEnlaceZona1($params) {
     $this->getEnlaceZona1($params);
   }
@@ -603,7 +607,7 @@ class Report {
     //Se saca nivel de servico Truper
 
     //Sacamos el % de Nivel de Servicio de Truper Tipo C
-    $queryNsTruperC = "SELECT SUM(des.descantidad * des.desventa) AS importeSolicitadoC
+    $queryNsTruperC = "SELECT sum((des.descantidad * des.desventa) - ((des.descantidad * des.desventa) * (des.desdescuento / 100))) AS importeSolicitadoC
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'
@@ -619,7 +623,7 @@ class Report {
     }
 
     //Sacamos el % de Nivel de Servicio de Truper Tipo F Solicitado
-    $queryNsTruperSolicitadoF = "SELECT sum(des.descantidad * des.desventa) as importeSolicitadoF
+    $queryNsTruperSolicitadoF = "SELECT sum((des.descantidad * des.desventa) - ((des.descantidad * des.desventa) * (des.desdescuento / 100))) as importeSolicitadoF
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'
@@ -636,12 +640,14 @@ class Report {
     }
 
     //Sacamos el % de Nivel de Servicio de Truper Tipo F Entregado
-    $queryNsTruperEntregadoF = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoF
+    $queryNsTruperEntregadoF = "SELECT sum((des.desentregado * des.desventa) - ((des.desentregado * des.desventa) * (des.desdescuento / 100))) as importeEntregadoF
                         FROM des
                           join inv i on i.articuloid = des.desartid
+                          join doc d on d.docid = des.desdocid
                         where des.desfecha = '$dia'
                           and des.desentregado > 0
                           and des.destipo = 'F'
+                          and d.serie NOT LIKE 'CH'
                           and i.clvprov NOT LIKE '8%'";
     $resultQueryDiaTruperEntregadoF = $getConnection->query($queryNsTruperEntregadoF);
     $qNsTruperEntregadoF = mysqli_fetch_array($resultQueryDiaTruperEntregadoF);
@@ -653,7 +659,7 @@ class Report {
     }
 
     //Sacamos el % de Nivel de Servicio de Truper Tipo N Solicitado
-    $queryNsTruperSolicitadoN = "SELECT sum(des.descantidad * des.desventa) as importeSolicitadoN
+    $queryNsTruperSolicitadoN = "SELECT sum((des.descantidad * des.desventa) - ((des.descantidad * des.desventa) * (des.desdescuento / 100))) as importeSolicitadoN
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'
@@ -671,7 +677,7 @@ class Report {
     }
 
     //Sacamos el % de Nivel de Servicio de Truper Tipo N Entregado
-    $queryNsTruperEntregadoN = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoN
+    $queryNsTruperEntregadoN = "SELECT sum((des.desentregado * des.desventa) - ((des.desentregado * des.desventa) * (des.desdescuento / 100))) as importeEntregadoN
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'
@@ -689,11 +695,11 @@ class Report {
     }
 
     // Porcentaje Estimado Truper
-    if($importeSolicitadoTruperN === NULL){
+    if($importeSolicitadoTruperC === NULL){
       $EstimadoTruper = '0.00';
     }else{
       $EstimadoT = $importeTruperSolicitadoF * 100;
-      $EstimadoTruper = bcdiv($EstimadoT,$importeSolicitadoTruperN,2);
+      $EstimadoTruper = bcdiv($EstimadoT,$importeSolicitadoTruperC,2);
     }
     // Porcentaje Real Truper
     if($importeEntregadoTruperN === NULL){
@@ -706,7 +712,7 @@ class Report {
     //Se saca nivel de servico FMO
 
     //Sacamos el % de Nivel de Servicio de FMO Tipo C
-    $queryNsFMOC = "SELECT SUM(des.descantidad * des.desventa) AS importeSolicitadoFMOC
+    $queryNsFMOC = "SELECT sum((des.descantidad * des.desventa) - ((des.descantidad * des.desventa) * (des.desdescuento / 100))) AS importeSolicitadoFMOC
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'
@@ -722,7 +728,7 @@ class Report {
     }
 
     //Sacamos el % de Nivel de Servicio de FMO Tipo F Solicitado
-    $queryNsFMOSolicitadoF = "SELECT sum(des.descantidad * des.desventa) as importeSolicitadoFMOF
+    $queryNsFMOSolicitadoF = "SELECT sum((des.descantidad * des.desventa) - ((des.descantidad * des.desventa) * (des.desdescuento / 100))) as importeSolicitadoFMOF
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'
@@ -739,12 +745,14 @@ class Report {
     }
 
     //Sacamos el % de Nivel de Servicio de FMO Tipo F Entregado
-    $queryNsFMOEntregadoF = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoFMOF
+    $queryNsFMOEntregadoF = "SELECT sum((des.desentregado * des.desventa) - ((des.desentregado * des.desventa) * (des.desdescuento / 100))) as importeEntregadoFMOF
                         FROM des
                           join inv i on i.articuloid = des.desartid
+                          join doc d on d.docid = des.desdocid
                         where des.desfecha = '$dia'
                           and des.desentregado > 0
                           and des.destipo = 'F'
+                          and d.serie NOT LIKE 'CH'
                           and i.clvprov LIKE '8%'";
     $resultQueryDiaFMOF = $getConnection->query($queryNsFMOEntregadoF);
     $qNsFMOEntregadoF = mysqli_fetch_array($resultQueryDiaFMOF);
@@ -756,7 +764,7 @@ class Report {
     }
 
     //Sacamos el % de Nivel de Servicio de FMO Tipo N Solicitado
-    $queryNsFMOSolicitadoN = "SELECT sum(des.descantidad * des.desventa) as importeSolicitadoFMON
+    $queryNsFMOSolicitadoN = "SELECT sum((des.descantidad * des.desventa) - ((des.descantidad * des.desventa) * (des.desdescuento / 100))) as importeSolicitadoFMON
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'
@@ -774,7 +782,7 @@ class Report {
     }
 
     //Sacamos el % de Nivel de Servicio de FMO Tipo N Entregado
-    $queryNsFMOEntregadoN = "SELECT sum(des.desentregado * des.desventa) as importeEntregadoFMON
+    $queryNsFMOEntregadoN = "SELECT sum((des.desentregado * des.desventa) - ((des.desentregado * des.desventa) * (des.desdescuento / 100))) as importeEntregadoFMON
                         FROM des
                           join inv i on i.articuloid = des.desartid
                         where des.desfecha = '$dia'
@@ -792,11 +800,11 @@ class Report {
     }
 
     // Porcentaje Estimado FMO
-    if($importeSolicitadoFMON === NULL){
+    if($importeSolicitadoFMOC === NULL){
       $EstimadoFMO = '0.00';
     }else{
       $EstimadoT = $importeSolicitadoFMOF * 100;
-      $EstimadoFMO = bcdiv($EstimadoT,$importeSolicitadoFMON,2);
+      $EstimadoFMO = bcdiv($EstimadoT,$importeSolicitadoFMOC,2);
     }
     // Porcentaje Real FMO
     if($importeEntregadoFMON === NULL){
@@ -908,10 +916,10 @@ class Report {
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                 <h4 class="lead" style="font-size: 1em !important;">TRUPER</h4>
-                                <p class="lead text-tomato" id="">REMISIONADO Solicitado: '.number_format($importeSolicitadoTruperN, 2, ".", ",").'</p>
-                                <p class="lead text-tomato" id="">REMISIONADO Entregado: '.number_format($importeEntregadoTruperN, 2, ".", ",").'</p>
-                                <p class="lead text-tomato" id="">FACTURADO Solicitado: '.number_format($importeTruperSolicitadoF, 2, ".", ",").'</p>
-                                <p class="lead text-tomato" id="">FACTURADO Entregado: '.number_format($importeTruperEntregadoF, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">PEDIDOS: '.number_format($importeSolicitadoTruperC, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">SE BAJO: '.number_format($importeSolicitadoTruperN, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">SE TRABAJO: '.number_format($importeEntregadoTruperN, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">SE FACTURO: '.number_format($importeTruperEntregadoF, 2, ".", ",").'</p>
                                 <div class="row">
                                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                     <p class="lead" style="font-size: 1em !important;">Estimado</p>
@@ -925,10 +933,10 @@ class Report {
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                 <h4 class="lead" style="font-size: 1em !important;">FMO</h4>
-                                <p class="lead text-tomato" id="">REMISIONADO Solicitado: '.number_format($importeSolicitadoFMON, 2, ".", ",").'</p>
-                                <p class="lead text-tomato" id="">REMISIONADO Entregado: '.number_format($importeEntregadoFMON, 2, ".", ",").'</p>
-                                <p class="lead text-tomato" id="">FACTURADO Solicitado: '.number_format($importeSolicitadoFMOF, 2, ".", ",").'</p>
-                                <p class="lead text-tomato" id="">FACTURADO Entregado: '.number_format($importeEntregadoFMOF, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">PEDIDOS: '.number_format($importeSolicitadoFMOC, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">SE BAJO: '.number_format($importeSolicitadoFMON, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">SE TRABAJO: '.number_format($importeEntregadoFMON, 2, ".", ",").'</p>
+                                <p class="lead text-tomato" id="">SE FACTURO: '.number_format($importeEntregadoFMOF, 2, ".", ",").'</p>
                                 <div class="row">
                                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                     <p class="lead" style="font-size: 1em !important;">Estimado</p>
@@ -1355,6 +1363,187 @@ class Report {
                   </script>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB text-center">
                     <p class="lead text-center" style="font-size:1.5em;">* Valores considerados sin I.V.A.</p>
+                  </div>
+                </div>
+              </div>';
+    echo $print;
+    $getConnection->close();
+  }
+
+  private function getReportService($params) {
+    $paramFunctions   = new Util();
+    $paramDb          = new Database();
+    $getConnection    = $paramDb->GetLink();
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                <h4 class="display-4 text-center">Reporte de Servicio</div>
+                <form class="buscador">
+                  <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Fecha Inicio</label>
+                    <div class="col-sm-4">
+                      <input class="form-control" type="date" name="fecInicio" id="fecInicio"/>
+                    </div>
+                    <label class="col-sm-2 col-form-label">Fecha Final</label>
+                    <div class="col-sm-4">
+                      <input class="form-control" type="date" name="fecFinal" id="fecFinal"/>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <button type="button" class="btn btn-warning btn-lg btn-block" onClick="buscarReporteServicio();">Buscar</button>
+                  </div>
+                </form>
+                <div class="row paddingT">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                        <h3 class="text-center">PEDIDOS</h3>
+                        <div class="row">
+                          <div class="col-12 col-md-12 col-lg-4 col-xl-4 text-center">
+                            <p class="lead">CATEGORIAS</p>
+                          </div>
+                          <div class="col-12 col-md-12 col-lg-4 col-xl-4 text-center">
+                            <p class="lead">PEDIDOS</p>
+                          </div>
+                          <div class="col-12 col-md-12 col-lg-4 col-xl-4 text-center">
+                            <p class="lead">IMPORTES</p>
+                          </div>
+                          <div class="col-12 col-md-12 col-lg-4 col-xl-4 text-center">
+                            <p class="lead">FACTURADO</p>
+                          </div>
+                          <div class="col-12 col-md-12 col-lg-4 col-xl-4 text-center">
+                            <p class="lead" id="numFact">0</p>
+                          </div>
+                          <div class="col-12 col-md-12 col-lg-4 col-xl-4 text-center">
+                            <p class="lead" id="impoFact">$ 0.00*</p>
+                          </div>
+                          <div class="col-12 col-md-12 col-lg-4 col-xl-4 text-center">
+                            <p class="lead">CANCELADOS</p>
+                          </div>
+                          <div class="col-12 col-md-12 col-lg-4 col-xl-4 text-center">
+                            <p class="lead">0</p>
+                          </div>
+                          <div class="col-12 col-md-12 col-lg-4 col-xl-4 text-center">
+                            <p class="lead">$ 0.00*</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                        <h3 class="text-center">PEDIDOS TOTALES</h3>
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 centrarSep">
+                            <div class="row">
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 centrar">
+                                <div class="row">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                    <h5 class="lead">CANTIDAD</h5>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                                    <p class="lead" style="font-size: 3em !important;"><span class="enlaces" id="numPed">0</span></p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+                                <div class="row">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                    <div class="row">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-left">
+                                        <p class="lead">SUBTOTAL</p>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
+                                        <span class="lead" id="">$ 0.00*</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                    <div class="row">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-left">
+                                        <p class="lead">I.V.A.</p>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
+                                        <span class="lead" id="">$ 0.00*</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                    <div class="row">
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-left">
+                                        <p class="lead">TOTAL</p>
+                                      </div>
+                                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
+                                        <span class="lead" id="">$ 0.00*</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                        <h3 class="text-center">VENTAS MENSUALES</h3>
+                        <div class="row text-center">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                            <p class="lead" id="importeVenta">$ 0.00*</p>
+                          </div>
+                          
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                            <h4>DETALLE</h4>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                            <h4 class="lead">ZONA 1</h4>
+                            <p class="lead" id="zona1">$ 0.00*</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                            <h4 class="lead">ZONA 2</h4>
+                            <p class="lead" id="zona2">$ 0.00*</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                            <h4 class="lead">ESPECIALES</h4>
+                            <p class="lead" id="especiales">$ 0.00*</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 text-center centrarSep">
+                    <h3>NIVEL DE SERVICIO ESTIMADO</h3>
+                    <p class="lead" id="">0.00%</p>
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                        <h4 class="lead">TRUPER</h4>
+                        <p class="lead" id="">PEDIDOS: $ 0.00*</p>
+                        <p class="lead" id="">SE BAJO: $ 0.00*</p>
+                        <p class="lead" id="">SE TRABAJO: $ 0.00*</p>
+                        <p class="lead" id="">SE FACTURO: $ 0.00*</p>
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <p class="lead">Estimado</p>
+                            <p class="lead" id="">0.00%</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <p class="lead">Real</p>
+                            <p class="lead" id="">0.00%</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                        <h4 class="lead">FMO</h4>
+                        <p class="lead" id="">PEDIDOS: $ 0.00*</p>
+                        <p class="lead" id="">SE BAJO: $ 0.00*</p>
+                        <p class="lead" id="">SE TRABAJO: $ 0.00*</p>
+                        <p class="lead" id="">SE FACTURO: $ 0.00*</p>
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <p class="lead">Estimado</p>
+                            <p class="lead" id="">0.00%</p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <p class="lead">Real</p>
+                            <p class="lead" id="">0.00%</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>';
@@ -6139,6 +6328,7 @@ class Report {
           $tlocal             = $row[18];
           $ladode             = utf8_encode($row[19]);
           $frentede           = utf8_encode($row[20]);
+          $notas              = utf8_encode($row[35]);
           $vendedorid         = $row[21];
           $activo             = $row[22];
           $fichero_Solicitud  = $row[23];
@@ -6148,8 +6338,9 @@ class Report {
           $fichero_INEFre     = $row[27];
           $fichero_INERev     = $row[28];
           $fichero_Cedula     = $row[29];
-          $observacion        = $row[34];
-          $status             = $row[35];
+          $fichero_Hacienda   = $row[30];
+          $observacion        = $row[36];
+          $status             = $row[37];
 
           $perid = $vendedorid;
 
@@ -6161,10 +6352,10 @@ class Report {
           $buscarFotos = 'docs/';
 
           if($row[29] <> $buscarFotos){
-            $fichero_Moral      = $row[30];
-            $fichero_Repre      = $row[31];
-            $fichero_INERepF    = $row[32];
-            $fichero_INERepR    = $row[33];
+            $fichero_Moral      = $row[31];
+            $fichero_Repre      = $row[32];
+            $fichero_INERepF    = $row[33];
+            $fichero_INERepR    = $row[34];
           } else {
             $fichero_Moral      = 'Sin imagen';
             $fichero_Repre      = 'Sin imagen';
@@ -6421,6 +6612,12 @@ class Report {
                                   <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10 input-falsoComersLeft">
                                     <span>'.$frentede.'</span>
                                   </div>
+                                  <div class="col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                    <label>Notas:</label>
+                                  </div>
+                                  <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10 input-falsoComersLeft">
+                                    <span>'.$notas.'</span>
+                                  </div>
                                 </div>
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT paddingB">
@@ -6447,18 +6644,21 @@ class Report {
             $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERev.'" target="_blanck">Credencial de Elector reverso</a></li>';
           }
           if($fichero_Cedula <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Cedula.'" target="_blanck">Alta en Hacienda</a></li>';
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Cedula.'" target="_blanck">Cedula</a></li>';
           }
-          if($row[30] <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Moral.'" target="_blanck">Acta Constitutiva</a></li>';
+          if($fichero_Hacienda <> $buscarFotos){
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Hacienda.'" target="_blanck">Alta en Hacienda</a></li>';
           }
           if($row[31] <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Repre.'" target="_blanck">representante Moral</a></li>';
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Moral.'" target="_blanck">Acta Constitutiva</a></li>';
           }
           if($row[32] <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepF.'" target="_blanck">INE Representante Frente</a></li>';
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Repre.'" target="_blanck">representante Moral</a></li>';
           }
           if($row[33] <> $buscarFotos){
+            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepF.'" target="_blanck">INE Representante Frente</a></li>';
+          }
+          if($row[34] <> $buscarFotos){
             $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepR.'" target="_blanck">INE Representante Reverso</a></li>';
           }
           $print .=                 '</ul>
@@ -6500,7 +6700,8 @@ class Report {
             $linkEnviarComentario = "EnviarObservacion($clienteid, $perid, '$rol')";
             $datosAutorizado = array("clienteid" => $clienteid,
                                       "nombre" => $nombre,
-                                      "nombreVendedor" => $nombreVendedor);
+                                      "nombreVendedor" => $nombreVendedor,
+                                      "vendedorid" => $perid);
             $sendAuto = json_encode($datosAutorizado);
             // $linkDatosEmail = "Autorizar('$nombre', '$nombreVendedor')";
             $linkDatosEmail = 'Autorizar('.$sendAuto.')';
@@ -6586,6 +6787,7 @@ class Report {
           $tlocal             = $row[18];
           $ladode             = utf8_encode($row[19]);
           $frentede           = utf8_encode($row[20]);
+          $notas              = utf8_encode($row[35]);
           $vendedorid         = $row[21];
           $activo             = $row[22];
           $fichero_Solicitud  = $row[23];
@@ -6595,8 +6797,9 @@ class Report {
           $fichero_INEFre     = $row[27];
           $fichero_INERev     = $row[28];
           $fichero_Cedula     = $row[29];
-          $observacion        = $row[34];
-          $status             = $row[35];
+          $fichero_Hacienda   = $row[30];
+          $observacion        = $row[36];
+          $status             = $row[37];
 
           $buscarVendedor = "SELECT nombre FROM per WHERE perid = $vendedorid";
           $vendedorEncontrado = $getConnection->query($buscarVendedor);
@@ -6615,7 +6818,7 @@ class Report {
             $fichero_INERepF    = 'Sin imagen';
             $fichero_INERepR    = 'Sin imagen';
           }
-          $print .=     '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+          $print .=     '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB paddingT">
                           <div class="row">';
           if($activo === 'N'){
           $print .=         '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 infoCard">
@@ -6737,23 +6940,23 @@ class Report {
                                         <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
                                           <label>Estatus</label>
                                         </div>';
-          if($status == 1){
+            if($status == 1){
             $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight autorizado">
                                           <span>Autorizado</span>
                                         </div>';
-          }else if($status == 2){
+            }else if($status == 2){
             $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight proceso">
                                           <span>Devuelto por Crédito y Cobranza</span>
                                         </div>';
-          }else if($status == 3){
+            }else if($status == 3){
             $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight proceso">
                                           <span>Devuelto por Vendedor</span>
                                         </div>';
-          }else{
+            }else{
             $print .=                   '<div class="col-9 col-sm-9 col-md-9 col-lg-9 col-xl-9 input-falsoComersRight">
                                           <span>En lista</span>
                                         </div>';
-          }
+            }
           $print .=                   '</div>
                                     </div>
                                   </div>
@@ -6881,62 +7084,71 @@ class Report {
                                     <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
                                       <input type="text" name="frenteDe'.$clienteid.'" value="'.$frentede.'" style="width: 100%; text-align: left!important;">
                                     </div>
+                                    <div class="col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                      <label>Notas:</label>
+                                    </div>
+                                    <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
+                                      <input type="text" name="frenteDe'.$clienteid.'" value="'.$notas.'" style="width: 100%; text-align: left!important;">
+                                    </div>
                                   </div>
                                 </div>
                                 <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 centrar paddingT paddingB">
                                   <div class="row">
                                     <ul class="navImg list-inline">';
-          if($fichero_Solicitud <> $buscarFotos){
+            if($fichero_Solicitud <> $buscarFotos){
             $print .=                 '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Solicitud.'" target="_blanck">Solicitud</a></li>';
-          }
-          if($fichero_Politica <> $buscarFotos){
+            }
+            if($fichero_Politica <> $buscarFotos){
             $print .=                 '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Politica  .'" target="_blanck">Política Comercial</a></li>';
-          }
-          if($fichero_Fachada <> $buscarFotos){
+            }
+            if($fichero_Fachada <> $buscarFotos){
             $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Fachada.'" target="_blanck">Fachada</a></li>';
-          }
-          if($fichero_Domicilio <> $buscarFotos){
+            }
+            if($fichero_Domicilio <> $buscarFotos){
             $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Domicilio.'" target="_blanck">Comprobante de Domicilio</a></li>';
-          }
-          if($fichero_INEFre <> $buscarFotos){
+            }
+            if($fichero_INEFre <> $buscarFotos){
             $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INEFre.'" target="_blanck">Credencial de Elector frente</a></li>';
-          }
-          if($fichero_INERev <> $buscarFotos){
+            }
+            if($fichero_INERev <> $buscarFotos){
             $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERev.'" target="_blanck">Credencial de Elector reverso</a></li>';
-          }
-          if($fichero_Cedula <> $buscarFotos){
-            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Cedula.'" target="_blanck">Alta en Hacienda</a></li>';
-          }
-          if($row[30] <> $buscarFotos){
+            }
+            if($fichero_Cedula <> $buscarFotos){
+            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Cedula.'" target="_blanck">Cedula</a></li>';
+            }
+            if($fichero_Hacienda <> $buscarFotos){
+            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Hacienda.'" target="_blanck">Alta en Hacienda</a></li>';
+            }
+            if($row[31] <> $buscarFotos){
             $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Moral.'" target="_blanck">Acta Constitutiva</a></li>';
-          }
-          if($row[31] <> $buscarFotos){
+            }
+            if($row[32] <> $buscarFotos){
             $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Repre.'" target="_blanck">representante Moral</a></li>';
-          }
-          if($row[32] <> $buscarFotos){
+            }
+            if($row[33] <> $buscarFotos){
             $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepF.'" target="_blanck">INE Representante Frente</a></li>';
-          }
-          if($row[33] <> $buscarFotos){
+            }
+            if($row[34] <> $buscarFotos){
             $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepR.'" target="_blanck">INE Representante Reverso</a></li>';
-          }
+            }
           $print .=                 '</ul>
                                   </div>
                                 </div>';
-          if($observacion <> NULL){
+            if($observacion <> NULL){
             $print .=           '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                   <p>Observaciónes anteriores</p>
                                   <div class="form-group">
                                     <textarea class="form-control" rows="2" readonly>'.utf8_encode($observacion).'</textarea>
                                   </div>
                                 </div>';
-          }
-          if($status <> 1){
+            }
+            if($status <> 1){
             $print .=           '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                   <div class=row>
                                     <div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 centrar">';
-            if($status == 2 || $rol == 'cartera'){
+              if($status == 2 || $rol == 'cartera'){
               $print .=               '<button type="button" class="btn btn-outline-danger btn-lg btn-block" onClick="Activar('.$clienteid.')">Mensaje</button>';
-            }
+              }
             $linkEnviarComentario = "EnviarObservacion($clienteid, $perid, '$rol')";
             $print .=               '</div>
                                     <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10 comentario" id="comentario'.$clienteid.'">
@@ -6963,13 +7175,13 @@ class Report {
                                     </div>
                                   </div>
                                 </div>';
+            }
           }
-        }
         $print .=             '</div>
                             </div>';
-      }
       $print .=           '</div>
                         </div>';
+        }
       }
     }else{
       $linkFunctionPersonal = "newCustomer(".$perid.")";
@@ -7001,6 +7213,7 @@ class Report {
       $perid = 0;
     }
 
+    // ../php/agregar/nuevocli.php
     $print = '<div class="container">
               <h4 class="display-4 text-center">Alta de Nuevos Clientes</h4>
               <form enctype="multipart/form-data" action="../php/agregar/nuevocli.php" method="POST">';
@@ -7109,8 +7322,13 @@ class Report {
                   </div>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                     <div class="form-group">
-                      <label>Email</label>
-                      <input type="email" class="form-control" name="inputEmail" id="inputEmail" placeholder="name@example.com">
+                      <select class="form-control" id="selectEmail" onChange="emailEvento(event)" required>
+                        <option>Email?</option>
+                        <option value="1">Si</option>
+                        <option value="0">No</option>
+                      </select>
+                      <input type="email" class="form-control" name="inputEmailSi" id="inputEmailSi" placeholder="name@example.com">
+                      <input type="email" class="form-control" name="inputEmailNo" id="inputEmailNo" value="cnmfmo@gmail.com" readonly>
                     </div>
                   </div>
                 </div>
@@ -7125,7 +7343,8 @@ class Report {
                     <div class="form-group">
                       <label>Días de Crédito</label>
                       <select class="form-control" name="selectDiasCredito" id="selectDiasCredito" required>
-                        <option>Selecciona...</option>
+                        <option value="1">Selecciona...</option>
+                        <option value="0">Cliente de Contado</option>
                         <option value="7">7</option>
                         <option value="13">13</option>
                         <option value="21">21</option>
@@ -7181,6 +7400,10 @@ class Report {
                   <label>Frente de</label>
                   <textarea class="form-control" name="textareaFrente" id="textareaFrente" rows="3" required></textarea>
                 </div>
+                <div class="form-group">
+                  <label>Notas:</label>
+                  <textarea class="form-control" name="textareaNota" id="textareaNota" rows="3"></textarea>
+                </div>
                 <div class="row text-center">
                   <h4>Favor de subir imagenes preliminares para poder empezar con la verificación con el cliente y poder autorizar su línea de crédito</h4>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
@@ -7219,10 +7442,16 @@ class Report {
                       <input type="file" class="btn btn-warning form-control-file" name="imgINERev" id="imgINERev" required>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                     <div class="form-group">
                       <label>Cedula Fiscal</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgCedula" id="imgCedula" required>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgCedula" id="imgCedula">
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group">
+                      <label>Alta Hacienda</label>
+                      <input type="file" class="btn btn-warning form-control-file" name="imgHacienda" id="imgHacienda">
                     </div>
                   </div>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
@@ -7253,20 +7482,8 @@ class Report {
                 <script>
                   document.getElementById("Factura").style.display = "none";
                   document.getElementById("NoFactura").style.display = "none";
-                  function factura(event){
-                    var decision = parseInt(event.path[0].value);
-                    if(decision == 0){
-                      document.getElementById("NoFactura").style.display = "inline";
-                      document.getElementById("Factura").style.display = "none";
-                      $("#inputFRCSi").removeAttr("required");
-                      $("#inputAltaHaciendaSi").removeAttr("required");
-                    } else if(decision == 1){
-                      document.getElementById("Factura").style.display = "inline";
-                      document.getElementById("NoFactura").style.display = "none";
-                      $("#inputFRCNo").removeAttr("required");
-                      $("#inputAltaHaciendaNo").removeAttr("required");
-                    }
-                  }
+                  document.getElementById("inputEmailSi").style.display = "none";
+                  document.getElementById("inputEmailNo").style.display = "none";
                 </script>
                 <div class="form-group">';
     $print .=     "<button type='submit' class='btn btn-success btn-lg btn-block' id='autoriza' onClick='enviarEmail($perid)'>Subir</button>";
