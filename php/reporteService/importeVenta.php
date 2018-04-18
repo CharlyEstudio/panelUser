@@ -18,9 +18,7 @@
                                 AND fecha >= '".$fecInicio."' 
                                 )
                             AND tipo = 'F'
-                            AND serie NOT LIKE 'CH'
-                            AND subtotal2 > 0
-                            AND FECCAN = 0";
+                            AND serie NOT LIKE 'CH'";
     $resultQueryMes = mysqli_query($getConnection, $queryVtaMes);
     $qVtaMes = mysqli_fetch_array($resultQueryMes);
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS

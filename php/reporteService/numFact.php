@@ -17,13 +17,14 @@
                                         d.fecha <= '".$fecFinal."'
                                         AND d.fecha >= '".$fecInicio."'
                                     )
-                                AND tipo = 'F'
-                                AND serie NOT LIKE 'CH'
+                                AND d.tipo = 'F'
+                                AND d.serie NOT LIKE 'CH'
                                 AND d.subtotal2 > 0
                                 AND d.FECCAN = 0";
     $ajaxPedidosFacturar = mysqli_query($getConnection, $buscarPedidosFacturarAjax);
-    $pedidosFacturarAjax = mysqli_num_rows($ajaxPedidosFacturar);
+    $pedidosFacturarAjax = mysqli_fetch_row($ajaxPedidosFacturar);
+    $PedFacturados = $pedidosFacturarAjax[0];
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-    $numFact = $pedidosFacturarAjax;
+    $numFact = $PedFacturados;
     echo $numFact;
 ?>

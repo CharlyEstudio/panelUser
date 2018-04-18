@@ -18,9 +18,7 @@
                                         AND d.fecha <= '".$fecFinal."'
                                     )
                                 AND tipo = 'F'
-                                AND serie NOT LIKE 'CH'
-                                AND d.subtotal2 > 0
-                                AND d.FECCAN = 0";
+                                AND serie NOT LIKE 'CH'";
     $ajaxPedidosFactura = mysqli_query($getConnection, $buscarPedidosFacturaAjax);
     $pedidosFacturaAjax =mysqli_fetch_array($ajaxPedidosFactura);
     $sumFactura = "$ ".number_format($pedidosFacturaAjax["TotalPed"], 2, '.',',')."*";

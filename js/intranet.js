@@ -1,4 +1,5 @@
 $(document).ready(load);
+// javascript:location.reload();
 
 // NOTE public access to functions on js/validations/validation
 function load() {
@@ -164,7 +165,6 @@ function tipoCompraCustomer(event){
   } else if(comprar == 2){
     document.getElementById("imgINEFre").setAttribute("required", "required");
     document.getElementById("imgINERev").setAttribute("required", "required");
-    document.getElementById("imgCedula").setAttribute("required", "required");
     document.getElementById("inputCantidadCredito").value = 9000;
     document.getElementById("inputCantidadCredito").setAttribute("readonly", "true");
     document.getElementById("selectDiasCredito").value = 1;
@@ -884,6 +884,61 @@ function showMorosidad(perid, tiempoMor) {
   });
 }
 
+function backOrderReng(proveedor){
+  console.log("El ID del Proveedor es: " + proveedor);
+  var url = '../php/report/report.php';
+  var dataSend = {};
+  dataSend.data = 'empty';
+  dataSend.proveedor = proveedor;
+  dataSend.location = 'showBackOrderReng';
+  dataSend.userLocation = 'reports-partner'; // to identity kind of user
+  // load data in div #information
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    url: url,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      $('#page-wrapper').html(data);
+    },
+    error: function(err) {
+      showMessage('error', 'Ha ocurrido un error, intentar nuevamente ó contactar al administrador');
+    }
+  });
+}
+
+function showBackOrderActual() {
+  // console.log("Entramos a Show Back Order");
+  var url = '../php/report/report.php';
+  var dataSend = {};
+  dataSend.data = 'empty';
+  dataSend.location = 'showBackOrderActual';
+  dataSend.userLocation = 'reports-partner'; // to identity kind of user
+  // load data in div #information
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    url: url,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      $('#page-wrapper').html(data);
+    },
+    error: function(err) {
+      showMessage('error', 'Ha ocurrido un error, intentar nuevamente ó contactar al administrador');
+    }
+  });
+}
+
 function showDetail(pedidoID) {
   if(typeof pedidoID === 'undefined') return false;
   //console.log(pedidoID);
@@ -1027,6 +1082,34 @@ function newCustomer(perid) {
   });
 }
 
+function Modificar(clienteid, perid) {
+  // console.log("Ingresamos a modificar Clientes, con el cliente id: "+ clienteid);
+  var url = '../php/report/report.php';
+  var dataSend = {};
+  dataSend.data = 'empty';
+  dataSend.location = 'getModCustomer';
+  dataSend.perid = perid;
+  dataSend.clienteid = clienteid;
+  dataSend.section = 'reports-partner';
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    url: url,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      $('#page-wrapper').html(data);
+    },
+    error: function(err) {
+      showMessage('error', 'Ha ocurrido un error, intentar nuevamente ó contactar al administrador');
+    }
+  });
+}
+
 function showClientesNuevos() {
   // console.log("Ingresamos a Clientes Nuevos");
   var url = '../php/report/report.php';
@@ -1150,6 +1233,12 @@ function showInformation(location) {
       dataSend.location = 'getReportService';
       dataSend.section = 'reports-partner';
       break;
+    case 'backOrder':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getBackOrder';
+      dataSend.section = 'reports-partner';
+      break;
     case 'dashBoardCartera':
       url = '../php/report/report.php';
       dataSend.data = 'empty';
@@ -1160,6 +1249,12 @@ function showInformation(location) {
       url = '../php/report/report.php';
       dataSend.data = 'empty';
       dataSend.location = 'getDashBoardDireccion';
+      dataSend.section = 'reports-partner';
+      break;
+    case 'dashBoardAsesor':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getDashBoardAsesor';
       dataSend.section = 'reports-partner';
       break;
     case 'dashBoardVendedores':
@@ -1332,53 +1427,186 @@ function validateMaxLength() {
 }
 
 function buscarReporteServicio(){
-  var fecInicio = document.getElementById("fecInicio").value;
-  var fecFinal = document.getElementById("fecFinal").value;
+  // var fecInicio = document.getElementById("fecInicio").value;
+  // var fecFinal = document.getElementById("fecFinal").value;
   
   // console.log(fecInicio, fecFinal);
 
   // Se busca el numero de pedidos dentro el rango que se manda de Jquery
-  $.post("../php/reporteService/numPed.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numPed){
-    $("#numPed").text(numPed);
-  });
+  // $.post("../php/reporteService/numPed.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numPed){
+  //   $("#numPed").text(numPed);
+  //   document.getElementById("numPed").style.color = "#4fe675";
+  // });
 
-  // Se busca el importe de ventas dentro el rango que se manda de Jquery
-  $.post("../php/reporteService/importeVenta.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(importeVenta){
-    $("#importeVenta").text(importeVenta);
-  });
+  // // Se busca el importe de ventas dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/importeVenta.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(importeVenta){
+  //   $("#importeVenta").text(importeVenta);
+  //   document.getElementById("importeVenta").style.color = "#4fe675";
+  // });
 
-  // Se busca el importe de ventas de zona1 dentro el rango que se manda de Jquery
-  $.post("../php/reporteService/zona1.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(zona1){
-    $("#zona1").text(zona1);
-  });
+  // // Se busca el importe de ventas de zona1 dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/zona1.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(zona1){
+  //   $("#zona1").text(zona1);
+  //   document.getElementById("zona1").style.color = "#4fe675";
+  // });
 
-  // Se busca el importe de ventas de zona2 dentro el rango que se manda de Jquery
-  $.post("../php/reporteService/zona2.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(zona2){
-    $("#zona2").text(zona2);
-  });
+  // // Se busca el importe de ventas de zona2 dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/zona2.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(zona2){
+  //   $("#zona2").text(zona2);
+  //   document.getElementById("zona2").style.color = "#4fe675";
+  // });
 
-  // Se busca el importe de ventas de especiales dentro el rango que se manda de Jquery
-  $.post("../php/reporteService/especiales.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(especiales){
-    $("#especiales").text(especiales);
-  });
+  // // Se busca el importe de ventas de especiales dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/especiales.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(especiales){
+  //   $("#especiales").text(especiales);
+  //   document.getElementById("especiales").style.color = "#4fe675";
+  // });
 
-  // Se busca el importe de ventas de numFact dentro el rango que se manda de Jquery
-  $.post("../php/reporteService/numFact.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numFact){
-    $("#numFact").text(numFact);
-  });
+  // // Se busca el importe de ventas de numFact dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/numFact.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numFact){
+  //   $("#numFact").text(numFact);
+  //   document.getElementById("numFact").style.color = "#4fe675";
+  // });
 
-  // Se busca el importe de ventas de impoFact dentro el rango que se manda de Jquery
-  $.post("../php/reporteService/impoFact.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(impoFact){
-    $("#impoFact").text(impoFact);
-  });
+  // // Se busca el importe de ventas de impoFact dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/impoFact.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(impoFact){
+  //   $("#impoFact").text(impoFact);
+  //   document.getElementById("impoFact").style.color = "#4fe675";
+  // });
 
-  // Se busca el importe de ventas de numCancelados dentro el rango que se manda de Jquery
-  $.post("../php/reporteService/numCancelados.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numCancelados){
-    $("#numCancelados").text(numCancelados);
-  });
+  // // Se busca el importe de ventas de numCancelados dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/numCancelados.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numCancelados){
+  //   $("#numCancelados").text(numCancelados);
+  //   document.getElementById("numCancelados").style.color = "#4fe675";
+  // });
 
-  // Se busca el importe de ventas de impoCancelados dentro el rango que se manda de Jquery
-  $.post("../php/reporteService/impoCancelados.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(impoCancelados){
-    $("#impoCancelados").text(impoCancelados);
-  });
+  // // Se busca el importe de ventas de impoCancelados dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/impoCancelados.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(impoCancelados){
+  //   $("#impoCancelados").text(impoCancelados);
+  //   document.getElementById("impoCancelados").style.color = "#4fe675";
+  // });
+
+  // // Se busca el importe de ventas de subtotalPedidos dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/subtotalPedidos.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(subtotalPedidos){
+  //   $("#subtotalPedidos").text(subtotalPedidos);
+  //   document.getElementById("subtotalPedidos").style.color = "#4fe675";
+  // });
+
+  // // Se busca el importe de ventas de ivaPedidos dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/ivaPedidos.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(ivaPedidos){
+  //   $("#ivaPedidos").text(ivaPedidos);
+  //   document.getElementById("ivaPedidos").style.color = "#4fe675";
+  // });
+
+  // // Se busca el importe de ventas de pedidosTotal dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/pedidosTotal.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(pedidosTotal){
+  //   $("#pedidosTotal").text(pedidosTotal);
+  //   document.getElementById("pedidosTotal").style.color = "#4fe675";
+  // });
+
+  // // Se busca el importe de ventas de nsEstimadoGen dentro el rango que se manda de Jquery
+  // $.post("../php/reporteService/nsEstimadoGen.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(nsEstimadoGen){
+  //   $("#nsEstimadoGen").text(nsEstimadoGen);
+  //   document.getElementById("nsEstimadoGen").style.color = "#4fe675";
+  // });
+
+  var fecInicio = document.getElementById("fecInicio").value;
+  var fecFinal = document.getElementById("fecFinal").value;
+  // console.log(fecInicio, fecFinal)
+  var dataSend = {};
+  dataSend.fecInicio = fecInicio;
+  dataSend.fecFinal = fecFinal;
+
+  // console.log(dataSend);
+
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      // console.log(fecInicio, fecFinal);
+      // Se busca el numero de pedidos dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/numPed.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numPed){
+        $("#numPed").text(numPed);
+        document.getElementById("numPed").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/importeVenta.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(importeVenta){
+        $("#importeVenta").text(importeVenta);
+        document.getElementById("importeVenta").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas de zona1 dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/zona1.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(zona1){
+        $("#zona1").text(zona1);
+        document.getElementById("zona1").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas de zona2 dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/zona2.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(zona2){
+        $("#zona2").text(zona2);
+        document.getElementById("zona2").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas de especiales dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/especiales.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(especiales){
+        $("#especiales").text(especiales);
+        document.getElementById("especiales").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas de numFact dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/numFact.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numFact){
+        $("#numFact").text(numFact);
+        document.getElementById("numFact").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas de impoFact dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/impoFact.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(impoFact){
+        $("#impoFact").text(impoFact);
+        document.getElementById("impoFact").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas de numCancelados dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/numCancelados.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(numCancelados){
+        $("#numCancelados").text(numCancelados);
+        document.getElementById("numCancelados").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas de impoCancelados dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/impoCancelados.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(impoCancelados){
+        $("#impoCancelados").text(impoCancelados);
+        document.getElementById("impoCancelados").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas de subtotalPedidos dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/subtotalPedidos.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(subtotalPedidos){
+        $("#subtotalPedidos").text(subtotalPedidos);
+        document.getElementById("subtotalPedidos").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas de ivaPedidos dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/ivaPedidos.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(ivaPedidos){
+        $("#ivaPedidos").text(ivaPedidos);
+        document.getElementById("ivaPedidos").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas de pedidosTotal dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/pedidosTotal.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(pedidosTotal){
+        $("#pedidosTotal").text(pedidosTotal);
+        document.getElementById("pedidosTotal").style.color = "#4fe675";
+      });
+
+      // Se busca el importe de ventas de nsEstimadoGen dentro el rango que se manda de Jquery
+      $.post("../php/reporteService/nsEstimadoGen.php", {fecInicio: fecInicio, fecFinal: fecFinal}, function(nsEstimadoGen){
+        $("#nsEstimadoGen").text(nsEstimadoGen);
+        document.getElementById("nsEstimadoGen").style.color = "#4fe675";
+      });
+    }
+  })
 }

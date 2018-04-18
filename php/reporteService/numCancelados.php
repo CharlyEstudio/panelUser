@@ -8,23 +8,24 @@
     $fecInicio = $_POST['fecInicio'];
     $fecFinal = $_POST['fecFinal'];
 
-    $importeVenta = 0;
+    $numCancelados = 0;
 
     // Pedidos y ventas por Cancelados del día
-    $queryPedDiaCancelacion = "SELECT count(docid)
+    $queryPedDiaCancelacion = "SELECT count(d.docid)
                             FROM doc d
                             WHERE (
                                         d.fecha >= '".$fecInicio."'
                                         AND d.fecha <= '".$fecFinal."'
                                     )
-                              AND estado = 'C'";
+                              AND d.estado = 'C'";
     $resultQueryDiaCancelacion = $getConnection->query($queryPedDiaCancelacion);
     $numPedDiaCancelacion = mysqli_num_rows($resultQueryDiaCancelacion);
     if($numPedDiaCancelacion === NULL){
       $PedCancelacion = 0;
     } else {
       //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $PedCancelacion = $numPedDiaCancelacion;
+      $rowsCancelados = mysqli_fetch_row($resultQueryDiaCancelacion);
+      $PedCancelacion = $rowsCancelados[0];
     }
     
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS

@@ -95,7 +95,7 @@ $insertar       = "INSERT INTO nuevoscli(NOMBRE, COMERCIAL, RFC, FECALTA, DIRECC
                     IMGSOLICITUD, IMGPOLITICA, IMGFACHADA, IMGDOM, IMGINEFRE, IMGINEREV, IMGCEDULA, IMGHACIENDA, MORAL, REPRESENTANTE,
                     INEREPF, INEREPR, NOTAS)
                         VALUES ('$nombre','$comercial','$rfc',$fecalta,'$direccion',$cp,'$colonia',
-                        '$ciudad',$tel,$cel,'$email',$credito,$diascred,'$metpag','$hacerped',
+                        '$ciudad','$tel','$cel','$email',$credito,$diascred,'$metpag','$hacerped',
                         '$recibirped',$mlocal,'$tlocal','$ladode','$frentede',$vendedorid, '$activo','$fichero_Solicitud',
                         '$fichero_Politica', '$fichero_Fachada', '$fichero_Domicilio','$fichero_INEFre',
                         '$fichero_INERev','$fichero_Cedula','$fichero_Hacienda','$fichero_Moral',

@@ -7,20 +7,21 @@
 
     $fecInicio = $_POST['fecInicio'];
     $fecFinal = $_POST['fecFinal'];
-    // $numPed = $fecInicio . ' - ' . $fecFinal;
-    $numPed = 0;
+
+    $subtotalPedidos = 0;
 
     //Se hace la busqueda de ventas totales del Dia
-    $buscarPedidosAjax = "SELECT d.docid
+    $buscarPedidosAjax = "SELECT  SUM((SELECT (d.SUBTOTAL2 + d.SUBTOTAL1) FROM DUAL)) AS TotalPed
                             FROM doc d
                             WHERE (
                                         d.fecha >= '".$fecInicio."'
-                                        AND d.fecha <='".$fecFinal."'
+                                        AND d.fecha <= '".$fecFinal."'
                                     )
                                 AND d.tipo = 'C'";
     $ajaxPedidos = mysqli_query($getConnection, $buscarPedidosAjax);
-    $pedidosAjax = mysqli_num_rows($ajaxPedidos);
-    // TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-    $numPed = $pedidosAjax;
-    echo $numPed;
+    $pedidosAjax =mysqli_fetch_array($ajaxPedidos);
+    $sumBaja = "$ ".number_format($pedidosAjax["TotalPed"], 2, '.',',');
+    //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+    $subtotalPedidos = $sumBaja;
+    echo $subtotalPedidos;
 ?>

@@ -1,82 +1,3 @@
-<?php
-require('../classes/PHPMailer/class.phpmailer.php');
-require('../classes/PHPMailer/class.smtp.php');
-require_once("../class.database.php");
-require_once("../functions/util.php");
-
-$paramDb = new Database();
-$getConnection = $paramDb->GetLink();
-$mysqliCon      = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
-
-$clienteid      = $_POST['clienteid'];
-$vendedorid     = $_POST['vendedorid'];
-// var_dump($_POST);
-
-$buscarVendedor = "SELECT nombre FROM per WHERE perid = $vendedorid";
-$vendedorEncontrado = mysqli_query($getConnection, $buscarVendedor);
-$row = mysqli_fetch_array($vendedorEncontrado);
-$nombreVendedor = $row["nombre"];
-// var_dump($nombreVendedor,$vendedorid);
-
-$buscarEmailVendedor = "SELECT correo FROM vendedores WHERE vendedorid = $vendedorid";
-$EmailEncontrado = mysqli_query($mysqliCon, $buscarEmailVendedor);
-$rowEmail = mysqli_fetch_array($EmailEncontrado);
-$emailVendedor = $rowEmail["correo"];
-// var_dump($emailVendedor);
-
-$buscamosDatos = "SELECT * FROM nuevoscli WHERE clienteid = $clienteid and vendedorid = $vendedorid";
-$DatosEncontrado = mysqli_query($mysqliCon, $buscamosDatos);
-$rowDatos = mysqli_fetch_row($DatosEncontrado);
-// var_dump($rowDatos);
-
-$clienteid          = $rowDatos[0];
-$nombre             = utf8_encode($rowDatos[1]);
-$comercial          = utf8_encode($rowDatos[2]);
-$rfc                = $rowDatos[3];
-$fecalta            = $rowDatos[4];
-$direccion          = utf8_encode($rowDatos[5]);
-$cp                 = $rowDatos[6];
-$colonia            = utf8_encode($rowDatos[7]);
-$ciudad             = utf8_encode($rowDatos[8]);
-$tel                = $rowDatos[9];
-$cel                = $rowDatos[10];
-$email              = utf8_encode($rowDatos[11]);
-$credito            = number_format($rowDatos[12], 2, '.', ',');
-$diascred           = $rowDatos[13];
-$metpag             = $rowDatos[14];
-$hacerped           = utf8_encode($rowDatos[15]);
-$recibirped         = utf8_encode($rowDatos[16]);
-$mlocal             = $rowDatos[17];
-$tlocal             = $rowDatos[18];
-$ladode             = utf8_encode($rowDatos[19]);
-$frentede           = utf8_encode($rowDatos[20]);
-$notas              = utf8_encode($rowDatos[35]);
-$vendedorid         = $rowDatos[21];
-$activo             = $rowDatos[22];
-$fichero_Solicitud  = $rowDatos[23];
-$fichero_Politica   = $rowDatos[24];
-$fichero_Fachada    = $rowDatos[25];
-$fichero_Domicilio  = $rowDatos[26];
-$fichero_INEFre     = $rowDatos[27];
-$fichero_INERev     = $rowDatos[28];
-$fichero_Cedula     = $rowDatos[29];
-$fichero_Hacienda   = $rowDatos[30];
-$observacion        = $rowDatos[36];
-$status             = $rowDatos[37];
-$buscarFotos = 'docs/';
-if($rowDatos[29] <> $buscarFotos){
-$fichero_Moral      = $rowDatos[31];
-$fichero_Repre      = $rowDatos[32];
-$fichero_INERepF    = $rowDatos[33];
-$fichero_INERepR    = $rowDatos[34];
-} else {
-$fichero_Moral      = 'Sin imagen';
-$fichero_Repre      = 'Sin imagen';
-$fichero_INERepF    = 'Sin imagen';
-$fichero_INERepR    = 'Sin imagen';
-}
-
-$cuerpo = '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html lang="es-Es" xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -1480,19 +1401,19 @@ $cuerpo = '
                                                                     <tbody>
                                                                         <tr>
                                                                             <th scope="col" width="170">Nombre: </th>
-                                                                            <th><b>'.utf8_decode($nombre).'</b></th>
+                                                                            <th><b>'.$nombre.'</b></th>
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">Negocio: </th>
-                                                                            <th><b>'.utf8_decode($comercial).'</b></th>
+                                                                            <th><b>'.$comercial.'</b></th>
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">R.F.C.: </th>
-                                                                            <th><b>'.utf8_decode($rfc).'</b></th>
+                                                                            <th><b>'.$rfc.'</b></th>
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">Direcc&oacute;n: </th>
-                                                                            <th><b>'.utf8_decode($direccion).'</b></th>
+                                                                            <th><b>'.$direccion.'</b></th>
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">C.P.: </th>
@@ -1500,11 +1421,11 @@ $cuerpo = '
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">Colonia: </th>
-                                                                            <th><b>'.utf8_decode($colonia).'</b></th>
+                                                                            <th><b>'.$colonia.'</b></th>
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">Ciudad: </th>
-                                                                            <th><b>'.utf8_decode($ciudad).'</b></th>
+                                                                            <th><b>'.$ciudad.'</b></th>
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">T&eacute;l: </th>
@@ -1516,7 +1437,7 @@ $cuerpo = '
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">Email: </th>
-                                                                            <th><b>'.utf8_decode($email).'</b></th>
+                                                                            <th><b>'.$email.'</b></th>
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">Cr&eacute;dito: </th>
@@ -1532,11 +1453,11 @@ $cuerpo = '
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">Realiza Pedidos: </th>
-                                                                            <th><b>'.utf8_decode($hacerped).'</b></th>
+                                                                            <th><b>'.$hacerped.'</b></th>
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">Recibe Pedidos: </th>
-                                                                            <th><b>'.utf8_decode($recibirped).'</b></th>
+                                                                            <th><b>'.$recibirped.'</b></th>
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">Meidas del local (m2): </th>
@@ -1548,15 +1469,15 @@ $cuerpo = '
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">A lado de: </th>
-                                                                            <th><b>'.utf8_decode($ladode).'</b></th>
+                                                                            <th><b>'.$ladode.'</b></th>
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">Frente de: </th>
-                                                                            <th><b>'.utf8_decode($frentede).'</b></th>
+                                                                            <th><b>'.$frentede.'</b></th>
                                                                         </tr>
                                                                         <tr>
                                                                             <th scope="col">Notas: </th>
-                                                                            <th><b>'.utf8_decode($notas).'</b></th>
+                                                                            <th><b>'.$notas.'</b></th>
                                                                         </tr>
                                                                     </tbody>
                                                                 </table>
@@ -1603,33 +1524,4 @@ $cuerpo = '
         </tr>
     </table>
 </body>
-</html>';
-$mail = new PHPMailer(true); //defaults to using php "mail()"; the true param means it will throw exceptions on errors, which we need to catch
-try {
-    $mail->SetFrom('mmontes@ferremayoristas.com.mx', 'CREDITO Y COBRANZA');
-    $mail->AddAddress('vleal@ferremayoristas.com.mx', 'Victor Leal');
-    // $mail->AddAddress('mmontes@ferremayoristas.com.mx', 'CREDITO Y COBRANZA');
-    $mail->AddAddress($emailVendedor, $nombreVendedor);
-    $mail->AddAddress('contacto@ferremayoristas.com.mx', 'Carlos Ramírez');
-    $mail->IsHTML(true);
-    $mail->Subject = utf8_decode('CLIENTE AUTORIZADO PARA ALTA EN FERRUM');
-    $mail->Body = $cuerpo;
-    $mail->Send();
-} catch (Exception $mail) {
-}
-$activo         = 'S';
-// $mensaje = $nombre;
-$mensaje = "";
-$update = "UPDATE nuevoscli SET activo = '".$activo."' WHERE clienteid = $clienteid";
-
-if ($mysqliCon->query($update) === TRUE) {
-    $mensaje = "Se ha autorizado la alta de este cliente, ya no estará en lista del Asesor y/o Crédito y Cobranza.";
-} else {
-    $mensaje = "Error al enviar el mensaje, favor de contactar con el administrador del sitio.";
-}
-echo $mensaje;
-$clienteid = 0;
-$vendedorid = 0;
-$mysqliCon->close();
-$getConnection->close();
-?>
+</html>

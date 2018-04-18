@@ -13,7 +13,10 @@
     // Pedidos y ventas por Cancelados del día
     $queryPedDiaCancelacion = "SELECT docid
                             FROM doc
-                            WHERE fecha = '$dia'
+                            WHERE (
+                                    fecha <= '".$fecFinal."'
+                                    AND fecha >= '".$fecInicio."'
+                                  )
                               AND estado = 'C'";
     $resultQueryDiaCancelacion = $getConnection->query($queryPedDiaCancelacion);
     // $qPedDiaCancelacion = mysqli_fetch_row($resultQueryDiaCancelacion);
@@ -29,7 +32,10 @@
         $buscarPartidasCanceladas = "SELECT sum(desventa * descantidad) as SumPedCan
                                       FROM des
                                       where descantidad > 0
-                                      and desfecha = '$dia'
+                                      and (
+                                            desfecha <= '".$fecFinal."'
+                                            AND desfecha >= '".$fecInicio."'
+                                          )
                                       and desdocid = $docid";
         $resultPartidasCanceladas = $getConnection->query($buscarPartidasCanceladas);
         $PartidasCanceladas = mysqli_fetch_array($resultPartidasCanceladas);
@@ -40,6 +46,6 @@
     }
     
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-    $pedidoCancelacionSaldo = $sumCancelacion;
-    echo $pedidoCancelacionSaldo;
+    $impoCancelados = $sumCancelacion;
+    echo $impoCancelados;
 ?>

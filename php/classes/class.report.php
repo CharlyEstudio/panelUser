@@ -20,6 +20,18 @@ class Report {
     $this->getDashBoardDireccion($params);
   }
 
+  public function getterShowBackOrderActual($params) {
+    $this->getShowBackOrderActual($params);
+  }
+
+  public function getterShowBackOrderReng($params) {
+    $this->getShowBackOrderReng($params);
+  }
+
+  public function getterBackOrder($params) {
+    $this->getBackOrder($params);
+  }
+
   public function getterReportService($params) {
     $this->getReportService($params);
   }
@@ -38,6 +50,10 @@ class Report {
 
   public function getterGetReport($params) {
     $this->getReport($params);
+  }
+
+  public function getterGetDashBoardAsesor($params) {
+    $this->getDashBoardAsesor($params);
   }
 
   public function getterGetReporteVendedor($params) {
@@ -231,143 +247,143 @@ class Report {
     //Se hace la busqueda de pedidos y ventas totales del Dia
     $dia  = date("Y-m-d");
 
-    $queryPedDia = "SELECT COUNT(docid) AS Pedidos, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS SubtotalPed, SUM((SELECT (impuesto) FROM DUAL)) AS ImpuestoPed, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1+impuesto) FROM DUAL)) AS TotalPed
-                            FROM doc
-                          WHERE fecha = '$dia'
-                            AND tipo = 'C'";
-    $resultQueryDia = $getConnection->query($queryPedDia);
-    $qPedDia = mysqli_fetch_array($resultQueryDia);
-    if($qPedDia === NULL){
-      $totalPed = 0;
-      $sumPed = 0;
-      $ivaP = 0;
-      $totalP = 0;
-    } else {
-      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $totalPed = $qPedDia["Pedidos"];
-      $sumP = (float)$qPedDia["SubtotalPed"];
-      $sumPed = "$ ".number_format($qPedDia["SubtotalPed"], 2, '.',',');
-      $ivaP = "$ ".number_format($qPedDia["ImpuestoPed"], 2, '.',',');
-      $totalP = "$ ".number_format($qPedDia["TotalPed"], 2, '.',',');
-    }
+    // $queryPedDia = "SELECT COUNT(docid) AS Pedidos, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS SubtotalPed, SUM((SELECT (impuesto) FROM DUAL)) AS ImpuestoPed, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1+impuesto) FROM DUAL)) AS TotalPed
+    //                         FROM doc
+    //                       WHERE fecha = '$dia'
+    //                         AND tipo = 'C'";
+    // $resultQueryDia = $getConnection->query($queryPedDia);
+    // $qPedDia = mysqli_fetch_array($resultQueryDia);
+    // if($qPedDia === NULL){
+    //   $totalPed = 0;
+    //   $sumPed = 0;
+    //   $ivaP = 0;
+    //   $totalP = 0;
+    // } else {
+    //   //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+    //   $totalPed = $qPedDia["Pedidos"];
+    //   $sumP = (float)$qPedDia["SubtotalPed"];
+    //   $sumPed = "$ ".number_format($qPedDia["SubtotalPed"], 2, '.',',');
+    //   $ivaP = "$ ".number_format($qPedDia["ImpuestoPed"], 2, '.',',');
+    //   $totalP = "$ ".number_format($qPedDia["TotalPed"], 2, '.',',');
+    // }
 
     // Pedidos y ventas por Surtir del día
-    $queryPedDiaSurtir = "SELECT COUNT(docid) AS PedidosSurtir, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedSurtir
-                            FROM doc
-                          WHERE fecha = '$dia'
-                            AND tipo = 'N'
-                            AND serie NOT LIKE 'CH'
-                            AND subtotal2 > 0
-                            AND FECCAN = 0";
-    $resultQueryDiaSurtir = $getConnection->query($queryPedDiaSurtir);
-    $qPedDiaSurtir = mysqli_fetch_array($resultQueryDiaSurtir);
-    if($qPedDiaSurtir === NULL){
-      $PedSurt = 0;
-      $sumSurt = 0;
-    } else {
-      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $PedSurt = $qPedDiaSurtir["PedidosSurtir"];
-      $SumSurNs = $qPedDiaSurtir["TotalPedSurtir"];
-      $sumSurt = "$ ".number_format($qPedDiaSurtir["TotalPedSurtir"], 2, '.',',');
-    }
+    // $queryPedDiaSurtir = "SELECT COUNT(docid) AS PedidosSurtir, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedSurtir
+    //                         FROM doc
+    //                       WHERE fecha = '$dia'
+    //                         AND tipo = 'N'
+    //                         AND serie NOT LIKE 'CH'
+    //                         AND subtotal2 > 0
+    //                         AND FECCAN = 0";
+    // $resultQueryDiaSurtir = $getConnection->query($queryPedDiaSurtir);
+    // $qPedDiaSurtir = mysqli_fetch_array($resultQueryDiaSurtir);
+    // if($qPedDiaSurtir === NULL){
+    //   $PedSurt = 0;
+    //   $sumSurt = 0;
+    // } else {
+    //   //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+    //   $PedSurt = $qPedDiaSurtir["PedidosSurtir"];
+    //   $SumSurNs = $qPedDiaSurtir["TotalPedSurtir"];
+    //   $sumSurt = "$ ".number_format($qPedDiaSurtir["TotalPedSurtir"], 2, '.',',');
+    // }
 
     // Pedidos y ventas por Bajar del día
-    $queryPedDiaBajar = "SELECT COUNT(docid) AS PedidosBajar, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedBajar
-                            FROM doc
-                          WHERE fecha = '$dia'
-                            AND tipo = 'C'
-                            AND serie NOT LIKE 'CH'
-                            AND subtotal2 > 0
-                            AND FECCAN = 0
-                            AND estado NOT LIKE 'C'";
-    $resultQueryDiaBajar = $getConnection->query($queryPedDiaBajar);
-    $qPedDiaBajar = mysqli_fetch_array($resultQueryDiaBajar);
-    if($qPedDiaBajar === NULL){
-      $PedBajar = 0;
-      $sumBajar = 0;
-    } else {
-      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $PedBajar = $qPedDiaBajar["PedidosBajar"];
-      $SumaBajNs = $qPedDiaBajar["TotalPedBajar"];
-      $sumBajar = "$ ".number_format($qPedDiaBajar["TotalPedBajar"], 2, '.',',');
-    }
+    // $queryPedDiaBajar = "SELECT COUNT(docid) AS PedidosBajar, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedBajar
+    //                         FROM doc
+    //                       WHERE fecha = '$dia'
+    //                         AND tipo = 'C'
+    //                         AND serie NOT LIKE 'CH'
+    //                         AND subtotal2 > 0
+    //                         AND FECCAN = 0
+    //                         AND estado NOT LIKE 'C'";
+    // $resultQueryDiaBajar = $getConnection->query($queryPedDiaBajar);
+    // $qPedDiaBajar = mysqli_fetch_array($resultQueryDiaBajar);
+    // if($qPedDiaBajar === NULL){
+    //   $PedBajar = 0;
+    //   $sumBajar = 0;
+    // } else {
+    //   //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+    //   $PedBajar = $qPedDiaBajar["PedidosBajar"];
+    //   $SumaBajNs = $qPedDiaBajar["TotalPedBajar"];
+    //   $sumBajar = "$ ".number_format($qPedDiaBajar["TotalPedBajar"], 2, '.',',');
+    // }
 
     // Pedidos y ventas por Factura del día
-    $queryPedDiaFactura = "SELECT COUNT(docid) AS PedidosFactura, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedFactura
-                            FROM doc d
-                            WHERE d.fecha = '$dia'
-                              AND tipo = 'F'
-                              AND serie NOT LIKE 'CH'
-                              AND d.subtotal2 > 0
-                              AND d.FECCAN = 0";
-    $resultQueryDiaFactura = $getConnection->query($queryPedDiaFactura);
-    $qPedDiaFactura = mysqli_fetch_array($resultQueryDiaFactura);
-    if($qPedDiaFactura === NULL){
-      $PedFactura = 0;
-      $sumFactura = 0;
-    } else {
-      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $PedFactura = $qPedDiaFactura["PedidosFactura"];
-      $sumFacNS = $qPedDiaFactura["TotalPedFactura"];
-      $sumFactura = "$ ".number_format($qPedDiaFactura["TotalPedFactura"], 2, '.',',');
-    }
+    // $queryPedDiaFactura = "SELECT COUNT(docid) AS PedidosFactura, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedFactura
+    //                         FROM doc d
+    //                         WHERE d.fecha = '$dia'
+    //                           AND tipo = 'F'
+    //                           AND serie NOT LIKE 'CH'
+    //                           AND d.subtotal2 > 0
+    //                           AND d.FECCAN = 0";
+    // $resultQueryDiaFactura = $getConnection->query($queryPedDiaFactura);
+    // $qPedDiaFactura = mysqli_fetch_array($resultQueryDiaFactura);
+    // if($qPedDiaFactura === NULL){
+    //   $PedFactura = 0;
+    //   $sumFactura = 0;
+    // } else {
+    //   //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+    //   $PedFactura = $qPedDiaFactura["PedidosFactura"];
+    //   $sumFacNS = $qPedDiaFactura["TotalPedFactura"];
+    //   $sumFactura = "$ ".number_format($qPedDiaFactura["TotalPedFactura"], 2, '.',',');
+    // }
 
     //Pedidos y ventas por Cancelados del día
-    $queryPedDiaCancelacion = "SELECT docid
-                            FROM doc
-                            WHERE fecha = '$dia'
-                              AND estado = 'C'";
-    $resultQueryDiaCancelacion = $getConnection->query($queryPedDiaCancelacion);
-    $numPedDiaCancelacion = mysqli_num_rows($resultQueryDiaCancelacion);
-    if($numPedDiaCancelacion === NULL){
-      $PedCancelacion = 0;
-      $sumCancelacion = 0;
-    } else {
-      $sumCan = 0;
-      while($qPedDiaCancelacion = mysqli_fetch_array($resultQueryDiaCancelacion)){
-        $docid = $qPedDiaCancelacion[0];
-        $buscarPartidasCanceladas = "SELECT sum(desventa * descantidad) as SumPedCan
-                                      FROM des
-                                      where descantidad > 0
-                                      and desfecha = '$dia'
-                                      and desdocid = $docid";
-        $resultPartidasCanceladas = $getConnection->query($buscarPartidasCanceladas);
-        $PartidasCanceladas = mysqli_fetch_array($resultPartidasCanceladas);
-        $sumCan = $sumCan + $PartidasCanceladas["SumPedCan"];
-      }
-      $sumCancelacion = '$ '.number_format($sumCan, 2, '.',',');
-      $PedCancelacion = $numPedDiaCancelacion;
-    }
+    // $queryPedDiaCancelacion = "SELECT docid
+    //                         FROM doc
+    //                         WHERE fecha = '$dia'
+    //                           AND estado = 'C'";
+    // $resultQueryDiaCancelacion = $getConnection->query($queryPedDiaCancelacion);
+    // $numPedDiaCancelacion = mysqli_num_rows($resultQueryDiaCancelacion);
+    // if($numPedDiaCancelacion === NULL){
+    //   $PedCancelacion = 0;
+    //   $sumCancelacion = 0;
+    // } else {
+    //   $sumCan = 0;
+    //   while($qPedDiaCancelacion = mysqli_fetch_array($resultQueryDiaCancelacion)){
+    //     $docid = $qPedDiaCancelacion[0];
+    //     $buscarPartidasCanceladas = "SELECT sum(desventa * descantidad) as SumPedCan
+    //                                   FROM des
+    //                                   where descantidad > 0
+    //                                   and desfecha = '$dia'
+    //                                   and desdocid = $docid";
+    //     $resultPartidasCanceladas = $getConnection->query($buscarPartidasCanceladas);
+    //     $PartidasCanceladas = mysqli_fetch_array($resultPartidasCanceladas);
+    //     $sumCan = $sumCan + $PartidasCanceladas["SumPedCan"];
+    //   }
+    //   $sumCancelacion = '$ '.number_format($sumCan, 2, '.',',');
+    //   $PedCancelacion = $numPedDiaCancelacion;
+    // }
 
     //Sacamos el % de Nivel de Servicio General
     // $VentasDiaNs = $sumFacNS + $SumaBajNs + $SumSurNs + $sumCan;
-    $VentasDiaNs = $sumFacNS + $SumaBajNs + $SumSurNs;
-    $divisionVDN = $VentasDiaNs * 100;
-    $ns = bcdiv($divisionVDN,$sumP,2);
+    // $VentasDiaNs = $sumFacNS + $SumaBajNs + $SumSurNs;
+    // $divisionVDN = $VentasDiaNs * 100;
+    // $ns = bcdiv($divisionVDN,$sumP,2);
 
     //Se hace la busqueda de ventas totales del Mes
     $month = date('m');
-    $year = date('Y');
-    $dayVtaTotMes = date("d", mktime(0,0,0, $month+1, 0, $year));
-    $primerDiaMes = date('Y-m-d', mktime(0,0,0, $month, 1, $year));
-    $ultimoDiaMes = date('Y-m-d', mktime(0,0,0, $month, $dayVtaTotMes, $year));
+    // $year = date('Y');
+    // $dayVtaTotMes = date("d", mktime(0,0,0, $month+1, 0, $year));
+    // $primerDiaMes = date('Y-m-d', mktime(0,0,0, $month, 1, $year));
+    // $ultimoDiaMes = date('Y-m-d', mktime(0,0,0, $month, $dayVtaTotMes, $year));
     //RESOLVER LAS VENTAS TOTALES MES
-    $queryVtaMes = "SELECT SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS Total
-                            FROM doc
-                          WHERE (
-                                  fecha <= '$ultimoDiaMes'
-                                  AND fecha >= '$primerDiaMes' 
-                                )
-                            AND tipo = 'F'
-                            AND serie NOT LIKE 'CH'";
-    $resultQueryMes = $getConnection->query($queryVtaMes);
-    $qVtaMes = mysqli_fetch_array($resultQueryMes);
-    if($qVtaMes === NULL){
-      $totalVentaMes = 0;
-    } else {
-      $totalVentaMes = $qVtaMes['Total'];
-    }
-    $formatTotalVentaMes = number_format($totalVentaMes, 2, '.',',');
+    // $queryVtaMes = "SELECT SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS Total
+    //                         FROM doc
+    //                       WHERE (
+    //                               fecha <= '$ultimoDiaMes'
+    //                               AND fecha >= '$primerDiaMes' 
+    //                             )
+    //                         AND tipo = 'F'
+    //                         AND serie NOT LIKE 'CH'";
+    // $resultQueryMes = $getConnection->query($queryVtaMes);
+    // $qVtaMes = mysqli_fetch_array($resultQueryMes);
+    // if($qVtaMes === NULL){
+    //   $totalVentaMes = 0;
+    // } else {
+    //   $totalVentaMes = $qVtaMes['Total'];
+    // }
+    // $formatTotalVentaMes = number_format($totalVentaMes, 2, '.',',');
 
     //Sacamos el mes en que estamos
     switch ($month) {
@@ -456,121 +472,121 @@ class Report {
     $mesAnteriorTo = number_format($vAnt, 2, ".", ",");
 
     //Se hace la busqueda de ventas totales del Mes Zona 1
-    $queryVtaMesZona1 = "SELECT SUM(d.subtotal1 + d.subtotal2) AS Zona1
-                          FROM doc d
-                            JOIN per p ON p.perid = d.vendedorid
-                          WHERE d.tipo = 'F'
-                            AND d.serie NOT LIKE 'CH'
-                            AND p.sermov = 1
-                            AND (
-                                  d.fecha <= '$ultimoDiaMes'
-                                  AND d.fecha >= '$primerDiaMes' 
-                                )";
-    $resultQueryMesZona1 = $getConnection->query($queryVtaMesZona1);
-    $qVtaMesZona1 = mysqli_fetch_array($resultQueryMesZona1);
-    if($qVtaMesZona1 === NULL){
-      $totalVentaMesZona1 = 0;
-    } else {
-      $totalVentaMesZona1 = $qVtaMesZona1['Zona1'];
-    }
-    $formatTotalVentaMesZona1 = number_format($totalVentaMesZona1, 2, '.',',');
+    // $queryVtaMesZona1 = "SELECT SUM(d.subtotal1 + d.subtotal2) AS Zona1
+    //                       FROM doc d
+    //                         JOIN per p ON p.perid = d.vendedorid
+    //                       WHERE d.tipo = 'F'
+    //                         AND d.serie NOT LIKE 'CH'
+    //                         AND p.sermov = 1
+    //                         AND (
+    //                               d.fecha <= '$ultimoDiaMes'
+    //                               AND d.fecha >= '$primerDiaMes' 
+    //                             )";
+    // $resultQueryMesZona1 = $getConnection->query($queryVtaMesZona1);
+    // $qVtaMesZona1 = mysqli_fetch_array($resultQueryMesZona1);
+    // if($qVtaMesZona1 === NULL){
+    //   $totalVentaMesZona1 = 0;
+    // } else {
+    //   $totalVentaMesZona1 = $qVtaMesZona1['Zona1'];
+    // }
+    // $formatTotalVentaMesZona1 = number_format($totalVentaMesZona1, 2, '.',',');
 
     //Se hace la busqueda de ventas totales del Mes Zona 2
-    $queryVtaMesZona2 = "SELECT SUM(d.subtotal1 + d.subtotal2) AS Zona2
-                          FROM doc d
-                            JOIN per p ON p.perid = d.vendedorid
-                          WHERE d.tipo = 'F'
-                            AND d.serie NOT LIKE 'CH'
-                            AND p.sermov = 2
-                            AND (
-                                  d.fecha <= '$ultimoDiaMes'
-                                  AND d.fecha >= '$primerDiaMes' 
-                                )";
-    $resultQueryMesZona2 = $getConnection->query($queryVtaMesZona2);
-    $qVtaMesZona2 = mysqli_fetch_array($resultQueryMesZona2);
-    if($qVtaMesZona2 === NULL){
-      $totalVentaMesZona2 = 0;
-    } else {
-      $totalVentaMesZona2 = $qVtaMesZona2['Zona2'];
-    }
-    $formatTotalVentaMesZona2 = number_format($totalVentaMesZona2, 2, '.',',');
+    // $queryVtaMesZona2 = "SELECT SUM(d.subtotal1 + d.subtotal2) AS Zona2
+    //                       FROM doc d
+    //                         JOIN per p ON p.perid = d.vendedorid
+    //                       WHERE d.tipo = 'F'
+    //                         AND d.serie NOT LIKE 'CH'
+    //                         AND p.sermov = 2
+    //                         AND (
+    //                               d.fecha <= '$ultimoDiaMes'
+    //                               AND d.fecha >= '$primerDiaMes' 
+    //                             )";
+    // $resultQueryMesZona2 = $getConnection->query($queryVtaMesZona2);
+    // $qVtaMesZona2 = mysqli_fetch_array($resultQueryMesZona2);
+    // if($qVtaMesZona2 === NULL){
+    //   $totalVentaMesZona2 = 0;
+    // } else {
+    //   $totalVentaMesZona2 = $qVtaMesZona2['Zona2'];
+    // }
+    // $formatTotalVentaMesZona2 = number_format($totalVentaMesZona2, 2, '.',',');
 
     //Se hace la busqueda de ventas totales del Mes Especiales
-    $queryVtaMesEspeciales = "SELECT SUM(d.subtotal1 + d.subtotal2) AS Especiales
-                                FROM doc d
-                                  JOIN per p ON p.perid = d.vendedorid
-                                WHERE d.tipo = 'F'
-                                  AND d.serie NOT LIKE 'CH'
-                                  AND (
-                                        p.perid = 16
-                                        OR p.perid = 20
-                                        OR p.perid = 21
-                                        OR p.perid = 145
-                                        OR p.perid = 152
-                                      )
-                                  AND (
-                                        d.fecha <= '$ultimoDiaMes'
-                                        AND d.fecha >= '$primerDiaMes' 
-                                      )";
-    $resultQueryMesEspeciales = $getConnection->query($queryVtaMesEspeciales);
-    $qVtaMesEspeciales = mysqli_fetch_array($resultQueryMesEspeciales);
-    if($qVtaMesEspeciales === NULL){
-      $totalVentaMesEspeciales = 0;
-    } else {
-      $totalVentaMesEspeciales = $qVtaMesEspeciales['Especiales'];
-    }
-    $formatTotalVentaMesEspeciales = number_format($totalVentaMesEspeciales, 2, '.',',');
+    // $queryVtaMesEspeciales = "SELECT SUM(d.subtotal1 + d.subtotal2) AS Especiales
+    //                             FROM doc d
+    //                               JOIN per p ON p.perid = d.vendedorid
+    //                             WHERE d.tipo = 'F'
+    //                               AND d.serie NOT LIKE 'CH'
+    //                               AND (
+    //                                     p.perid = 16
+    //                                     OR p.perid = 20
+    //                                     OR p.perid = 21
+    //                                     OR p.perid = 145
+    //                                     OR p.perid = 152
+    //                                   )
+    //                               AND (
+    //                                     d.fecha <= '$ultimoDiaMes'
+    //                                     AND d.fecha >= '$primerDiaMes' 
+    //                                   )";
+    // $resultQueryMesEspeciales = $getConnection->query($queryVtaMesEspeciales);
+    // $qVtaMesEspeciales = mysqli_fetch_array($resultQueryMesEspeciales);
+    // if($qVtaMesEspeciales === NULL){
+    //   $totalVentaMesEspeciales = 0;
+    // } else {
+    //   $totalVentaMesEspeciales = $qVtaMesEspeciales['Especiales'];
+    // }
+    // $formatTotalVentaMesEspeciales = number_format($totalVentaMesEspeciales, 2, '.',',');
 
     // Cartera TOTAL
-    $getCarteraTo = "SELECT
-                  SUM(d.total - d.totalpagado) as TotalCartera
-                  FROM doc d
-                  WHERE d.total > d.totalpagado
-                    AND d.tipo = 'F'
-                    AND (
-                          (SELECT DATEDIFF(d.vence, '".$dia."')) < 0
-                          OR (SELECT DATEDIFF(d.vence, '".$dia."')) > 0
-                        )";
-    $resultGetCarteraTo = mysqli_query($getConnection,$getCarteraTo);
-    $rowCarteraTo = mysqli_fetch_array($resultGetCarteraTo);
-    if($rowCarteraTo === NULL){
-      $CarteraToF = 0;
-    } else {
-      $CarteraToF = $rowCarteraTo["TotalCartera"];
-    }
-    $CarteraTo = number_format($CarteraToF, 2, ".", ",");
+    // $getCarteraTo = "SELECT
+    //               SUM(d.total - d.totalpagado) as TotalCartera
+    //               FROM doc d
+    //               WHERE d.total > d.totalpagado
+    //                 AND d.tipo = 'F'
+    //                 AND (
+    //                       (SELECT DATEDIFF(d.vence, '".$dia."')) < 0
+    //                       OR (SELECT DATEDIFF(d.vence, '".$dia."')) > 0
+    //                     )";
+    // $resultGetCarteraTo = mysqli_query($getConnection,$getCarteraTo);
+    // $rowCarteraTo = mysqli_fetch_array($resultGetCarteraTo);
+    // if($rowCarteraTo === NULL){
+    //   $CarteraToF = 0;
+    // } else {
+    //   $CarteraToF = $rowCarteraTo["TotalCartera"];
+    // }
+    // $CarteraTo = number_format($CarteraToF, 2, ".", ",");
 
     // Morosidad TOTAL.
-    $getMorosidad = "SELECT
-                  SUM(d.totalpagado - d.total) as TotalDeuda
-                  FROM doc d
-                  WHERE d.total > d.totalpagado
-                    AND d.tipo = 'F'
-                    AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
-    $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
-    $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
-    if($rowMorosidad === NULL){
-      $MorosidadF = 0;
-    } else {
-      $MorosidadF = $rowMorosidad["TotalDeuda"]*(-1);
-    }
-    $Morosidad = number_format($MorosidadF, 2, ".", ",");
+    // $getMorosidad = "SELECT
+    //               SUM(d.totalpagado - d.total) as TotalDeuda
+    //               FROM doc d
+    //               WHERE d.total > d.totalpagado
+    //                 AND d.tipo = 'F'
+    //                 AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+    // $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
+    // $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
+    // if($rowMorosidad === NULL){
+    //   $MorosidadF = 0;
+    // } else {
+    //   $MorosidadF = $rowMorosidad["TotalDeuda"]*(-1);
+    // }
+    // $Morosidad = number_format($MorosidadF, 2, ".", ",");
 
     // Cartera Sana TOTAL.
-    $getCarteraSana = "SELECT
-                  SUM(d.total - d.totalpagado) as TotalCarteraSana
-                  FROM doc d
-                  WHERE d.total > d.totalpagado
-                    AND d.tipo = 'F'
-                    AND (SELECT DATEDIFF(d.vence, '".$dia."')) > 0";
-    $resultGetCarteraSana = mysqli_query($getConnection,$getCarteraSana);
-    $rowCarteraSana = mysqli_fetch_array($resultGetCarteraSana);
-    if($rowCarteraSana === NULL){
-      $CarteraSanaF = 0;
-    } else {
-      $CarteraSanaF = $rowCarteraSana["TotalCarteraSana"];
-    }
-    $CarteraSana = number_format($CarteraSanaF, 2, ".", ",");
+    // $getCarteraSana = "SELECT
+    //               SUM(d.total - d.totalpagado) as TotalCarteraSana
+    //               FROM doc d
+    //               WHERE d.total > d.totalpagado
+    //                 AND d.tipo = 'F'
+    //                 AND (SELECT DATEDIFF(d.vence, '".$dia."')) > 0";
+    // $resultGetCarteraSana = mysqli_query($getConnection,$getCarteraSana);
+    // $rowCarteraSana = mysqli_fetch_array($resultGetCarteraSana);
+    // if($rowCarteraSana === NULL){
+    //   $CarteraSanaF = 0;
+    // } else {
+    //   $CarteraSanaF = $rowCarteraSana["TotalCarteraSana"];
+    // }
+    // $CarteraSana = number_format($CarteraSanaF, 2, ".", ",");
 
     //Facturas Vencidas al mes
     $fechaInicioVenc = date('Y-m-01');
@@ -622,7 +638,7 @@ class Report {
       $importeSolicitadoTruperC = $qNsTruperC["importeSolicitadoC"];
     }
 
-    //Sacamos el % de Nivel de Servicio de Truper Tipo F Solicitado
+    // Sacamos el % de Nivel de Servicio de Truper Tipo F Solicitado
     $queryNsTruperSolicitadoF = "SELECT sum((des.descantidad * des.desventa) - ((des.descantidad * des.desventa) * (des.desdescuento / 100))) as importeSolicitadoF
                         FROM des
                           join inv i on i.articuloid = des.desartid
@@ -728,21 +744,21 @@ class Report {
     }
 
     //Sacamos el % de Nivel de Servicio de FMO Tipo F Solicitado
-    $queryNsFMOSolicitadoF = "SELECT sum((des.descantidad * des.desventa) - ((des.descantidad * des.desventa) * (des.desdescuento / 100))) as importeSolicitadoFMOF
-                        FROM des
-                          join inv i on i.articuloid = des.desartid
-                        where des.desfecha = '$dia'
-                          and des.descantidad > 0
-                          and des.destipo = 'F'
-                          and i.clvprov LIKE '8%'";
-    $resultQueryDiaFMOF = $getConnection->query($queryNsFMOSolicitadoF);
-    $qNsFMOSolicitadoF = mysqli_fetch_array($resultQueryDiaFMOF);
-    if($qNsFMOSolicitadoF === NULL){
-        $importeSolicitadoFMOF = 0;
-    } else {
-      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $importeSolicitadoFMOF = $qNsFMOSolicitadoF["importeSolicitadoFMOF"];
-    }
+    // $queryNsFMOSolicitadoF = "SELECT sum((des.descantidad * des.desventa) - ((des.descantidad * des.desventa) * (des.desdescuento / 100))) as importeSolicitadoFMOF
+    //                     FROM des
+    //                       join inv i on i.articuloid = des.desartid
+    //                     where des.desfecha = '$dia'
+    //                       and des.descantidad > 0
+    //                       and des.destipo = 'F'
+    //                       and i.clvprov LIKE '8%'";
+    // $resultQueryDiaFMOF = $getConnection->query($queryNsFMOSolicitadoF);
+    // $qNsFMOSolicitadoF = mysqli_fetch_array($resultQueryDiaFMOF);
+    // if($qNsFMOSolicitadoF === NULL){
+    //     $importeSolicitadoFMOF = 0;
+    // } else {
+    //   //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+    //   $importeSolicitadoFMOF = $qNsFMOSolicitadoF["importeSolicitadoFMOF"];
+    // }
 
     //Sacamos el % de Nivel de Servicio de FMO Tipo F Entregado
     $queryNsFMOEntregadoF = "SELECT sum((des.desentregado * des.desventa) - ((des.desentregado * des.desventa) * (des.desdescuento / 100))) as importeEntregadoFMOF
@@ -800,19 +816,19 @@ class Report {
     }
 
     // Porcentaje Estimado FMO
-    if($importeSolicitadoFMOC === NULL){
-      $EstimadoFMO = '0.00';
-    }else{
-      $EstimadoT = $importeSolicitadoFMOF * 100;
-      $EstimadoFMO = bcdiv($EstimadoT,$importeSolicitadoFMOC,2);
-    }
+    // if($importeSolicitadoFMOC === NULL){
+    //   $EstimadoFMO = '0.00';
+    // }else{
+    //   $EstimadoT = $importeSolicitadoFMOF * 100;
+    //   $EstimadoFMO = bcdiv($EstimadoT,$importeSolicitadoFMOC,2);
+    // }
     // Porcentaje Real FMO
-    if($importeEntregadoFMON === NULL){
-      $RealFMO = '0.00';
-    }else{
-      $RealT = $importeEntregadoFMOF * 100;
-      $RealFMO = bcdiv($RealT,$importeEntregadoFMON,2);
-    }
+    // if($importeEntregadoFMON === NULL){
+    //   $RealFMO = '0.00';
+    // }else{
+    //   $RealT = $importeEntregadoFMOF * 100;
+    //   $RealFMO = bcdiv($RealT,$importeEntregadoFMON,2);
+    // }
 
     // $linkFunctionPersonal = "showPersonal(".$perid.")";
     $linkFunctionPersonal = "showClientesNuevos()";
@@ -840,17 +856,17 @@ class Report {
                           <tbody>
                             <tr>
                               <th scope="row">PEDIDOS</th>
-                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porbajar" style="cursor:pointer;" onClick="">'.$PedBajar .'</span></td>
-                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porsurtir" style="cursor:pointer;" onClick="showPedidosDia(3)">'.$PedSurt .'</span></td>
-                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porfactura" style="cursor:pointer;" onClick="showPedidosDia(4)">'.$PedFactura .'</span></td>
-                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porCancelacion" style="cursor:pointer;" onClick="showPedidosDia(5)">'.$PedCancelacion .'</span></td>
+                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porbajar" style="cursor:pointer;" onClick="">0</span></td>
+                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porsurtir" style="cursor:pointer;" onClick="showPedidosDia(3)">0</span></td>
+                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porfactura" style="cursor:pointer;" onClick="showPedidosDia(4)">0</span></td>
+                              <td class="text-tomato" style="font-size: 1.7em !important;"><span class="enlaces" id="porCancelacion" style="cursor:pointer;" onClick="showPedidosDia(5)">0</span></td>
                             </tr>
                             <tr>
                               <th scope="row">IMPORTE</th>
-                              <td class="text-tomato" id="impoporbajar" style="font-size: 1.7em !important;">'.$sumBajar.'*</td>
-                              <td class="text-tomato" id="impoporsurtir" style="font-size: 1.7em !important;">'.$sumSurt.'*</td>
-                              <td class="text-tomato" id="porfacturaSaldo" style="font-size: 1.7em !important;">'.$sumFactura.'*</td>
-                              <td class="text-tomato" id="porCancelacionSaldo" style="font-size: 1.7em !important;">'.$sumCancelacion.'*</td>
+                              <td class="text-tomato" id="impoporbajar" style="font-size: 1.7em !important;">0*</td>
+                              <td class="text-tomato" id="impoporsurtir" style="font-size: 1.7em !important;">0*</td>
+                              <td class="text-tomato" id="porfacturaSaldo" style="font-size: 1.7em !important;">0*</td>
+                              <td class="text-tomato" id="porCancelacionSaldo" style="font-size: 1.7em !important;">0*</td>
                             </tr>
                           </tbody>
                         </table>
@@ -868,7 +884,7 @@ class Report {
                                     <h5 class="lead">CANTIDAD</h5>
                                   </div>
                                   <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
-                                    <p class="lead text-tomato" style="font-size: 3em !important;"><span class="enlaces" id="totalpedidodia" style="cursor:pointer;" onClick="showPedidosDia(1)">'.$totalPed.'</span></p>
+                                    <p class="lead text-tomato" style="font-size: 3em !important;"><span class="enlaces" id="totalpedidodia" style="cursor:pointer;" onClick="showPedidosDia(1)">0</span></p>
                                   </div>
                                 </div>
                               </div>
@@ -880,7 +896,7 @@ class Report {
                                         <p class="lead">SUBTOTAL</p>
                                       </div>
                                       <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
-                                        <span class="lead text-tomato" id="totalpedidodiaSaldo" style="font-size: 1.7em !important;">'.$sumPed.'</span>
+                                        <span class="lead text-tomato" id="totalpedidodiaSaldo" style="font-size: 1.7em !important;">0</span>
                                       </div>
                                     </div>
                                   </div>
@@ -890,7 +906,7 @@ class Report {
                                         <p class="lead">I.V.A.</p>
                                       </div>
                                       <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
-                                        <span class="lead text-tomato" id="ivaPed" style="font-size: 1.7em !important;">'.$ivaP.'</span>
+                                        <span class="lead text-tomato" id="ivaPed" style="font-size: 1.7em !important;">0</span>
                                       </div>
                                     </div>
                                   </div>
@@ -900,7 +916,7 @@ class Report {
                                         <p class="lead">TOTAL</p>
                                       </div>
                                       <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
-                                        <span class="lead text-tomato" id="totalPed" style="font-size: 1.7em !important;">'.$totalP.'</span>
+                                        <span class="lead text-tomato" id="totalPed" style="font-size: 1.7em !important;">0</span>
                                       </div>
                                     </div>
                                   </div>
@@ -912,7 +928,7 @@ class Report {
                             <div class="row">
                               <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                 <h5 class="lead">NIVEL DE SERVICIO ESTIMADO</h5>
-                                <p class="lead text-tomato" id="ns" style="font-size: 3em !important;">'.$ns.'%</p>
+                                <p class="lead text-tomato" id="ns" style="font-size: 3em !important;">0.00%</p>
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                 <h4 class="lead" style="font-size: 1em !important;">TRUPER</h4>
@@ -923,11 +939,11 @@ class Report {
                                 <div class="row">
                                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                     <p class="lead" style="font-size: 1em !important;">Estimado</p>
-                                    <p class="lead text-tomato" id="nsTruEstimado">'.$EstimadoTruper.'%</p>
+                                    <p class="lead text-tomato" id="nsTruEstimado">0.00%</p>
                                   </div>
                                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                     <p class="lead" style="font-size: 1em !important;">Real</p>
-                                    <p class="lead text-tomato" id="nsTruReal">'.$RealTruper.'%</p>
+                                    <p class="lead text-tomato" id="nsTruReal">0.00%</p>
                                   </div>
                                 </div>
                               </div>
@@ -940,11 +956,11 @@ class Report {
                                 <div class="row">
                                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                     <p class="lead" style="font-size: 1em !important;">Estimado</p>
-                                    <p class="lead text-tomato" id="nsFerreMEstimado">'.$EstimadoFMO.'%</p>
+                                    <p class="lead text-tomato" id="nsFerreMEstimado">0.00%</p>
                                   </div>
                                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                                     <p class="lead" style="font-size: 1em !important;">Real</p>
-                                    <p class="lead text-tomato" id="nsFMOReal">'.$RealFMO.'%</p>
+                                    <p class="lead text-tomato" id="nsFMOReal">0.00%</p>
                                   </div>
                                 </div>
                               </div>
@@ -965,36 +981,36 @@ class Report {
                           </div>
                           <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                             <h4 class="lead">MES ACTUAL</h4>
-                            <p class="lead text-tomato" id="totalventames" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'*</p>
+                            <p class="lead text-tomato" id="totalventames" style="font-size: 1.7em !important;">$ 0*</p>
                           </div>
                         </div>
                         <h4 class="lead">DETALLE</h4>
                         <div class="row">
                           <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                             <h4 class="lead">ZONA 1</h4>
-                            <p class="lead text-tomato" id="vtaZona1" style="font-size: 1.1em !important;">$ '.$formatTotalVentaMesZona1.'*</p>
+                            <p class="lead text-tomato" id="vtaZona1" style="font-size: 1.1em !important;">$ 0*</p>
                           </div>
                           <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                             <h4 class="lead">ZONA 2</h4>
-                            <p class="lead text-tomato" id="vtaZona2" style="font-size: 1.1em !important;">$ '.$formatTotalVentaMesZona2.'*</p>
+                            <p class="lead text-tomato" id="vtaZona2" style="font-size: 1.1em !important;">$ 0*</p>
                           </div>
                           <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                             <h4 class="lead">ESPECIALES</h4>
-                            <p class="lead text-tomato" id="vtaEspecial" style="font-size: 1.1em !important;">$ '.$formatTotalVentaMesEspeciales.'*</p>
+                            <p class="lead text-tomato" id="vtaEspecial" style="font-size: 1.1em !important;">$ 0*</p>
                           </div>
                         </div>
                       </div>
                       <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
                         <h4 class="lead" style="font-size: 2.2em !important;">CARTERA TOTAL</h4>
-                        <p class="lead text-tomato" id="carteratotal" style="font-size: 1.7em !important;">$ '.$CarteraTo.'</p>
+                        <p class="lead text-tomato" id="carteratotal" style="font-size: 1.7em !important;">$ 0</p>
                         <div class="row">
                           <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                             <h4 class="lead">CARTERA VENCIDA</h4>
-                            <p class="lead text-tomato" id="morosidad" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
+                            <p class="lead text-tomato" id="morosidad" style="font-size: 1.7em !important;">$ 0</p>
                           </div>
                           <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                             <h4 class="lead">CARTERA AL DIA</h4>
-                            <p class="lead text-tomato" id="carterasana" style="font-size: 1.7em !important;">$ '.$CarteraSana.'</p>
+                            <p class="lead text-tomato" id="carterasana" style="font-size: 1.7em !important;">$ 0</p>
                           </div>
                         </div>
                       </div>
@@ -1188,32 +1204,6 @@ class Report {
                         }
                         setInterval(ventasMes, 3000);
 
-                        // function nsFMOCot(){
-                        //   $.ajax({
-                        //     type: "POST",
-                        //     url: "../php/busquedas/nsFMOCotizado.php",
-                        //     success: function(nsFMOCotizado ) {
-                        //       $("#FMOCot").text(nsFMOCotizado );
-                        //       $("#FMOCot").addClass("aviso");
-                        //       console.log("Cotizado FMO: ", nsFMOCotizado );
-                        //     }
-                        //   });
-                        // }
-                        // setInterval(nsFMOCot, 3000);
-
-                        // function nsTruCot(){
-                        //   $.ajax({
-                        //     type: "POST",
-                        //     url: "../php/busquedas/nsTruperCotizado.php",
-                        //     success: function(nsTruCotizado ) {
-                        //       $("#TruCot").text(nsTruCotizado );
-                        //       $("#TruCot").addClass("aviso");
-                        //       console.log("Cotizado Truper: ", nsTruCotizado );
-                        //     }
-                        //   });
-                        // }
-                        // setInterval(nsTruCot, 3000);
-
                         function nS(){
                           $.ajax({
                             type: "POST",
@@ -1370,11 +1360,735 @@ class Report {
     $getConnection->close();
   }
 
+  private function getShowBackOrderActual($params) {
+    $paramFunctions   = new Util();
+    $paramDb          = new Database();
+    $getConnection    = $paramDb->GetLink();
+
+    $month = date('m');
+
+    switch ($month) {
+      case 1:
+        $mes='Enero';
+        $diasTotalMes = 31;
+      break;
+      case 2:
+        $mes='Febrero';
+        $diasTotalMes = 28;
+      break;
+      case 3:
+        $mes='Marzo';
+        $diasTotalMes = 31;
+      break;
+      case 4:
+        $mes='Abril';
+        $diasTotalMes = 30;
+      break;
+      case 5:
+        $mes='Mayo';
+        $diasTotalMes = 31;
+      break;
+      case 6:
+        $mes='Junio';
+        $diasTotalMes = 30;
+      break;
+      case 7:
+        $mes='Julio';
+        $diasTotalMes = 31;
+      break;
+      case 8:
+        $mes='Agosto';
+        $diasTotalMes = 31;
+      break;
+      case 9:
+        $mes='Septiembre';
+        $diasTotalMes = 30;
+      break;
+      case 10:
+        $mes='Octubre';
+        $diasTotalMes = 31;
+      break;
+      case 11:
+        $mes='Noviembre';
+        $diasTotalMes = 30;
+      break;
+      case 12:
+        $mes='Diciembre';
+        $diasTotalMes = 31;
+      break;
+    }
+
+    if($diasTotalMes < 30){
+      $fecActIni = date('Y-'.$month.'-01');
+      $fecActFin = date('Y-'.$month.'-28');
+    } else if($diasTotalMes > 30){
+      $fecActIni = date('Y-'.$month.'-01');
+      $fecActFin = date('Y-'.$month.'-31');
+    } else {
+      $fecActIni = date('Y-'.$month.'-01');
+      $fecActFin = date('Y-'.$month.'-30');
+    }
+
+    $buscarProveedores = "SELECT clienteid, nombre FROM cli where (tipo REGEXP 'P' or tipo REGEXP 'D') and emisorid NOT LIKE '0'";
+    $proveedoresEncontrados = mysqli_query($getConnection, $buscarProveedores);
+    
+    $print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB paddingT">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
+                <div class="container">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB paddingT text-center">
+                    <h1>BACK ORDER <span class="text-tomato">POR PROVEEDOR</span></h1>
+                    <p class="lead">'.$mes.' del '.date("Y").'</p>
+                    <button type="button" class="btn btn-outline-primary" onClick="showBackOrderActual()">Actualizar</button>
+                  </div>
+                  <table class="table table-dark">
+                    <thead>
+                      <tr>
+                        <th scope="col" class="text-center">ID Proveedor</th>
+                        <th scope="col" class="text-center">Nombre</th>
+                        <th scope="col" class="text-center">Solictado</th>
+                        <th scope="col" class="text-center">Entregado</th>
+                        <th scope="col" class="text-center">BackOrder</th>
+                        <th scope="col" class="text-center">$ BackOrder</th>
+                      </tr>
+                    </thead>
+                    <tbody>';
+    $numsol = 0;
+    $nument = 0;
+    $numback = 0;
+    $impoback = 0;
+    while($rowProv = mysqli_fetch_array($proveedoresEncontrados)){
+      $proveedorid = $rowProv["clienteid"];
+      $nombre = $rowProv["nombre"];
+
+      // Agregar fecha inicial y fecha final
+      // $buscarBackOrderProv = "SELECT sum(desdoc.descantidad) as backordersolicitado,
+      //                           sum(desdoc.desentregado) as backorderentregado,
+      //                           sum(desdoc.descantidad - desdoc.desentregado) as backorderprov,
+      //                           sum(((desdoc.descantidad - desdoc.desentregado) * desdoc.desventa) - (((desdoc.descantidad - desdoc.desentregado) * desdoc.desventa) * (desdoc.desdescuento / 100))) as importeBackOrderProv
+      //                           FROM desdoc
+      //                             JOIN ppa ON ppa.articuloid = desdoc.desartid
+      //                           WHERE ppa.proveedorid = $proveedorid
+      //                             and (
+      //                                   desdoc.desfecha >= '".$fecActIni."'
+      //                                   and desdoc.desfecha <= '".$fecActFin."'
+      //                                 )
+      //                             and (desdoc.descantidad - desdoc.desentregado) > 0";
+
+      $backorderentregado     = 0;
+      $backordersolicitado    = 0;
+      $backorderprov          = 0;
+      $importebackorderprov   = 0;
+
+      // Buscando Renglonaje Mes Actual
+      $buscandoRenglonaje = "SELECT d.desventa, d.descantidad, d.desentregado, d.desdescuento
+                                  FROM desinvdocalm d
+                                  WHERE d.proveedorid = $proveedorid
+                                    AND (
+                                          d.desfecha <= '".$fecActFin."'
+                                          AND d.desfecha >= '".$fecActIni."'
+                                        )
+                                    AND (d.descantidad - d.desentregado) > 0
+                                    AND d.destipo = 'C'";
+      $reblonEncontrado = $getConnection->query($buscandoRenglonaje);
+      $m = 0;
+      $n = 0;
+      $o = 0;
+      $p = 0;
+      $q = 0;
+      while($mesActRen = mysqli_fetch_row($reblonEncontrado)){
+        $desventaActRen = $mesActRen[0];
+        $descantidadActRen = $mesActRen[1];
+        $desentregadoActRen = $mesActRen[2];
+        $desdescuento = $mesActRen[3];
+
+        $resta = $descantidadActRen - $desentregadoActRen;
+        // echo "(".$resta.")-";
+
+        if($desdescuento > 0){
+          $desc = $desdescuento / 100;
+          // echo "(".$desc.")/";
+
+          $impoDesc = $desventaActRen * $desc;
+          // echo "(".$desventaActRen." * ".$desc.")/";
+
+          $impoFinAntM = $desventaActRen - $impoDesc;
+          // echo "(".$desventaActRen." - ".$impoDesc.")/";
+
+          $impoReng = $resta * $impoFinAntM;
+          // echo "(".$impoReng.")/";
+        }else{
+          $impoReng = $resta * $desventaActRen;
+          // echo "(".$impoReng.")/";
+        }
+
+        $m+=$desventaActRen;
+        $n+=$descantidadActRen;
+        $o+=$desentregadoActRen;
+        $p+=$resta;
+        $q+=$impoReng;
+      }
+      $numsol += $n;
+      $nument += $o;
+      $numback += $p;
+      $impoback += $q;
+
+      $print .=       '<tr>';
+      if($n > 0){
+        $print .=       '<th scope="row" class="text-center"><a class="nav-linkImg" href="#" onClick="backOrderReng('.$proveedorid.');">'.$proveedorid.'</a></th>
+                        <td class="text-center">'.$nombre.'</td>
+                        <td class="text-center">'.number_format($n, 0, ".", ",").'</td>
+                        <td class="text-center">'.number_format($o, 0, ".", ",").'</td>
+                        <td class="text-center text-tomato">'.number_format($p, 0, ".", ",").'</td>
+                        <td class="text-right text-tomato">$ '.number_format($q, 2, ".", ",").' </td>';
+      }
+      $print .=       '</tr>';
+    }
+    $print .=         '<tr>
+                        <th colspan="2">Total</th>
+                        <td class="text-center">'.number_format($numsol, 0, ".", ",").'</td>
+                        <td class="text-center">'.number_format($nument, 0, ".", ",").'</td>
+                        <td class="text-center text-tomato">'.number_format($numback, 0, ".", ",").'</td>
+                        <td class="text-right text-tomato">$ '.number_format($impoback, 2, ".", ",").'</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>';
+
+    echo $print;
+    $getConnection->close();
+  }
+
+  private function getShowBackOrderReng($params){
+    $paramFunctions   = new Util();
+    $paramDb          = new Database();
+    $getConnection    = $paramDb->GetLink();
+
+    $proveedor        = $paramDb->SecureInput($params["proveedor"]);
+
+    $month = date('m');
+
+    switch ($month) {
+      case 1:
+        $mes='Enero';
+        $diasTotalMes = 31;
+      break;
+      case 2:
+        $mes='Febrero';
+        $diasTotalMes = 28;
+      break;
+      case 3:
+        $mes='Marzo';
+        $diasTotalMes = 31;
+      break;
+      case 4:
+        $mes='Abril';
+        $diasTotalMes = 30;
+      break;
+      case 5:
+        $mes='Mayo';
+        $diasTotalMes = 31;
+      break;
+      case 6:
+        $mes='Junio';
+        $diasTotalMes = 30;
+      break;
+      case 7:
+        $mes='Julio';
+        $diasTotalMes = 31;
+      break;
+      case 8:
+        $mes='Agosto';
+        $diasTotalMes = 31;
+      break;
+      case 9:
+        $mes='Septiembre';
+        $diasTotalMes = 30;
+      break;
+      case 10:
+        $mes='Octubre';
+        $diasTotalMes = 31;
+      break;
+      case 11:
+        $mes='Noviembre';
+        $diasTotalMes = 30;
+      break;
+      case 12:
+        $mes='Diciembre';
+        $diasTotalMes = 31;
+      break;
+    }
+
+    if($diasTotalMes < 30){
+      $fecActIni = date('Y-'.$month.'-01');
+      $fecActFin = date('Y-'.$month.'-28');
+    } else if($diasTotalMes > 30){
+      $fecActIni = date('Y-'.$month.'-01');
+      $fecActFin = date('Y-'.$month.'-31');
+    } else {
+      $fecActIni = date('Y-'.$month.'-01');
+      $fecActFin = date('Y-'.$month.'-30');
+    }
+
+    $buscarProveedor = "SELECT nombre FROM cli WHERE clienteid = $proveedor";
+    $proveedorEncontrado = mysqli_query($getConnection, $buscarProveedor);
+    $rowProve = mysqli_fetch_array($proveedorEncontrado);
+    $nombreProv = $rowProve["nombre"];
+
+    $buscarRenglonajes = "SELECT clave, clvprov, descripcio,
+                            descantidad, desentregado,
+                            desventa, desdescuento
+                            FROM desinvdocalm
+                            WHERE proveedorid = $proveedor
+                              AND (descantidad - desentregado) > 0
+                              AND (desfecha >= '$fecActIni' AND desfecha <= '$fecActFin')
+                              AND destipo = 'C'";
+    $renglonajeEncontrado = mysqli_query($getConnection, $buscarRenglonajes);
+
+    $print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB paddingT">
+              <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                <img src="../img/barrafmo2.gif" width="200"/>
+              </div>
+              <div class="container">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB paddingT text-center">
+                  <h1>BACK ORDER DEL PROVEEDOR<br/><span class="text-tomato">'.$nombreProv.'</span></h1>
+                  <p class="lead">'.$mes.' del '.date("Y").'</p>
+                  <button type="button" class="btn btn-outline-primary" onClick="showBackOrderActual()">Regresar</button>
+                </div>
+                <table class="table table-dark">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="text-center">Clave</th>
+                      <th scope="col" class="text-center">Código</th>
+                      <th scope="col" class="text-center">Articulo</th>
+                      <th scope="col" class="text-center">Solicitado</th>
+                      <th scope="col" class="text-center">Entregado</th>
+                      <th scope="col" class="text-center">BackOrder</th>
+                      <th scope="col" class="text-center">$ BackOrder</th>
+                    </tr>
+                  </thead>
+                  <tbody>';
+    $numsol = 0;
+    $nument = 0;
+    $numback = 0;
+    $impoback = 0;
+    while($rewReng = mysqli_fetch_array($renglonajeEncontrado)){
+      $clave                  = $rewReng["CLAVE"];
+      $codigo                 = $rewReng["CLVPROV"];
+      $articulo               = $rewReng["DESCRIPCIO"];
+      $solicitada             = $rewReng["DESCANTIDAD"];
+      $entregada              = $rewReng["DESENTREGADO"];
+      $precio                 = $rewReng["DESVENTA"];
+      $descuento              = $rewReng["DESDESCUENTO"];
+      
+      $backorderReng          = ($solicitada - $entregada);
+      $importeBackOrderReng1   = $backorderReng * $precio;
+      $importeBackOrderReng2   = $descuento / 100;
+      $importeBackOrderReng3   = $importeBackOrderReng1 * $importeBackOrderReng2;
+      $importeBackOrderReng    = $importeBackOrderReng1 - $importeBackOrderReng3;
+      
+      $print .=     '<tr>';
+      $print .=       '<th scope="row" class="text-center">'.$clave.'</th>
+                      <td class="text-center">'.$codigo.'</td>
+                      <td class="text-center">'.$articulo.'</td>
+                      <td class="text-center">'.number_format($solicitada, 0, ".", ",").'</td>
+                      <td class="text-center">'.number_format($entregada, 0, ".", ",").'</td>
+                      <td class="text-center text-tomato">'.number_format($backorderReng, 0, ".", ",").'</td>
+                      <td class="text-right text-tomato">$ '.number_format($importeBackOrderReng, 2, ".", ",").' </td>';
+      $print .=     '</tr>';
+
+      $numsol = $numsol + $solicitada;
+      $nument = $nument + $entregada;
+      $numback = $numback + $backorderReng;
+      $impoback = $impoback + $importeBackOrderReng;
+    }
+
+    $print .=       '<tr>
+                      <th colspan="3">Total</th>
+                      <td class="text-center">'.number_format($numsol, 0, ".", ",").'</td>
+                      <td class="text-center">'.number_format($nument, 0, ".", ",").'</td>
+                      <td class="text-center text-tomato">'.number_format($numback, 0, ".", ",").'</td>
+                      <td class="text-right text-tomato">$ '.number_format($impoback, 2, ".", ",").'</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>';
+
+    echo $print;
+    $getConnection->close();
+  }
+
+  private function getBackOrder($params) {
+    $paramFunctions   = new Util();
+    $paramDb          = new Database();
+    $getConnection    = $paramDb->GetLink();
+
+    $dia = date('Y-m-d');
+    $month = date('m');
+
+    switch ($month) {
+      case 1:
+        $mes='Enero';
+        $diasTotalMes = 31;
+      break;
+      case 2:
+        $mes='Febrero';
+        $diasTotalMes = 28;
+      break;
+      case 3:
+        $mes='Marzo';
+        $diasTotalMes = 31;
+      break;
+      case 4:
+        $mes='Abril';
+        $diasTotalMes = 30;
+      break;
+      case 5:
+        $mes='Mayo';
+        $diasTotalMes = 31;
+      break;
+      case 6:
+        $mes='Junio';
+        $diasTotalMes = 30;
+      break;
+      case 7:
+        $mes='Julio';
+        $diasTotalMes = 31;
+      break;
+      case 8:
+        $mes='Agosto';
+        $diasTotalMes = 31;
+      break;
+      case 9:
+        $mes='Septiembre';
+        $diasTotalMes = 30;
+      break;
+      case 10:
+        $mes='Octubre';
+        $diasTotalMes = 31;
+      break;
+      case 11:
+        $mes='Noviembre';
+        $diasTotalMes = 30;
+      break;
+      case 12:
+        $mes='Diciembre';
+        $diasTotalMes = 31;
+      break;
+    }
+
+    $mtAnt = date('m')-1;
+    $yearAnt = date('Y')-1;
+    if($mtAnt == 0){
+      $yrAnt = date('Y')-1;
+      $mtAnt = 12;
+    } else {
+      $yrAnt = date('Y');
+    }
+    if($diasTotalMes < 30){
+      $fecActIni = date('Y-'.$month.'-01');
+      $fecActFin = date('Y-'.$month.'-28');
+      $fecAnteIni = date(''.$yrAnt.'-'.$mtAnt.'-01');
+      $fecAnteFin = date(''.$yrAnt.'-'.$mtAnt.'-28');
+    } else if($diasTotalMes > 30){
+      $fecActIni = date('Y-'.$month.'-01');
+      $fecActFin = date('Y-'.$month.'-31');
+      $fecAnteIni = date(''.$yrAnt.'-'.$mtAnt.'-01');
+      $fecAnteFin = date(''.$yrAnt.'-'.$mtAnt.'-31');
+    } else {
+      $fecActIni = date('Y-'.$month.'-01');
+      $fecActFin = date('Y-'.$month.'-30');
+      $fecAnteIni = date(''.$yrAnt.'-'.$mtAnt.'-01');
+      $fecAnteFin = date(''.$yrAnt.'-'.$mtAnt.'-30');
+    }
+
+    // Buscando Back Order Mes Ant
+    $buscandoMesAnt = "SELECT 
+                              if(
+                                  d.desdescuento > 0, (d.desdescuento * d.desventa), 0
+                                ) as ImpoDesc,
+                              if(
+                                  d.desentregado < d.descantidad, d.descantidad - d.desentregado, 0
+                                ) as BackOrder,
+                              d.desventa
+                                              FROM desinvdocalm d
+                                    
+                                              WHERE (
+                                                      d.desfecha <= '".$fecAnteFin."'
+                                                      AND d.desfecha >= '".$fecAnteIni."'
+                                                    )
+                                                AND (d.descantidad - d.desentregado) > 0
+                                                AND d.destipo REGEXP 'C'";
+    $mesAntEncontrado = $getConnection->query($buscandoMesAnt);
+    $m = 0;
+    $n = 0;
+    $o = 0;
+    $p = 0;
+    while($mesAntB = mysqli_fetch_row($mesAntEncontrado)){
+      $ImpoDescAntM = $mesAntB[0];
+      $BackOrderAntM = $mesAntB[1];
+      $desventaAntM = $mesAntB[2];
+
+      if($ImpoDescAntM > 0){
+        $impoFinAntM = $desventaAntM - $ImpoDescAntM;
+        $impoAntM = $BackOrderAntM * $impoFinAntM;
+        $p += $impoAntM;
+      }else{
+        $impoAntM = $BackOrderAntM * $desventaAntM;
+        $p += $impoAntM;
+      }
+      $m+=$ImpoDescAntM;
+      $n+=$BackOrderAntM;
+      $o+=$desventaAntM;
+    }
+
+    // Buscando Back Order Mes actual
+    $buscandoMesActual = "SELECT 
+                              if(
+                                  d.desdescuento > 0, (d.desdescuento * d.desventa), 0
+                                ) as ImpoDesc,
+                              if(
+                                  d.desentregado < d.descantidad, d.descantidad - d.desentregado, 0
+                                ) as BackOrder,
+                              d.desventa
+                                              FROM desinvdocalm d
+                                    
+                                              WHERE (
+                                                      d.desfecha <= '".$fecActFin."'
+                                                      AND d.desfecha >= '".$fecActIni."'
+                                                    )
+                                                AND (d.descantidad - d.desentregado) > 0
+                                                AND d.destipo REGEXP 'C'";
+    $mesActualEncontrado = $getConnection->query($buscandoMesActual);
+    $i = 0;
+    $j = 0;
+    $k = 0;
+    $l = 0;
+    while($mesActB = mysqli_fetch_row($mesActualEncontrado)){
+      $ImpoDescActM = $mesActB[0];
+      $BackOrderActM = $mesActB[1];
+      $desventaActM = $mesActB[2];
+
+      if($ImpoDescActM > 0){
+        $impoFinActM = $desventaActM - $ImpoDescActM;
+        $impoActM = $BackOrderActM * $impoFinActM;
+        $l += $impoActM;
+      }else{
+        $impoActM = $BackOrderActM * $desventaActM;
+        $l += $impoActM;
+      }
+      $i+=$ImpoDescActM;
+      $j+=$BackOrderActM;
+      $k+=$desventaActM;
+    }
+
+    // BACKO ORDER DE FORMA ANTERIOR,TARDABA MAS ESTA MANERA
+    // $totalYearAnterior = 0;
+    // $primerDiaAnioAnterior = date("".$yearAnt."-01-01");
+    // $ultimoDiaAnioAnterior = date("".$yearAnt."-12-31");
+
+    // $buscandoAnualAnt= "SELECT sum(des.descantidad), sum(des.desentregado), sum(des.desventa), sum(des.desdescuento)
+    //                   FROM des
+    //                     LEFT OUTER JOIN desdoc d ON d.desartid = des.desartid
+    //                   WHERE (
+    //                           des.desfecha <= '".$yearAnt."-12-31'
+    //                           AND des.desfecha >= '".$yearAnt."-01-01'
+    //                         )
+    //                     AND (des.descantidad - des.desentregado) > 0
+    //                     AND des.destipo REGEXP 'C'";
+
+    // Buscando Back Order General del año anterior
+    $buscandoAnualAnt= "SELECT 
+                              if(
+                                  d.desdescuento > 0, (d.desdescuento * d.desventa), 0
+                                ) as ImpoDesc,
+                              if(
+                                  d.desentregado < d.descantidad, d.descantidad - d.desentregado, 0
+                                ) as BackOrder,
+                              d.desventa
+                                              FROM desinvdocalm d
+                                    
+                                              WHERE (
+                                                      d.desfecha <= '".$yearAnt."-12-31'
+                                                      AND d.desfecha >= '".$yearAnt."-01-01'
+                                                    )
+                                                AND (d.descantidad - d.desentregado) > 0
+                                                AND d.destipo REGEXP 'C'";
+    $AnualAntEncontrado = $getConnection->query($buscandoAnualAnt);
+    $a = 0;
+    $b = 0;
+    $c = 0;
+    $d = 0;
+    while($anualAn = mysqli_fetch_row($AnualAntEncontrado)){
+      $ImpoDesc = $anualAn[0];
+      $BackOrder = $anualAn[1];
+      $desventa = $anualAn[2];
+
+      if($ImpoDesc > 0){
+        $impoFin = $desventa - $ImpoDesc;
+        $impo = $BackOrder * $impoFin;
+        $d += $impo;
+      }else{
+        $impo = $BackOrder * $desventa;
+        $d += $impo;
+      }
+      $a+=$ImpoDesc;
+      $b+=$BackOrder;
+      $c+=$desventa;
+    }
+
+    // Buscando Back Order General del año actual
+    $buscandoAnualAct= "SELECT 
+                              if(
+                                  d.desdescuento > 0, (d.desdescuento * d.desventa), 0
+                                ) as ImpoDesc,
+                              if(
+                                  d.desentregado < d.descantidad, d.descantidad - d.desentregado, 0
+                                ) as BackOrder,
+                              d.desventa
+                                              FROM desinvdocalm d
+                                    
+                                              WHERE (
+                                                      d.desfecha <= '".date('Y-12-31')."'
+                                                      AND d.desfecha >= '".date('Y-01-01')."'
+                                                    )
+                                                AND (d.descantidad - d.desentregado) > 0
+                                                AND d.destipo REGEXP 'C'";
+    $AnualActEncontrado = $getConnection->query($buscandoAnualAct);
+    $e = 0;
+    $f = 0;
+    $g = 0;
+    $h = 0;
+    while($anualAct = mysqli_fetch_row($AnualActEncontrado)){
+      $ImpoDescAct = $anualAct[0];
+      $BackOrderAct = $anualAct[1];
+      $desventaAct = $anualAct[2];
+
+      if($ImpoDescAct > 0){
+        $impoFinAct = $desventaAct - $ImpoDescAct;
+        $impoAct = $BackOrderAct * $impoFinAct;
+        $h += $impoAct;
+      }else{
+        $impoAct = $BackOrderAct * $desventaAct;
+        $h += $impoAct;
+      }
+      $e+=$ImpoDescAct;
+      $f+=$BackOrderAct;
+      $g+=$desventaAct;
+    }
+
+    // $buscandoAnualAct= "SELECT sum((des.descantidad - des.desentregado) * ((des.desventa) - ((des.desventa) * (des.desdescuento / 100)))) as BackOrderAnioActual
+    //                   FROM des
+    //                     JOIN desdoc d ON d.desdocid = des.desdocid
+    //                   WHERE (
+    //                           des.desfecha <= '".date('Y-12-31')."'
+    //                           AND des.desfecha >= '".date('Y-01-01')."'
+    //                         )
+    //                     AND (des.descantidad - des.desentregado) > 0
+    //                     AND des.destipo REGEXP 'C'";
+    // $AnualActEncontrado = $getConnection->query($buscandoAnualAct);
+    // $anualAct = mysqli_fetch_array($AnualActEncontrado);
+    // $totalAnualActual = $anualAct["BackOrderAnioActual"];
+
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
+                <div class="content-wrapper">';
+                  
+    $print .=     '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 graficasGeneral">
+                    <div class="row paddingB">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                        <h3 class="display-4">Back order Mensual</h3>
+                        <h4> <b>'.$mes.'</b> del <b>'.date("Y").'</b></h4>
+                        <div class="row text-center">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 graficosBarra">
+                            <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
+                            <p id="mesActual" style="display: none;">'.$l.'</p>
+                            <p id="mesAnterior" style="display: none;">'.$p.'</p>
+                            <canvas id="areaChartBackOrder" style="max-height:350px;"></canvas>
+                          </div>';
+    $print .=           '</div>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                            <div class="row">';
+    $print .=                 '<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                                <span class="text-redGraf">
+                                  BackOrder del Mes pasado<br /><b style="font-size: 2em;">$ '.number_format($p, 2, ".", ",").'</b>
+                                </span>
+                              </div>
+                              <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                                <span class="text-blue">
+                                  BackOrder Actual<br /><button type="button" class="btn btn-outline-primary btn-lg btn-block" onClick="showBackOrderActual()"><b style="font-size: 2em;">$ '.number_format($l, 2, ".", ",").'</b></button>
+                                </span>
+                              </div>
+                            </div>';
+    $print .=               '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                              <h5 class="text-center lead">Se presenta el reporte de Back-Order al mes en comparación con el anterior.</h5>
+                              <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>';
+    $vtaAnualActual = date("Y");
+    $print .=       '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
+                      <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                          <div class="row infoCard">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                              <h3 class="display-4">Reporte de BackOrder Global</h3>
+                              <h4><b>'.date("Y").' <em style="font-size: 0.5em;">Vs</em> '.$yearAnt.'</b></h4>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                              <p id="totalYearAnterior" style="display: none;">'.$d.'</p>
+                              <p id="totalAnualActual" style="display: none;">'.$h.'</p>
+                              <canvas id="areaChartAnualBackOrder" style="height:250px"></canvas>
+                              <script src="../intranet/js/Chart.js"></script>
+                              <script src="../intranet/js/backorder.js"></script>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                                  <p class="lead text-redGraf"><b style="font-size: 1em;">BackOrder '.$yearAnt.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($d,2,".",",").'</b></p>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                                  <p class="lead" style="color:#3adcf4"><b style="font-size: 1em;">BackOrder '.date("Y").'</b><br /><b style="font-size: 1.5em;">$ '.number_format($h, 2,".", ",").'</b></p>
+                                </div>
+                              </div>
+                              <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>';
+
+    $print .=     '</div>
+                </div>
+              </div>';
+    echo $print;
+    $getConnection->close();
+  }
+
   private function getReportService($params) {
     $paramFunctions   = new Util();
     $paramDb          = new Database();
     $getConnection    = $paramDb->GetLink();
     $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
+              </div>
+              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                 <h4 class="display-4 text-center">Reporte de Servicio</div>
                 <form class="buscador">
                   <div class="form-group row">
@@ -1419,10 +2133,10 @@ class Report {
                             <p class="lead">CANCELADOS</p>
                           </div>
                           <div class="col-12 col-md-12 col-lg-4 col-xl-4 text-center">
-                            <p class="lead">0</p>
+                            <p class="lead" id="numCancelados">0</p>
                           </div>
                           <div class="col-12 col-md-12 col-lg-4 col-xl-4 text-center">
-                            <p class="lead">$ 0.00*</p>
+                            <p class="lead" id="impoCancelados">$ 0.00*</p>
                           </div>
                         </div>
                       </div>
@@ -1437,7 +2151,7 @@ class Report {
                                     <h5 class="lead">CANTIDAD</h5>
                                   </div>
                                   <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
-                                    <p class="lead" style="font-size: 3em !important;"><span class="enlaces" id="numPed">0</span></p>
+                                    <p class="lead" style="font-size: 3em !important;"><span id="numPed">0</span></p>
                                   </div>
                                 </div>
                               </div>
@@ -1449,7 +2163,7 @@ class Report {
                                         <p class="lead">SUBTOTAL</p>
                                       </div>
                                       <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
-                                        <span class="lead" id="">$ 0.00*</span>
+                                        <span class="lead" id="subtotalPedidos">$ 0.00*</span>
                                       </div>
                                     </div>
                                   </div>
@@ -1459,7 +2173,7 @@ class Report {
                                         <p class="lead">I.V.A.</p>
                                       </div>
                                       <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
-                                        <span class="lead" id="">$ 0.00*</span>
+                                        <span class="lead" id="ivaPedidos">$ 0.00*</span>
                                       </div>
                                     </div>
                                   </div>
@@ -1469,7 +2183,7 @@ class Report {
                                         <p class="lead">TOTAL</p>
                                       </div>
                                       <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 text-right">
-                                        <span class="lead" id="">$ 0.00*</span>
+                                        <span class="lead" id="pedidosTotal">$ 0.00*</span>
                                       </div>
                                     </div>
                                   </div>
@@ -1480,7 +2194,7 @@ class Report {
                         </div>
                       </div>
                       <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
-                        <h3 class="text-center">VENTAS MENSUALES</h3>
+                        <h3 class="text-center">VENTAS</h3>
                         <div class="row text-center">
                           <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                             <p class="lead" id="importeVenta">$ 0.00*</p>
@@ -1507,7 +2221,7 @@ class Report {
                   </div>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 text-center centrarSep">
                     <h3>NIVEL DE SERVICIO ESTIMADO</h3>
-                    <p class="lead" id="">0.00%</p>
+                    <p class="lead" id="nsEstimadoGen" style="font-size: 3em !important;">0.00%</p>
                     <div class="row">
                       <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
                         <h4 class="lead">TRUPER</h4>
@@ -2482,6 +3196,8 @@ class Report {
     $tipoPedido       = $paramDb->SecureInput($params["tipoPedido"]);
     $getConnection    = $paramDb->GetLink();
 
+    // var_dump($tipoPedido);
+
     $dia  = date("Y-m-d");
 
     switch ($tipoPedido) {
@@ -2490,7 +3206,7 @@ class Report {
         //Pedidos Totales
         $queryPedDia = "SELECT des.desdocid, des.destipo, des.desartid, i.clave, des.descantidad, des.desentregado, (des.descantidad * des.desventa) as importe
                           FROM des
-                            JOIN inv i ON i.articuloid = des.desartid
+                            LEFT OUTER JOIN inv i ON i.articuloid = des.desartid
                           WHERE des.desfecha = '$dia'
                             AND des.destipo = 'C'
                             AND des.descantidad > 0";
@@ -2506,7 +3222,7 @@ class Report {
         //Pedidos por surtir
         $queryPedDiaSurtir = "SELECT des.desdocid, des.destipo, des.desartid, i.clave, des.descantidad, des.desentregado, (des.descantidad * des.desventa) as importe
                                 FROM des
-                                JOIN inv i ON i.articuloid = des.desartid
+                                  LEFT OUTER JOIN inv i ON i.articuloid = des.desartid
                                 WHERE des.desfecha = '$dia'
                                   AND des.destipo = 'N'
                                   AND des.desentregado > 0";
@@ -2517,7 +3233,7 @@ class Report {
         //Pedidos Facturados
         $queryPedDiaFactura = "SELECT des.desdocid, des.destipo, des.desartid, i.clave, des.descantidad, des.desentregado, (des.descantidad * des.desventa) as importe
                                 FROM des
-                                  JOIN inv i ON i.articuloid = des.desartid
+                                LEFT OUTER JOIN inv i ON i.articuloid = des.desartid
                                 WHERE des.desfecha = '$dia'
                                   AND des.destipo = 'F'
                                   AND des.desentregado > 0";
@@ -2526,7 +3242,30 @@ class Report {
       case 5:
         $titulo = "CANCELADOS";
         //Pedidos Cancelados
-        
+        $queryPedDiaCancelacion = "SELECT *
+                                    FROM doc
+                                    WHERE fecha = '$dia'
+                                      AND tipo NOT LIKE 'E'
+                                      AND estado = 'C'";
+        $resultado = $getConnection->query($queryPedDiaCancelacion);
+        // $numPedDiaCancelacion = mysqli_num_rows($resultQueryDiaCancelacion);
+        // if($numPedDiaCancelacion === NULL){
+        //   $sumCancelacion = 0;
+        // } else {
+        //   //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+        //   $sumCan = 0;
+        //   while($qPedDiaCancelacion = mysqli_fetch_array($resultQueryDiaCancelacion)){
+        //     $docid = $qPedDiaCancelacion[0];
+        //     $buscarPartidasCanceladas = "SELECT des.desdocid, des.destipo, des.desartid, i.clave, des.descantidad, des.desentregado, (des.descantidad * des.desventa) as importe
+        //                   FROM des
+        //                     LEFT OUTER JOIN inv i ON i.articuloid = des.desartid
+        //                   where descantidad > 0
+        //                   and desfecha = '$dia'
+        //                   and desdocid = $docid";
+        //     $resultado = $getConnection->query($buscarPartidasCanceladas);
+        //   }
+        //   $sumCancelacion = "$ ".number_format($sumCan, 2, '.',',').'*';
+        // }
       break;
     }
     $print = '<div class="container paddingT">
@@ -2534,28 +3273,49 @@ class Report {
               <div class="table-responsive">
                 <table class="table table-dark">
                   <thead>
-                    <tr class="text-center">
-                      <th scope="col">DOCUMENTO</th>
+                    <tr class="text-center">';
+    if($tipoPedido == 5){
+      $print .=       '<th scope="col">DOCUMENTO</th>
+                      <th scope="col">TIPO</th>
+                      <th scope="col">ESTADO</th>';
+    }else{
+      $print .=       '<th scope="col">DOCUMENTO</th>
                       <th scope="col">TIPO</th>
                       <th scope="col">CLAVE</th>
                       <th scope="col">ARTICULO</th>
                       <th scope="col">CANTIDAD</th>
                       <th scope="col">ENTREGADO</th>
-                      <th scope="col">IMPORTE</th>
-                    </tr>
+                      <th scope="col">IMPORTE</th>';
+    }
+    $print .=       '</tr>
                   </thead>
                   <tbody>';
     while($row= mysqli_fetch_array($resultado)){
-      $desdocid = $row["desdocid"];
-      $destipo = $row["destipo"];
-      $desartid = $row["desartid"];
-      $clave = $row["clave"];
-      $descantidad = $row["descantidad"];
-      $desentregado = $row["desentregado"];
-      $importe = $row["importe"];
+      if($tipoPedido == 5){
+        $desdocid = $row["NUMERO"];
+        $destipo = $row["TIPO"];
+        $desestado = $row["ESTADO"];
+        $descantidad = 1;
+        $desentregado = 0;
+      }else{
+        $desdocid = $row["desdocid"];
+        $destipo = $row["destipo"];
+        $desartid = $row["desartid"];
+        $clave = $row["clave"];
+        $descantidad = $row["descantidad"];
+        $desentregado = $row["desentregado"];
+        $importe = $row["importe"];
+      }
 
       if($desentregado > $descantidad){
-        $print .=   '<tr class="text-center">
+        if($tipoPedido == 5){
+          $print .=   '<tr class="text-center">
+                      <td style="background: tomato!important;">'.$desdocid.'</td>
+                      <td>'.$destipo.'</td>
+                      <td>'.$desestado.'</td>
+                    </tr>';
+        }else{
+          $print .= '<tr class="text-center">
                       <td style="background: #99ffcc!important;">'.$desdocid.'</td>
                       <td style="background: #99ffcc!important;">'.$destipo.'</td>
                       <td style="background: #99ffcc!important;">'.$clave.'</td>
@@ -2564,8 +3324,16 @@ class Report {
                       <td style="background: #99ffcc!important;">'.$desentregado.'</td>
                       <td style="background: #99ffcc!important;">'.number_format($importe, 2, ".", ",").'</td>
                     </tr>';
+        }
       }else{
-        $print .=   '<tr class="text-center">
+        if($tipoPedido == 5){
+          $print .=   '<tr class="text-center">
+                      <td style="background: tomato!important;">'.$desdocid.'</td>
+                      <td>'.$destipo.'</td>
+                      <td>'.$desestado.'</td>
+                    </tr>';
+        }else{
+          $print .= '<tr class="text-center">
                       <td style="background: tomato!important;">'.$desdocid.'</td>
                       <td>'.$destipo.'</td>
                       <td>'.$clave.'</td>
@@ -2574,6 +3342,7 @@ class Report {
                       <td>'.$desentregado.'</td>
                       <td>'.number_format($importe, 2, ".", ",").'</td>
                     </tr>';
+        }
       }
     }
     $print .=     '</tbody>
@@ -2600,6 +3369,24 @@ class Report {
     $year=date('Y');
     $month=date('m');
     $day=date('d');
+    $dv = date('D');
+    switch($dv){
+      case 'Mon':
+        $diaVis = 'L';
+        break;
+      case 'Tue':
+        $diaVis = 'I';
+        break;
+      case 'Wed':
+        $diaVis = 'M';
+        break;
+      case 'Thu':
+        $diaVis = 'J';
+        break;
+      case 'Fri':
+        $diaVis = 'V';
+        break;
+    }
 
     if($month < 4){
       $primerDiaTrimestre = date('Y-01-01');
@@ -2617,7 +3404,7 @@ class Report {
 
     //Se obtiene los datos del vendedor
     $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
-    $queryPerDat = "SELECT v.foto, v.tel
+    $queryPerDat = "SELECT v.foto, v.tel, v.correo
                     FROM vendedores v
                     WHERE vendedorid = $perid";
 
@@ -2625,6 +3412,7 @@ class Report {
     $filaPerDat = mysqli_fetch_array($resultadoPerDat);
     $foto = $filaPerDat[0];
     $tel = $filaPerDat[1];
+    $correo = $filaPerDat[2];
     
     $queryPer = "SELECT p.nombre, p.ingreso, p.sermov
                     FROM per p
@@ -3074,6 +3862,75 @@ class Report {
       break;
     }
 
+    // TODO hacer consultas por vendedor, por tipo de cliente y por tiempo de morosidad.
+    $getMorosidad = "SELECT 
+                      SUM(d.totalpagado - d.total) as TotalDeuda
+                      FROM doc d
+                        JOIN cli c ON c.clienteid = d.clienteid
+                      WHERE d.total > d.totalpagado
+                          AND c.vendedorid = $perid
+                          AND (
+                                d.tipo = 'F'
+                                OR d.tipo = 'N'
+                              )
+                          AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+    $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
+    $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
+    if($rowMorosidad === NULL){
+    $MorosidadF = 0;
+    } else {
+    $MorosidadF = $rowMorosidad[0]*(-1);
+    }
+    $Morosidad = number_format($MorosidadF, 2, ".", ",");
+
+    // Buscamos la cobranza del día
+    $getMorosidadDia = "SELECT 
+                      SUM(d.totalpagado - d.total) as CobranzaDia
+                      FROM doc d
+                        JOIN cli c ON c.clienteid = d.clienteid
+                      WHERE c.diavis = '$diaVis'
+						            AND d.total > d.totalpagado
+                        AND c.vendedorid = $perid
+                        AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+    $resultGetMorosidadDia = mysqli_query($getConnection,$getMorosidadDia);
+    $rowMorosidadDia = mysqli_fetch_array($resultGetMorosidadDia);
+    if($rowMorosidadDia === NULL){
+    $MorosidadFDia = 0;
+    } else {
+    $MorosidadFDia = $rowMorosidadDia[0]*(-1);
+    }
+    $MorosidadDia = number_format($MorosidadFDia, 2, ".", ",");
+
+    // Buscamos los pagos de los clientes con morosidad del día
+    $diaInicio = date('Y-m-d 00:00:00');
+    $diaFin = date('Y-m-d 23:59:59');
+    $getMorosidadPagoDia = "SELECT 
+                              sum(pagado) as PagoCobDia
+                              FROM doc d
+                                LEFT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                                LEFT OUTER JOIN pagdoc pd ON pd.docid = d.docid
+                              WHERE c.diavis = '$diaVis'
+                                AND (fechapag >= '$diaInicio' AND fechapag <= '$diaFin')
+                                AND d.total > d.totalpagado
+                                AND c.vendedorid = $perid
+                                AND (
+                                      d.tipo = 'F'
+                                      OR d.tipo = 'N'
+                                    )
+                                AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+    $resultGetMorosidadPagoDia = mysqli_query($getConnection,$getMorosidadPagoDia);
+    $rowMorosidadPagoDia = mysqli_fetch_array($resultGetMorosidadPagoDia);
+    if($rowMorosidadPagoDia === NULL){
+      $MorosidadFPagoDia = 0;
+    } else {
+      $MorosidadFPagoDia = $rowMorosidadPagoDia[0];
+    }
+    $MorosidadPagoDia = number_format($MorosidadFPagoDia, 2, ".", ",");
+
         /*echo          "</div>
                     </div>
                   </section>
@@ -3084,23 +3941,28 @@ class Report {
                 <div class="row">
                   <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                     <div class="row infoCard">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
-                        <div class="row">
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 text-input">
-                            <img src="../img/vendedores/'.$foto.'" class="rounded-circle img-fluid" alt="'.$foto.'" />
-                          </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
-                            <h5>
-                              <span><b>#'.$perid.'</b></span> - '.$nombre.'
-                              <small class="text-green">ZONA '.$zona.'</small>
-                            </h5>
-                            <h5>
-                              <span>Tel.: '.$tel.'</span>
-                            </h5>
-                          </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5">
+                      <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                          <img src="../img/vendedores/'.$foto.'" class="rounded-circle img" alt="'.$foto.'" />
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                          <h5>
+                            <span><b>#'.$perid.'</b></span> - '.$nombre.'
+                          </h5>
+                          <h5>
+                            <small class="text-green">ZONA '.$zona.'</small>
+                          </h5>
+                          <h5>
+                            <span>Tel.: '.$tel.'</span>
+                          </h5>
+                          <h5>
+                            <span>Correo: '.$correo.'</span>
+                          </h5>
                         </div>
                       </div>
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
                         <div class="row">
                           <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                             <div class="row">
@@ -3152,12 +4014,12 @@ class Report {
                                 <div class="form-group">
                                   <div class="row">
                                     <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
-                                      <span>Ventas a la semana</span>
+                                      <span>Cartera Vencida</span>
                                     </div>
                                     <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                       <div class="row">
                                         <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
-                                          <input type="text" class="form-control" value="$ '.$formatTotalVentaSemana.'" readonly />
+                                          <input type="text" class="form-control text-red" value="$ '.$Morosidad.'" readonly />
                                         </div>
                                       </div>
                                     </div>
@@ -3166,12 +4028,26 @@ class Report {
                                 <div class="form-group">
                                   <div class="row">
                                     <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
-                                      <span>Ventas al trimestre</span>
+                                      <span>Cobranza del día</span>
                                     </div>
                                     <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                       <div class="row">
                                         <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
-                                          <input type="text" class="form-control" value="$ '.$formatTotalVentaTrimestre.'" readonly />
+                                          <input type="text" class="form-control text-red" value="$ '.$MorosidadDia.'" readonly />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="form-group">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                                      <span>Cobrado</span>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                                      <div class="row">
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                          <input type="text" class="form-control" value="$ '.$MorosidadPagoDia.'" readonly />
                                         </div>
                                       </div>
                                     </div>
@@ -3195,7 +4071,7 @@ class Report {
                         <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 graficos">
                           <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
                           <p id="mesActual" style="display: none;">'.$totalVentaMes.'</p>
-                          <p id="mesAnterior" style="display: none;">'.$vAnt.'</p>
+                          <p id="mAnterior" style="display: none;">'.$vAnt.'</p>
                           <p id="mejorMes" style="display: none;">'.$vMejor.'</p>
                           <p id="mesMej" style="display: none;">'.$mesMej.'</p>
                           <canvas id="areaChart" style="height:450px;"></canvas>
@@ -3312,27 +4188,6 @@ class Report {
                 </div>
               </div>';
 
-      // TODO hacer consultas por vendedor, por tipo de cliente y por tiempo de morosidad.
-      $getMorosidad = "SELECT 
-                    SUM(d.totalpagado - d.total) as TotalDeuda
-                    FROM doc d
-                      JOIN cli c ON c.clienteid = d.clienteid
-                    WHERE d.total > d.totalpagado
-                        AND c.vendedorid = $perid
-                        AND (
-                              d.tipo = 'F'
-                              OR d.tipo = 'N'
-                            )
-                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
-      $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
-      $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
-      if($rowMorosidad === NULL){
-        $MorosidadF = 0;
-      } else {
-        $MorosidadF = $rowMorosidad[0]*(-1);
-      }
-      $Morosidad = number_format($MorosidadF, 2, ".", ",");
-
       $get030DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
@@ -3417,6 +4272,781 @@ class Report {
       $dias90Dist = number_format($dias90DistF, 2, ".", ",");
 
       $print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                      <h3>Cuentas por Cobrar</h3>
+                      <h4>Cartera Vencida Total</h4>
+                      <p class="text-red" style="font-weight:bold;font-size: 2em;">$ '.$Morosidad.'</p>
+                      <table class="table table-striped table-dark">
+                        <thead class="thead-inverse">
+                          <tr>
+                            <th class="text-center"></th>
+                            <th class="text-center">0 - 30 Días</th>
+                            <th class="text-center">31 - 60 Días</th>
+                            <th class="text-center">61 - 90 Días</th>
+                            <th class="text-center">+ 90 Días</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <th scope="row" class="text-center">Importe</th>';
+
+    if($dias030Dist > 0){
+    $print .=                 '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias030Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad('.$perid.', 1);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+    } else {
+    $print .=                 '<td class="text-center">$ '.$dias030Dist.'</td>';
+    }
+
+    if($dias3060Dist > 0){
+    $print .=                 '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias3060Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad('.$perid.', 2);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+    } else {
+    $print .=                 '<td class="text-center">$ '.$dias3060Dist.'</td>';
+    }
+
+    if($dias6090Dist > 0){
+    $print .=                 '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias6090Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad('.$perid.', 3);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+    } else {
+    $print .=                 '<td class="text-center">$ '.$dias6090Dist.'</td>';
+    }
+
+    if($dias90Dist > 0){
+    $print .=                 '<td class="text-center text-redGraf" style="font-weight:bold;">$ '.$dias90Dist.' <a href="#" class="text-redGraf" onClick="showMorosidad('.$perid.', 4);"><i class="fa fa-tags" aria-hidden="true"></i></a></td>';
+    } else {
+    $print .=                 '<td class="text-center">$ '.$dias90Dist.'</td>';
+    }
+
+    $print .=               '</th>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <h5>Se presenta el reporte de cuentas por cobrar.</h5>
+                      <p class="lead">La información mostrada es de solo carácter informativo.</p>
+                    </div>
+                  </div>
+                </div>';
+
+    echo $print;
+    $getConnection->close();
+    $mysqliCon->close();
+  }
+
+  private function getDashBoardAsesor($params) {
+    $paramFunctions   = new Util();
+    $paramDb          = new Database();
+    $getConnection    = $paramDb->GetLink();
+
+    $perid = $_SESSION["data"]["id"];
+
+    //Se define las fechas y trimestres
+    $dia  = date("Y-m-d");
+    $year=date('Y');
+    $month=date('m');
+    $day=date('d');
+    $dv = date('D');
+    switch($dv){
+      case 'Mon':
+        $diaVis = 'L';
+        break;
+      case 'Tue':
+        $diaVis = 'I';
+        break;
+      case 'Wed':
+        $diaVis = 'M';
+        break;
+      case 'Thu':
+        $diaVis = 'J';
+        break;
+      case 'Fri':
+        $diaVis = 'V';
+        break;
+    }
+    // $diaL = new DateTime('2018-04-16');
+    // $diaI = new DateTime('2018-04-17');
+    // $diaM = new DateTime('2018-04-18');
+    // $diaJ = new DateTime('2018-04-19');
+    // $diaV = new DateTime('2018-04-20');
+
+    // echo $diaL->format('D');
+    // echo $diaI->format('D');
+    // echo $diaM->format('D');
+    // echo $diaJ->format('D');
+    // echo $diaV->format('D');
+
+
+    if($month < 4){
+      $primerDiaTrimestre = date('Y-01-01');
+      $ultimoDiaTrimestre = date('Y-03-31');
+    } elseif($month < 7){
+      $primerDiaTrimestre = date('Y-04-01');
+      $ultimoDiaTrimestre = date('Y-06-30');
+    } elseif($month < 10){
+      $primerDiaTrimestre = date('Y-07-01');
+      $ultimoDiaTrimestre = date('Y-09-30');
+    } elseif($month >9){
+      $primerDiaTrimestre = date('Y-10-01');
+      $ultimoDiaTrimestre = date('Y-12-31');
+    }
+
+    //Se obtiene los datos del vendedor
+    $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+    $queryPerDat = "SELECT v.foto, v.tel, v.correo
+                    FROM vendedores v
+                    WHERE vendedorid = $perid";
+
+    $resultadoPerDat = mysqli_query($mysqliCon,$queryPerDat);
+    $filaPerDat = mysqli_fetch_array($resultadoPerDat);
+    $foto = $filaPerDat[0];
+    $tel = $filaPerDat[1];
+    $correo = $filaPerDat[2];
+    
+    $queryPer = "SELECT p.nombre, p.ingreso, p.sermov
+                    FROM per p
+                    WHERE perid = $perid";
+
+    $resultadoPer = mysqli_query($getConnection,$queryPer);
+    $filaPer = mysqli_fetch_array($resultadoPer);
+    $nombre = $filaPer[0];
+    $ingreso = $filaPer[1];
+    $sermov = $filaPer[2];
+
+    if($sermov == 1){
+      $zona = 1;
+    } elseif($sermov == 2) {
+      $zona = 2;
+    } else {
+      $zona = 0;
+    }
+
+    //Se hace la busqueda de ventas totales del Dia
+    $queryVtaDia = "SELECT SUM(SUBTOTAL2) AS total, COUNT(SUBTOTAL2) AS contar
+                            FROM doc
+                          WHERE vendedorid = $perid
+                            AND fecha = '$dia'
+                            AND tipo = 'F'
+                            AND subtotal2 > 0
+                            AND FECCAN = 0";
+    $resultQueryDia = mysqli_query($getConnection,$queryVtaDia);
+    $qVtaDia = mysqli_fetch_row($resultQueryDia);
+    if($qVtaDia === NULL){
+      $qPedDia = 0;
+      $totalVentaDia = 0;
+    } else {
+      $qPedDia = $qVtaDia[1];
+      $totalVentaDia = $qVtaDia[0];
+    }
+    $formatTotalVentaDia = number_format($totalVentaDia, 2, '.',',');
+
+    //Se hace la busqueda de ventas totales del Mes
+    $diaFinal = date("d", mktime(0,0,0, $month+1, 0, $year));
+    $primerDiaMes = date('Y-m-d', mktime(0,0,0, $month, 1, $year));
+    $ultimoDiaMes = date('Y-m-d', mktime(0,0,0, $month, $diaFinal, $year));
+    $queryVtaMes = "SELECT SUM(SUBTOTAL2) AS total
+                            FROM doc
+                          WHERE vendedorid = $perid
+                            AND (
+                                fecha <= '$ultimoDiaMes'
+                                AND fecha >= '$primerDiaMes' 
+                                )
+                            AND tipo = 'F'
+                            AND subtotal2 > 0
+                            AND FECCAN = 0";
+    $resultQueryMes = $getConnection->query($queryVtaMes);
+    $qVtaMes = mysqli_fetch_array($resultQueryMes);
+    if($qVtaMes === NULL){
+      $totalVentaMes = 0;
+    } else {
+      $totalVentaMes = $qVtaMes['total'];
+    }
+    $formatTotalVentaMes = number_format($totalVentaMes, 2, '.',',');
+
+    //Sacamos el mes en que estamos y los dias por mes
+    switch ($month) {
+      case 1:
+        $mes='Enero';
+        $diasTotalMes = 31;
+      break;
+      case 2:
+        $mes='Febrero';
+        $diasTotalMes = 28;
+      break;
+      case 3:
+        $mes='Marzo';
+        $diasTotalMes = 31;
+      break;
+      case 4:
+        $mes='Abril';
+        $diasTotalMes = 30;
+      break;
+      case 5:
+        $mes='Mayo';
+        $diasTotalMes = 31;
+      break;
+      case 6:
+        $mes='Junio';
+        $diasTotalMes = 30;
+      break;
+      case 7:
+        $mes='Julio';
+        $diasTotalMes = 31;
+      break;
+      case 8:
+        $mes='Agosto';
+        $diasTotalMes = 31;
+      break;
+      case 9:
+        $mes='Septiembre';
+        $diasTotalMes = 30;
+      break;
+      case 10:
+        $mes='Octubre';
+        $diasTotalMes = 31;
+      break;
+      case 11:
+        $mes='Noviembre';
+        $diasTotalMes = 30;
+      break;
+      case 12:
+        $mes='Diciembre';
+        $diasTotalMes = 31;
+      break;
+    }
+
+    /*echo      '<div class="row" style="margin: 0 0 0 0;">
+                <div class="content-wrapper">
+                  <!-- Content Header (Page header) -->
+                  <section class="content-header">
+                    <div class="row">
+                      <div class="col-md-12">';*/
+      /*echo            "<p>Ventas Actuales</p>";*/
+    
+    $mtAnt = date('m')-1;
+    if($mtAnt == 0){
+      $yrAnt = date('Y')-1;
+      $mtAnt = 12;
+    } else {
+      $yrAnt = date('Y');
+    }
+    if($diasTotalMes < 30){
+      $fecActIni = date(''.$year.'-'.$month.'-01');
+      $fecActFin = date(''.$year.'-'.$month.'-28');
+    } else if($diasTotalMes > 30){
+      $fecActIni = date(''.$year.'-'.$month.'-01');
+      $fecActFin = date(''.$year.'-'.$month.'-31');
+      $fecAnteIni = date(''.$yrAnt.'-'.$mtAnt.'-01');
+      $fecAnteFin = date(''.$yrAnt.'-'.$mtAnt.'-31');
+    } else {
+      $fecActIni = date(''.$year.'-'.$month.'-01');
+      $fecActFin = date(''.$year.'-'.$month.'-30');
+      $fecAnteIni = date(''.$yrAnt.'-'.$mtAnt.'-01');
+      $fecAnteFin = date(''.$yrAnt.'-'.$mtAnt.'-30');
+    }
+
+    // Reporte Actual
+    $queryVtaTotalDia = "SELECT (
+                                  SUM((SELECT (SUBTOTAL2) FROM DUAL))
+                                ) AS total
+                                FROM doc
+                                WHERE vendedorid = $perid
+                                  AND fecha >= '".$fecActIni."'
+                                  AND fecha <= '".$fecActFin."'
+                                  AND tipo = 'F'
+                                  AND subtotal2 > 0
+                                  AND FECCAN = 0";
+    $resultQueryvtd = $getConnection->query($queryVtaTotalDia);
+    $qVtD = mysqli_fetch_array($resultQueryvtd);
+    if($qVtD === NULL){
+      $vAct = 0;
+    } else {
+      $vAct = $qVtD['total'];
+    }
+
+    //Reporte Anterior
+    /*echo            "<p>Ventas Anteriores</p>";*/
+    $queryVtaTotalDiaAnt = "SELECT SUM(SUBTOTAL2) AS total
+                                  FROM doc
+                                  WHERE vendedorid = $perid
+                                    AND fecha >= '".$fecAnteIni."'
+                                    AND fecha <= '".$fecAnteFin."'
+                                    AND tipo = 'F'
+                                    AND subtotal2 > 0
+                                    AND FECCAN = 0";
+    $resultQueryvtdAnt = $getConnection->query($queryVtaTotalDiaAnt);
+    $qVtDAnt = mysqli_fetch_array($resultQueryvtdAnt);
+    if($qVtDAnt === NULL){
+      $vAnt = 0;
+    } else {
+      $vAnt = $qVtDAnt['total'];
+    }
+
+    // TODO hacer consultas por vendedor, por tipo de cliente y por tiempo de morosidad.
+    $getMorosidad = "SELECT 
+                      SUM(d.totalpagado - d.total) as TotalDeuda
+                      FROM doc d
+                        JOIN cli c ON c.clienteid = d.clienteid
+                      WHERE d.total > d.totalpagado
+                        AND c.vendedorid = $perid
+                        AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+    $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
+    $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
+    if($rowMorosidad === NULL){
+    $MorosidadF = 0;
+    } else {
+    $MorosidadF = $rowMorosidad[0]*(-1);
+    }
+    $Morosidad = number_format($MorosidadF, 2, ".", ",");
+
+    // Buscamos la cobranza del día
+    $getMorosidadDia = "SELECT 
+                      SUM(d.totalpagado - d.total) as CobranzaDia
+                      FROM doc d
+                        JOIN cli c ON c.clienteid = d.clienteid
+                      WHERE c.diavis = '$diaVis'
+						            AND d.total > d.totalpagado
+                        AND c.vendedorid = $perid
+                        AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+    $resultGetMorosidadDia = mysqli_query($getConnection,$getMorosidadDia);
+    $rowMorosidadDia = mysqli_fetch_array($resultGetMorosidadDia);
+    if($rowMorosidadDia === NULL){
+    $MorosidadFDia = 0;
+    } else {
+    $MorosidadFDia = $rowMorosidadDia[0]*(-1);
+    }
+    $MorosidadDia = number_format($MorosidadFDia, 2, ".", ",");
+
+    // Buscamos los pagos de los clientes con morosidad del día
+    $diaInicio = date('Y-m-d 00:00:00');
+    $diaFin = date('Y-m-d 23:59:59');
+    $getMorosidadPagoDia = "SELECT 
+                              sum(pagado) as PagoCobDia
+                              FROM doc d
+                                LEFT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                                LEFT OUTER JOIN pagdoc pd ON pd.docid = d.docid
+                              WHERE c.diavis = '$diaVis'
+                                AND (fechapag >= '$diaInicio' AND fechapag <= '$diaFin')
+                                AND d.total > d.totalpagado
+                                AND c.vendedorid = $perid
+                                AND (
+                                      d.tipo = 'F'
+                                      OR d.tipo = 'N'
+                                    )
+                                AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+    $resultGetMorosidadPagoDia = mysqli_query($getConnection,$getMorosidadPagoDia);
+    $rowMorosidadPagoDia = mysqli_fetch_array($resultGetMorosidadPagoDia);
+    if($rowMorosidadPagoDia === NULL){
+      $MorosidadFPagoDia = 0;
+    } else {
+      $MorosidadFPagoDia = $rowMorosidadPagoDia[0];
+    }
+    $MorosidadPagoDia = number_format($MorosidadFPagoDia, 2, ".", ",");
+
+        /*echo          "</div>
+                    </div>
+                  </section>
+                </div>
+              </div>";*/
+
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                    <div class="row infoCard">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                            <img src="../img/vendedores/'.$foto.'" class="rounded-circle img" alt="'.$foto.'" />
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                            <h5>
+                              <span><b>#'.$perid.'</b></span> - '.$nombre.'
+                            </h5>
+                            <h5>
+                              <small class="text-green">ZONA '.$zona.'</small>
+                            </h5>
+                            <h5>
+                              <span>Tel.: '.$tel.'</span>
+                            </h5>
+                            <p style="font-size: .8em;"><span>Correo: '.$correo.'</span></p>
+                            <a class="btn btn-danger btn-enl btn-block" href="javascript:location.reload(true)">Borrar Historial</a>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <div class="form-group">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                                  <span>Ventas al día</span>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                      <input type="text" class="form-control text-center" value="$ '.$formatTotalVentaDia.'" readonly />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <div class="form-group">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                                  <span>Pedidos al día</span>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                      <input type="text" class="form-control text-center" value="'.$qPedDia.'" readonly />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <div class="form-group">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                                  <span>Ventas al mes</span>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                      <input type="text" class="form-control text-center" value="$ '.$formatTotalVentaMes.'" readonly />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <div class="form-group">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                                  <span>Cobrado</span>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                      <input type="text" class="form-control text-center" value="$ '.$MorosidadPagoDia.'" readonly />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <div class="form-group">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                                  <span>Cartera Vencida</span>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                      <input type="text" class="form-control text-red text-center" value="$ '.$Morosidad.'" readonly />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <div class="form-group">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                                  <span>Cobranza del día</span>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                      <input type="text" class="form-control text-red text-center" value="$ '.$MorosidadDia.'" readonly />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <div class="form-group">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                                  <span>Código a Buscar</span>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                      <input type="text" class="form-control text-center" id="codigo" onChange="existencias8(); existencias8Name(); existencias8Costo();" placeholder="Código"/>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <div class="form-group">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                                  <span>Existencias</span>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                      <input type="text" class="form-control text-center" id="existencias8" readonly />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <div class="form-group">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                                  <span>Descripción</span>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                    <textarea type="text" class="form-control text-center" rows="2" id="existencias8name" readonly></textarea>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                            <div class="form-group">
+                              <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                                  <span>Costo</span>
+                                </div>
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                                  <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                    <input type="text" class="form-control text-center" id="existencia8costo" readonly />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <script>
+                              // $("#existencias8").hide();
+                              // $("#existencias8name").hide();
+                              function existencias8(){
+                                var codigo = document.getElementById("codigo").value;
+                                
+                                $.post("../php/busquedas/existencias8.php", {codigo: codigo}, function(existencias){
+                                  // console.log(existencias);
+                                  document.getElementById("existencias8").value = existencias;
+                                  // $("#existencias8").show();
+                                });
+                              }
+                              function existencias8Name(){
+                                var codigo = document.getElementById("codigo").value;
+                                
+                                $.post("../php/busquedas/existencia8name.php", {codigo: codigo}, function(existencias){
+                                  // console.log(existencias);
+                                  document.getElementById("existencias8name").value = existencias;
+                                  // $("#existencias8name").show();
+                                });
+                              }
+                              function existencias8Costo(){
+                                var codigo = document.getElementById("codigo").value;
+                                
+                                $.post("../php/busquedas/existencia8costo.php", {codigo: codigo}, function(existencias){
+                                  // console.log(existencias);
+                                  document.getElementById("existencia8costo").value = existencias;
+                                  // $("#existencia8costo").show();
+                                });
+                              }
+                            </script>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 graficasGeneral">
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                    <h3>Venta Mensual</h3>
+                    <h4Venta Mensual de <b>'.$mes.'</b> del <b>'.date("Y").'</b></h4>
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 graficos">
+                        <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
+                        <p id="mesActual" style="display: none;">'.$totalVentaMes.'</p>
+                        <p id="mAnterior" style="display: none;">'.$vAnt.'</p>
+                        <canvas id="areaChart" style="height:450px;"></canvas>
+                      </div>
+                      <script src="../intranet/js/Chart.js"></script>
+                      <script src="../intranet/js/graficas.js"></script>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center paddingT">
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <span class="text-redGraf">
+                      Ventas del Mes pasado<br /><b style="font-size: 2em;">$ '.number_format($vAnt, 2, ".", ",").'</b>
+                    </span>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <span class="text-blue">
+                      Venta Actual<br /><b style="font-size: 2em;">$ '.number_format($totalVentaMes, 2, ".", ",").'</b>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center paddingT paddingB">
+                <div class="row infoCard2">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+                    <h1 class="display-4">Proyección de Cierre</h1>
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                            <p class="lead"><b>Ingrese los días del mes actual a calcular</b></p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                            <input id="diasActual" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 25" required>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                            <p class="lead"><b>Ingrese los días del mes anterior a calcular</b></p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                            <input id="diasAnterior" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 20" required>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                            <p class="lead"><b>Ingrese los días que han pasado</b></p>
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                            <input id="diasConteo" style="text-align:center;border: 1px solid #DBE1EB;font-size: 18px;font-family: Arial, Verdana;padding-left: 7px;padding-right: 7px;padding-top: 10px;padding-bottom: 10px;border-radius: 4px;-moz-border-radius: 4px;-webkit-border-radius: 4px;-o-border-radius: 4px;background: #FFFFFF;background: linear-gradient(left, #FFFFFF, #F7F9FA);background: -moz-linear-gradient(left, #FFFFFF, #F7F9FA);background: -webkit-linear-gradient(left, #FFFFFF, #F7F9FA);background: -o-linear-gradient(left, #FFFFFF, #F7F9FA);color: #2E3133;" type="number" placeholder="Eje. 11" required>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="botonCalcular" class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="padding: 10px;">
+                      <input class="btn btn-success" type="submit" name="" value="Calcular" onClick="calcular();">
+                    </div>
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="ventaPorDiaActual"></div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="ventaPorDiaAnterior"></div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="pronosticoMensual"></div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" id="proyeccionCierre"></div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" id="ventaPorDiaIgualar"></div>
+                    </div>
+                    <script src="../intranet/js/calculos.js"></script>
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                    <h5 class="text-center lead">Se presenta el reporte de ventas al mes, en comparación con el anterior y con el mejor mes.</h5>
+                    <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
+                  </div>
+                </div>
+              </div>';
+
+      $get030DiasDist = "SELECT 
+                    SUM(d.totalpagado - d.total) as TotalDeuda
+                    FROM doc d
+                      JOIN cli c ON c.clienteid = d.clienteid
+                    WHERE d.total > d.totalpagado
+                        AND c.vendedorid = $perid
+                        AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -30
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
+      $resultGet030Dist = mysqli_query($getConnection,$get030DiasDist);
+      $row030Dist = mysqli_fetch_array($resultGet030Dist);
+      if($row030Dist === NULL){
+        $dias030DistF = 0;
+      } else {
+        $dias030DistF = $row030Dist[0]*(-1);
+      }
+      $dias030Dist = number_format($dias030DistF, 2, ".", ",");
+
+      $get3060DiasDist = "SELECT
+                    SUM(d.totalpagado - d.total) as TotalDeuda
+                    FROM doc d
+                      JOIN cli c ON c.clienteid = d.clienteid
+                    WHERE d.total > d.totalpagado
+                        AND c.vendedorid = $perid
+                        AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -60
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -30";
+      $resultGet3060Dist = mysqli_query($getConnection,$get3060DiasDist);
+      $row3060Dist = mysqli_fetch_array($resultGet3060Dist);
+      if($row3060Dist === NULL){
+        $dias3060DistF = 0;
+      } else {
+        $dias3060DistF = $row3060Dist[0]*(-1);
+      }
+      $dias3060Dist = number_format($dias3060DistF, 2, ".", ",");
+
+      $get6090DiasDist = "SELECT 
+                    SUM(d.totalpagado - d.total) as TotalDeuda
+                    FROM doc d
+                      JOIN cli c ON c.clienteid = d.clienteid
+                    WHERE d.total > d.totalpagado
+                      AND c.vendedorid = $perid
+                      AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) >= -90
+                      AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -60";
+      $resultGet6090Dist = mysqli_query($getConnection,$get6090DiasDist);
+      $row6090Dist = mysqli_fetch_array($resultGet6090Dist);
+      if($row6090Dist === NULL){
+        $dias6090DistF = 0;
+      } else {
+        $dias6090DistF = $row6090Dist[0]*(-1);
+      }
+      $dias6090Dist = number_format($dias6090DistF, 2, ".", ",");
+
+      $get90DiasDist = "SELECT 
+                    SUM(d.totalpagado - d.total) as TotalDeuda
+                    FROM doc d
+                      JOIN cli c ON c.clienteid = d.clienteid
+                    WHERE d.total > d.totalpagado
+                        AND c.vendedorid = $perid
+                        AND (
+                              d.tipo = 'F'
+                              OR d.tipo = 'N'
+                            )
+                        AND (SELECT DATEDIFF(d.vence, '".$dia."')) < -90";
+      $resultGet90Dist = mysqli_query($getConnection,$get90DiasDist);
+      $row90Dist = mysqli_fetch_array($resultGet90Dist);
+      if($row90Dist === NULL){
+        $dias90DistF = 0;
+      } else {
+        $dias90DistF = $row90Dist[0]*(-1);
+      }
+      $dias90Dist = number_format($dias90DistF, 2, ".", ",");
+
+      $print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT paddingB">
                   <div class="row">
                     <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                       <h3>Cuentas por Cobrar</h3>
@@ -5975,7 +7605,6 @@ class Report {
     $rol = $paramDb->SecureInput($session["rol"]);
     $clienteID = $paramDb->SecureInput($session["username"]);
     $id = $_SESSION["data"]["id"];
-    //$id = 4;
     $username = $_SESSION["data"]["name"];
     $pas2 = $_SESSION["data"]["pas2"];
     $pasAnt = $_SESSION["data"]["pasAnt"];
@@ -5994,151 +7623,6 @@ class Report {
 
     //Se hace la busqueda de ventas totales del Dia
     $dia  = date("Y-m-d");
-
-    $queryVtaDia = "SELECT d.docid
-                      FROM doc d
-                        JOIN per p ON p.perid = d.vendedorid
-                      WHERE d.fecha = '".$dia."'
-                        AND p.sermov = $zona
-                        AND tipo = 'C'";
-    $resultQueryDia = $getConnection->query($queryVtaDia);
-    $qVtaDia = mysqli_num_rows($resultQueryDia);
-    if($qVtaDia === NULL){
-      $totalVentaDia = 0;
-    } else {
-      //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
-      $totalVentaDia = $qVtaDia;
-    }
-
-    //Se hace la busqueda de ventas totales del Mes
-    $month = date('m');
-    $year = date('Y');
-    $dayVtaTotMes = date("d", mktime(0,0,0, $month+1, 0, $year));
-    $primerDiaMes = date('Y-m-d', mktime(0,0,0, $month, 1, $year));
-    $ultimoDiaMes = date('Y-m-d', mktime(0,0,0, $month, $dayVtaTotMes, $year));
-    $queryVtaMes = "SELECT SUM((SELECT (d.SUBTOTAL2 + d.SUBTOTAL1) FROM DUAL)) AS Total
-                      FROM doc d
-                        JOIN per p ON p.perid = d.vendedorid
-                      WHERE (
-                              d.fecha <= '".$ultimoDiaMes."'
-                              AND d.fecha >= '".$primerDiaMes."' 
-                              )
-                          AND d.tipo = 'F'
-                          AND d.serie NOT LIKE 'CH'
-                          AND p.sermov = $zona";
-    $resultQueryMes = $getConnection->query($queryVtaMes);
-    $qVtaMes = mysqli_fetch_array($resultQueryMes);
-    if($qVtaMes === NULL){
-      $totalVentaMes = 0;
-    } else {
-      $totalVentaMes = $qVtaMes['Total'];
-    }
-    $formatTotalVentaMes = number_format($totalVentaMes, 2, '.',',');
-
-    //Sacamos el mes en que estamos
-    switch ($month) {
-      case 1:
-        $mes='Enero';
-        $diasTotalMes = 31;
-      break;
-      case 2:
-        $mes='Febrero';
-        $diasTotalMes = 28;
-      break;
-      case 3:
-        $mes='Marzo';
-        $diasTotalMes = 31;
-      break;
-      case 4:
-        $mes='Abril';
-        $diasTotalMes = 30;
-      break;
-      case 5:
-        $mes='Mayo';
-        $diasTotalMes = 31;
-      break;
-      case 6:
-        $mes='Junio';
-        $diasTotalMes = 30;
-      break;
-      case 7:
-        $mes='Julio';
-        $diasTotalMes = 31;
-      break;
-      case 8:
-        $mes='Agosto';
-        $diasTotalMes = 31;
-      break;
-      case 9:
-        $mes='Septiembre';
-        $diasTotalMes = 30;
-      break;
-      case 10:
-        $mes='Octubre';
-        $diasTotalMes = 31;
-      break;
-      case 11:
-        $mes='Noviembre';
-        $diasTotalMes = 30;
-      break;
-      case 12:
-        $mes='Diciembre';
-        $diasTotalMes = 31;
-      break;
-    }
-
-    // Morosidad TOTAL.
-    $getMorosidad = "SELECT
-                      SUM(d.totalpagado - d.total) as TotalDeuda
-                      FROM doc d
-                        JOIN per p ON p.perid = d.vendedorid
-                      WHERE d.total > d.totalpagado
-                          AND d.tipo = 'F'
-                          AND p.sermov = $zona
-                          AND (SELECT DATEDIFF(d.vence, '".$dia."')) < 0";
-    $resultGetMorosidad = mysqli_query($getConnection,$getMorosidad);
-    $rowMorosidad = mysqli_fetch_array($resultGetMorosidad);
-    if($rowMorosidad === NULL){
-      $MorosidadF = 0;
-    } else {
-      $MorosidadF = $rowMorosidad[0]*(-1);
-    }
-    $Morosidad = number_format($MorosidadF, 2, ".", ",");
-
-    //Facturas Vencidas al mes
-    $fechaInicioVenc = date('Y-m-01');
-    $fechaFinalVenc = date('Y-m-'.$diasTotalMes.'');
-    $numVenFac = "SELECT d.vence
-                    FROM doc d
-                      JOIN per p ON p.perid = d.vendedorid
-                    WHERE d.totalpagado < total
-                      AND d.feccan = 0
-                      AND (
-                            d.tipo = 'F'
-                            OR d.tipo = 'N'
-                          )
-                      AND d.vence < '$dia'
-                      AND p.sermov = $zona
-                      AND (
-                            d.feccap < '$fechaFinalVenc'
-                            AND d.feccap > '$fechaInicioVenc'
-                          )";
-
-    $venFac = mysqli_query($getConnection, $numVenFac);
-    $numeroVecesFacVenc = mysqli_num_rows($venFac);
-
-    //Nuevos clientes del mes
-    $numCliMes = "SELECT c.clienteid
-                    FROM cli c
-                      JOIN per p ON p.perid = c.vendedorid
-                    WHERE (
-                            c.fecaltcli < '$fechaFinalVenc'
-                            AND c.fecaltcli > '$fechaInicioVenc'
-                          )
-                      AND p.sermov = $zona";
-
-    $clieMes = mysqli_query($getConnection, $numCliMes);
-    $numeroVecesCliNuevos = mysqli_num_rows($clieMes);
 
     $arrayBooleans = array("bManagementOrder" => false);
     if($pas2==''){
@@ -6206,40 +7690,11 @@ class Report {
     $rows = $paramDb->Rows();
 
     $email = 0;
-    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                 <div class="row">
                   <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
                     <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
                     <img src="../img/barrafmo2.gif" width="200"/>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 infoCard paddingT paddingB centrar text-center">
-                    <div class="row">
-                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
-                        <h3>DATOS DE <spam class="text-tomato">ZONA '.$zona.'</spam></h3>
-                        <div class="row">
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                            <h4 class="h4">No. PEDIDOS AL DIA</h4>
-                            <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$totalVentaDia.'</p>
-                          </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                            <h4 class="h4">VENTAS AL MES</h4>
-                            <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$formatTotalVentaMes.'</p>
-                          </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                            <p class="h4">FACTURAS VENCIDAS AL MES</p>
-                            <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
-                          </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                            <h4 class="h4">MOROSIDAD TOTAL</h4>
-                            <p class="lead text-tomato" style="font-size: 1.7em !important;">$ '.$Morosidad.'</p>
-                          </div>
-                          <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
-                            <h4 class="h4">NUEVOS CLIENTES AL MES</h4>
-                            <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesCliNuevos.'</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
                     <div class="row">
@@ -6260,15 +7715,96 @@ class Report {
       $tel = $rowFoto[0];
       $foto = $rowFoto[1];
 
+      // Pedidos y ventas por Bajar del día por asesor
+      $queryPedDiaBajar = "SELECT COUNT(docid) AS PedidosBajar, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedBajar
+                              FROM doc
+                            WHERE vendedorid = $perid
+                              AND fecha = '$dia'
+                              AND tipo = 'C'
+                              AND serie NOT LIKE 'CH'
+                              AND subtotal2 > 0
+                              AND FECCAN = 0
+                              AND estado NOT LIKE 'C'";
+      $resultQueryDiaBajar = $getConnection->query($queryPedDiaBajar);
+      $qPedDiaBajar = mysqli_fetch_array($resultQueryDiaBajar);
+      if($qPedDiaBajar === NULL){
+        $PedBajar = 0;
+        $sumBajar = 0;
+      } else {
+        //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+        $PedBajar = $qPedDiaBajar["PedidosBajar"];
+        $SumaBajNs = $qPedDiaBajar["TotalPedBajar"];
+      }
+      $sumBajar = "$ ".number_format($SumaBajNs, 2, '.',',');
+
+      // Pedidos y ventas por Surtir del día
+      $queryPedDiaSurtir = "SELECT COUNT(docid) AS PedidosSurtir, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedSurtir
+                              FROM doc
+                            WHERE vendedorid = $perid
+                              AND fecha = '$dia'
+                              AND tipo = 'N'
+                              AND serie NOT LIKE 'CH'
+                              AND subtotal2 > 0
+                              AND FECCAN = 0";
+      $resultQueryDiaSurtir = $getConnection->query($queryPedDiaSurtir);
+      $qPedDiaSurtir = mysqli_fetch_array($resultQueryDiaSurtir);
+      if($qPedDiaSurtir === NULL){
+        $PedSurt = 0;
+        $sumSurt = 0;
+      } else {
+        //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+        $PedSurt = $qPedDiaSurtir["PedidosSurtir"];
+        $SumSurNs = $qPedDiaSurtir["TotalPedSurtir"];
+      }
+      $sumSurt = "$ ".number_format($qPedDiaSurtir["TotalPedSurtir"], 2, '.',',');
+
       $linkFunctionPersonal = "showPersonal(".$perid.")";
 
-      $print .=           '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+      // Pedidos y ventas por Factura del día
+      $queryPedDiaFactura = "SELECT COUNT(docid) AS PedidosFactura, SUM((SELECT (SUBTOTAL2 + SUBTOTAL1) FROM DUAL)) AS TotalPedFactura
+                              FROM doc d
+                              WHERE vendedorid = $perid
+                                AND d.fecha = '$dia'
+                                AND tipo = 'F'
+                                AND serie NOT LIKE 'CH'
+                                AND d.subtotal2 > 0
+                                AND d.FECCAN = 0";
+      $resultQueryDiaFactura = $getConnection->query($queryPedDiaFactura);
+      $qPedDiaFactura = mysqli_fetch_array($resultQueryDiaFactura);
+      if($qPedDiaFactura === NULL){
+        $PedFactura = 0;
+        $sumFactura = 0;
+      } else {
+        //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
+        $PedFactura = $qPedDiaFactura["PedidosFactura"];
+        $sumFacNS = $qPedDiaFactura["TotalPedFactura"];
+      }
+      $sumFactura = "$ ".number_format($qPedDiaFactura["TotalPedFactura"], 2, '.',',');
+
+      $print .=           '<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 paddingT paddingB">
                             <div class="text-center">
                               <a href="#" onclick="'.$linkFunctionPersonal.'">
                                 <img class="img-fluid rounded-circle" src="../img/vendedores/'.$foto.'" alt="'.$foto.'" width="200">
                               </a>
                               <div class="card-block">
                                 <h4 class="card-title">'.$nombre.'</h4>
+                                <div class="row">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                                    <h6 class="h6 text-center text-tomato">POR BAJAR</h6>
+                                    <p class="lead">'.$PedBajar.'</p>
+                                    <p class="lead">'.$sumBajar.'</p>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                                    <h6 class="h6 text-center text-tomato">POR SURTIR</h6>
+                                    <p class="lead">'.$PedSurt.'</p>
+                                    <p class="lead">'.$sumSurt.'</p>
+                                  </div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                                    <h6 class="h6 text-center text-tomato">FACTURADO</h6>
+                                    <p class="lead">'.$PedFactura.'</p>
+                                    <p class="lead">'.$sumFactura.'</p>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>';
@@ -6705,6 +8241,7 @@ class Report {
             $sendAuto = json_encode($datosAutorizado);
             // $linkDatosEmail = "Autorizar('$nombre', '$nombreVendedor')";
             $linkDatosEmail = 'Autorizar('.$sendAuto.')';
+            $linkDatosModificar = 'Modificar('.$clienteid.', '.$perid.')';
             $print .=         '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                 <div class=row>
                                   <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
@@ -6736,7 +8273,10 @@ class Report {
                                       </div>
                                     </div>
                                   </div>
-                                  <div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 centrar">';
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1 centrar">';
+          $print .=                 "<button type='button' class='btn btn-outline-primary btn-lg btn-block' onClick='$linkDatosModificar'>Modificar</button>";
+          $print .=               '</div>
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1 centrar">';
           $print .=                 "<button type='button' class='btn btn-outline-success btn-lg btn-block' onClick='$linkDatosEmail'>Autorizado</button>";
           $print .=               '</div>
                                 </div>
@@ -7206,17 +8746,33 @@ class Report {
   private function getNewCustomer($params){
     $paramDb = new Database();
     $paramFunctions = new Util();
-    $getConnection = $paramDb->GetLink();
+
+    $mysqliCon      = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+
+    // var_dump($params["clienteid"]);
+
     $perid = $paramDb->SecureInput($params["perid"]);
+    if($params["clienteid"] <> NULL){
+      $clienteid = $paramDb->SecureInput($params["clienteid"]);
+    }else{
+      $clienteid = 0;
+    }
+
+    // var_dump($clienteid);
 
     if($perid == 0 || $perid == NULL){
       $perid = 0;
     }
 
     // ../php/agregar/nuevocli.php
-    $print = '<div class="container">
-              <h4 class="display-4 text-center">Alta de Nuevos Clientes</h4>
+    $print = '<div class="container">';
+    if($clienteid == 0){
+    $print .= '<h4 class="display-4 text-center">Alta de Nuevos Clientes</h4>
               <form enctype="multipart/form-data" action="../php/agregar/nuevocli.php" method="POST">';
+    }else{
+    $print .= '<h4 class="display-4 text-center">Modificación de Clientes</h4>
+              <form enctype="multipart/form-data" action="../php/agregar/modcli.php" method="POST">';
+    }
     if($perid == 0){
       $print .= '<div class="form-group">
                   <label>Asesor</label>
@@ -7225,273 +8781,436 @@ class Report {
     }else{
       $print .= '<input type="text" class="form-control" style="display:none;" name="inputVendedor" value="'.$perid.'">';
     }
-    $print .=   '<div class="form-group">
-                  <select class="form-control" name="selectTipoCompra" id="tipoCompra" onChange="tipoCompraCustomer(event);">
-                    <option>Contado o Financiado</option>
-                    <option value="1">Contado</option>
-                    <option value="2">Financiado</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <select class="form-control" name="selectTipoCliente" id="tipoCliente" onChange="tipoClienteCustomer(event);">
-                    <option>Física o Moral</option>
-                    <option value="1">Física</option>
-                    <option value="2">Moral</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Razon Social</label>
-                  <input type="text" class="form-control" name="inputRazonSocial" id="inputRazonSocial" placeholder="Como aparece en su RFC o en su caso nombre completo" required>
-                </div>
-                <div class="form-group">
-                  <label>Nombre Comercial</label>
-                  <input type="text" class="form-control" name="inputNombreComercial" id="inputNombreComercial" placeholder="Nombre del nogocio" required>
-                </div>
-                <div class="form-group">
-                  <label>El cliente factura?</label>
-                  <select class="form-control" id="selectFactura" onChange="factura(event)" required>
-                    <option>Selecciona...</option>
-                    <option value="1">Si</option>
-                    <option value="0">No</option>
-                  </select>
-                </div>
-                <div class="row" id="Factura">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>RFC del Cliente</label>
-                      <input type="text" class="form-control" name="inputFRCSi" id="inputFRCSi" placeholder="R.F.C." required>
+    if($clienteid == 0){
+      $print .=   '<div class="form-group">
+                    <select class="form-control" name="selectTipoCompra" id="tipoCompra" onChange="tipoCompraCustomer(event);">
+                      <option>Contado o Financiado</option>
+                      <option value="1">Contado</option>
+                      <option value="2">Financiado</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <select class="form-control" name="selectTipoCliente" id="tipoCliente" onChange="tipoClienteCustomer(event);">
+                      <option>Física o Moral</option>
+                      <option value="1">Física</option>
+                      <option value="2">Moral</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Razon Social</label>
+                    <input type="text" class="form-control" name="inputRazonSocial" id="inputRazonSocial" placeholder="Como aparece en su RFC o en su caso nombre completo" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Nombre Comercial</label>
+                    <input type="text" class="form-control" name="inputNombreComercial" id="inputNombreComercial" placeholder="Nombre del nogocio" required>
+                  </div>
+                  <div class="form-group">
+                    <label>El cliente factura?</label>
+                    <select class="form-control" id="selectFactura" onChange="factura(event)" required>
+                      <option>Selecciona...</option>
+                      <option value="1">Si</option>
+                      <option value="0">No</option>
+                    </select>
+                  </div>
+                  <div class="row" id="Factura">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>RFC del Cliente</label>
+                        <input type="text" class="form-control" name="inputFRCSi" id="inputFRCSi" placeholder="R.F.C." required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Fecha de Alta en Hacienda</label>
+                        <input type="date" class="form-control" name="inputAltaHaciendaSi" id="inputAltaHaciendaSi" required>
+                      </div>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Fecha de Alta en Hacienda</label>
-                      <input type="date" class="form-control" name="inputAltaHaciendaSi" id="inputAltaHaciendaSi" required>
+                  <div class="row" id="NoFactura">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>RFC del Cliente</label>
+                        <input type="text" class="form-control" name="inputFRCNo" id="inputFRCNo" value="XAXX 010101 000" readonly required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Fecha de Alta en Hacienda</label>
+                        <input type="date" class="form-control" name="inputAltaHaciendaNo" id="inputAltaHaciendaNo" value="'.date("Y-01-01").'" readonly required>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="row" id="NoFactura">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>RFC del Cliente</label>
-                      <input type="text" class="form-control" name="inputFRCNo" id="inputFRCNo" value="XAXX 010101 000" readonly required>
+                  <div class="form-group">
+                    <label>Dirección</label>
+                    <input type="text" class="form-control" name="inputDireccion" id="inputDireccion" placeholder="Ingresar dirección correcta" required>
+                  </div>
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>C.P.</label>
+                        <input type="number" min="1" class="form-control" name="inputCP" id="inputCP" placeholder="Ej. 79000" required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Colonia</label>
+                        <input type="text" class="form-control" name="inputColonia" id="inputColonia" placeholder="Colonia" required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Ciudad</label>
+                        <input type="text" class="form-control" name="inputCiudad" id="inputCiudad" placeholder="Ciudad" required>
+                      </div>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Fecha de Alta en Hacienda</label>
-                      <input type="date" class="form-control" name="inputAltaHaciendaNo" id="inputAltaHaciendaNo" value="'.date("Y-01-01").'" readonly required>
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Teléfono Fijo</label>
+                        <input type="tel" min="1" class="form-control" name="inputTelFijo" id="inputTelFijo" placeholder="(LADA) Número de 10 dígitos" required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Celular</label>
+                        <input type="tel" min="1" class="form-control" name="inputCel" id="inputCel" placeholder="(LADA) Número de 10 dígitos" required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <select class="form-control" id="selectEmail" onChange="emailEvento(event)" required>
+                          <option>Email?</option>
+                          <option value="1">Si</option>
+                          <option value="0">No</option>
+                        </select>
+                        <input type="email" class="form-control" name="inputEmailSi" id="inputEmailSi" placeholder="name@example.com">
+                        <input type="email" class="form-control" name="inputEmailNo" id="inputEmailNo" value="cnmfmo@gmail.com" readonly>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="form-group">
-                  <label>Dirección</label>
-                  <input type="text" class="form-control" name="inputDireccion" id="inputDireccion" placeholder="Ingresar dirección correcta" required>
-                </div>
-                <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
-                    <div class="form-group">
-                      <label>C.P.</label>
-                      <input type="number" min="1" class="form-control" name="inputCP" id="inputCP" placeholder="Ej. 79000" required>
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Cantida de Crédito</label>
+                        <input type="number" class="form-control" name="inputCantidadCredito" id="inputCantidadCredito" value="9000" readonly required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Días de Crédito</label>
+                        <select class="form-control" name="selectDiasCredito" id="selectDiasCredito" required>
+                          <option value="1">Selecciona...</option>
+                          <option value="0">Cliente de Contado</option>
+                          <option value="7">7</option>
+                          <option value="13">13</option>
+                          <option value="21">21</option>
+                          <option value="28">28</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Método de Pago</label>
+                        <select class="form-control" name="inputMetPago" id="inputMetPago" required>
+                          <option>Selecciona...</option>
+                          <option value="Efectivo">Efectivo</option>
+                          <option value="Cheque">Cheque</option>
+                          <option value="T. Débito">T. Débito</option>
+                          <option value="T. Crédito">T. Crédito</option>
+                          <option value="Transferencia">Transferencia</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
-                    <div class="form-group">
-                      <label>Colonia</label>
-                      <input type="text" class="form-control" name="inputColonia" id="inputColonia" placeholder="Colonia" required>
+                  <div class="form-group">
+                    <label>Nombre del responsable de hacer el pedido</label>
+                    <input type="text" class="form-control" name="inputResponsableHacerPedidos" id="inputResponsableHacerPedidos" placeholder="Responsable de hacer el Pedido" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Nombre del responsable de recibir el pedido</label>
+                    <input type="text" class="form-control" name="inputResponsableRecibirPedidos" id="inputResponsableRecibirPedidos" placeholder="Responsable de recibir el Pedido" required>
+                  </div>
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>M2 del Local</label>
+                        <input type="number" min="1" class="form-control" name="inputM2" id="inputM2" placeholder="Metros Cuadrados" required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Propiedad</label>
+                        <select class="form-control" name="selectPropiedad" id="selectPropiedad" required>
+                          <option>Selecciona...</option>
+                          <option value="Propio">Propio</option>
+                          <option value="Rentado">Rentado</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
-                    <div class="form-group">
-                      <label>Ciudad</label>
-                      <input type="text" class="form-control" name="inputCiudad" id="inputCiudad" placeholder="Ciudad" required>
+                  <div class="form-group">
+                    <label>A un lado de</label>
+                    <textarea class="form-control" name="textareaALado" id="textareaALado" rows="3" required></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label>Frente de</label>
+                    <textarea class="form-control" name="textareaFrente" id="textareaFrente" rows="3" required></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label>Notas:</label>
+                    <textarea class="form-control" name="textareaNota" id="textareaNota" rows="3"></textarea>
+                  </div>
+                  <div class="row text-center">
+                    <h4>Favor de subir imagenes preliminares para poder empezar con la verificación con el cliente y poder autorizar su línea de crédito</h4>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Solicitud</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgSolicitud" id="imgSolicitud" required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Política Comercial</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgPolitica" id="imgPolitica" required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Fachada</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgFachada" id="imgFachada" required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Comprobante de Domicilio</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgDomicilio" id="imgDomicilio" required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Credencial de Elector frente</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgINEFre" id="imgINEFre" required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Credencial de Elector reverso</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgINERev" id="imgINERev" required>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Cedula Fiscal</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgCedula" id="imgCedula">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Alta Hacienda</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgHacienda" id="imgHacienda">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Acta Constitutiva</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgActaMoral" id="imgActaMoral">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Comprobante de domicilio del representante legal</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgDomRepLeg" id="imgDomRepLeg">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Credencial de Elector del representante legal frente</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgINEFreLegal" id="imgINEFreLegal">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Credencial de Elector del representante legal reverso</label>
+                        <input type="file" class="btn btn-warning form-control-file" name="imgINERevLegal" id="imgINERevLegal">
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
-                    <div class="form-group">
-                      <label>Teléfono Fijo</label>
-                      <input type="tel" min="1" class="form-control" name="inputTelFijo" id="inputTelFijo" placeholder="(LADA) Número de 10 dígitos" required>
+                  <script>
+                    document.getElementById("Factura").style.display = "none";
+                    document.getElementById("NoFactura").style.display = "none";
+                    $("#inputEmailSi").hide();
+                    $("#inputEmailNo").hide();
+                  </script>
+                  <div class="form-group">';
+      $print .=     "<button type='submit' class='btn btn-success btn-lg btn-block' id='autoriza' onClick='enviarEmail($perid)'>Subir</button>";
+      $print .=   '</div>
+                </form>
+              </div>';
+    }else{
+      $id = (int)$clienteid;
+      $buscarCliente = "SELECT * FROM nuevoscli WHERE clienteid = $id";
+      $clienteEncontrado = mysqli_query($mysqliCon, $buscarCliente);
+      $row = mysqli_fetch_array($clienteEncontrado);
+      // var_dump($id);
+      $nombre     = utf8_encode($row["NOMBRE"]);
+      $comercial  = utf8_encode($row["COMERCIAL"]);
+      $rfc        = utf8_encode($row["RFC"]);
+      $fecalta    = $row["FECALTA"];
+      $direccion  = utf8_encode($row["DIRECCION"]);
+      $cp         = $row["CP"];
+      $colonia    = utf8_encode($row["COLONIA"]);
+      $ciudad     = utf8_encode($row["CIUDAD"]);
+      $tel        = $row["TEL"];
+      $cel        = $row["CEL"];
+      $email      = utf8_encode($row["EMAIL"]);
+      $credito    = $row["CREDITO"];
+      $diascred   = $row["DIASCRED"];
+      $metpag     = utf8_encode($row["METPAG"]);
+      $hacerped   = utf8_encode($row["HACERPED"]);
+      $recibirped = utf8_encode($row["RECIBIRPED"]);
+      $mlocal     = $row["MLOCAL"];
+      $tlocal     = utf8_encode($row["TLOCAL"]);
+      $ladode     = utf8_encode($row["LADODE"]);
+      $frentede   = utf8_encode($row["FRENTEDE"]);
+      $print .=   '<div class="form-group">
+                    <label>Razon Social</label>
+                    <input type="text" class="form-control" name="inputRazonSocial" id="inputRazonSocial" value="'.$nombre.'">
+                  </div>
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Nombre Comercial</label>
+                        <input type="text" class="form-control" name="inputNombreComercial" id="inputNombreComercial" value="'.$comercial.'">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>RFC del Cliente</label>
+                        <input type="text" class="form-control" name="inputFRCSi" id="inputFRCSi" value="'.$rfc.'">
+                      </div>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
-                    <div class="form-group">
-                      <label>Celular</label>
-                      <input type="tel" min="1" class="form-control" name="inputCel" id="inputCel" placeholder="(LADA) Número de 10 dígitos" required>
+                  <div class="form-group">
+                    <label>Dirección</label>
+                    <input type="text" class="form-control" name="inputDireccion" id="inputDireccion"  value="'.$direccion.'">
+                  </div>
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>C.P.</label>
+                        <input type="number" min="1" class="form-control" name="inputCP" id="inputCP"  value="'.$cp.'">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Colonia</label>
+                        <input type="text" class="form-control" name="inputColonia" id="inputColonia"  value="'.$colonia.'">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Ciudad</label>
+                        <input type="text" class="form-control" name="inputCiudad" id="inputCiudad"  value="'.$ciudad.'">
+                      </div>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
-                    <div class="form-group">
-                      <select class="form-control" id="selectEmail" onChange="emailEvento(event)" required>
-                        <option>Email?</option>
-                        <option value="1">Si</option>
-                        <option value="0">No</option>
-                      </select>
-                      <input type="email" class="form-control" name="inputEmailSi" id="inputEmailSi" placeholder="name@example.com">
-                      <input type="email" class="form-control" name="inputEmailNo" id="inputEmailNo" value="cnmfmo@gmail.com" readonly>
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Teléfono Fijo</label>
+                        <input type="tel" min="1" class="form-control" name="inputTelFijo" id="inputTelFijo"  value="'.$tel.'">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Celular</label>
+                        <input type="tel" min="1" class="form-control" name="inputCel" id="inputCel"  value="'.$cel.'">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" name="inputEmailSi" id="inputEmailSi" value="'.$email.'">
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
-                    <div class="form-group">
-                      <label>Cantida de Crédito</label>
-                      <input type="number" class="form-control" name="inputCantidadCredito" id="inputCantidadCredito" value="9000" readonly required>
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Cantida de Crédito</label>
+                        <input type="number" class="form-control" name="inputCantidadCredito" id="inputCantidadCredito" value="'.$credito.'" readonly>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Días de Crédito</label>
+                        <select class="form-control" name="selectDiasCredito">
+                          <option value="'.$diascred.'">'.$diascred.'</option>
+                          <option value="0">Cliente de Contado</option>
+                          <option value="7">7</option>
+                          <option value="13">13</option>
+                          <option value="21">21</option>
+                          <option value="28">28</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+                      <div class="form-group">
+                        <label>Método de Pago</label>
+                        <select class="form-control" name="inputMetPago" id="inputMetPago">
+                          <option value="'.$metpag.'">'.$metpag.'</option>
+                          <option value="Efectivo">Efectivo</option>
+                          <option value="Cheque">Cheque</option>
+                          <option value="T. Débito">T. Débito</option>
+                          <option value="T. Crédito">T. Crédito</option>
+                          <option value="Transferencia">Transferencia</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
-                    <div class="form-group">
-                      <label>Días de Crédito</label>
-                      <select class="form-control" name="selectDiasCredito" id="selectDiasCredito" required>
-                        <option value="1">Selecciona...</option>
-                        <option value="0">Cliente de Contado</option>
-                        <option value="7">7</option>
-                        <option value="13">13</option>
-                        <option value="21">21</option>
-                        <option value="28">28</option>
-                      </select>
+                  <div class="form-group">
+                    <label>Nombre del responsable de hacer el pedido</label>
+                    <input type="text" class="form-control" name="inputResponsableHacerPedidos" id="inputResponsableHacerPedidos" value="'.$hacerped.'">
+                  </div>
+                  <div class="form-group">
+                    <label>Nombre del responsable de recibir el pedido</label>
+                    <input type="text" class="form-control" name="inputResponsableRecibirPedidos" id="inputResponsableRecibirPedidos" value="'.$recibirped.'">
+                  </div>
+                  <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>M2 del Local</label>
+                        <input type="number" min="1" class="form-control" name="inputM2" id="inputM2" value="'.$mlocal.'">
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                      <div class="form-group">
+                        <label>Propiedad</label>
+                        <select class="form-control" name="selectPropiedad" id="selectPropiedad">
+                          <option value="'.$tlocal.'">'.$tlocal.'</option>
+                          <option value="Propio">Propio</option>
+                          <option value="Rentado">Rentado</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
-                    <div class="form-group">
-                      <label>Método de Pago</label>
-                      <select class="form-control" name="inputMetPago" id="inputMetPago" required>
-                        <option>Selecciona...</option>
-                        <option value="Efectivo">Efectivo</option>
-                        <option value="Cheque">Cheque</option>
-                        <option value="T. Débito">T. Débito</option>
-                        <option value="T. Crédito">T. Crédito</option>
-                        <option value="Transferencia">Transferencia</option>
-                      </select>
-                    </div>
+                  <div class="form-group">
+                    <label>A un lado de</label>
+                    <textarea class="form-control" name="textareaALado" id="textareaALado" rows="3" required>'.$ladode.'</textarea>
                   </div>
-                </div>
-                <div class="form-group">
-                  <label>Nombre del responsable de hacer el pedido</label>
-                  <input type="text" class="form-control" name="inputResponsableHacerPedidos" id="inputResponsableHacerPedidos" placeholder="Responsable de hacer el Pedido" required>
-                </div>
-                <div class="form-group">
-                  <label>Nombre del responsable de recibir el pedido</label>
-                  <input type="text" class="form-control" name="inputResponsableRecibirPedidos" id="inputResponsableRecibirPedidos" placeholder="Responsable de recibir el Pedido" required>
-                </div>
-                <div class="row">
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>M2 del Local</label>
-                      <input type="number" min="1" class="form-control" name="inputM2" id="inputM2" placeholder="Metros Cuadrados" required>
-                    </div>
+                  <div class="form-group">
+                    <label>Frente de</label>
+                    <textarea class="form-control" name="textareaFrente" id="textareaFrente" rows="3" required>'.$frentede.'</textarea>
                   </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Propiedad</label>
-                      <select class="form-control" name="selectPropiedad" id="selectPropiedad" required>
-                        <option>Selecciona...</option>
-                        <option value="Propio">Propio</option>
-                        <option value="Rentado">Rentado</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label>A un lado de</label>
-                  <textarea class="form-control" name="textareaALado" id="textareaALado" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                  <label>Frente de</label>
-                  <textarea class="form-control" name="textareaFrente" id="textareaFrente" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                  <label>Notas:</label>
-                  <textarea class="form-control" name="textareaNota" id="textareaNota" rows="3"></textarea>
-                </div>
-                <div class="row text-center">
-                  <h4>Favor de subir imagenes preliminares para poder empezar con la verificación con el cliente y poder autorizar su línea de crédito</h4>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Solicitud</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgSolicitud" id="imgSolicitud" required>
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Política Comercial</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgPolitica" id="imgPolitica" required>
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Fachada</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgFachada" id="imgFachada" required>
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Comprobante de Domicilio</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgDomicilio" id="imgDomicilio" required>
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Credencial de Elector frente</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgINEFre" id="imgINEFre" required>
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Credencial de Elector reverso</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgINERev" id="imgINERev" required>
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Cedula Fiscal</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgCedula" id="imgCedula">
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Alta Hacienda</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgHacienda" id="imgHacienda">
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Acta Constitutiva</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgActaMoral" id="imgActaMoral" required>
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Comprobante de domicilio del representante legal</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgDomRepLeg" id="imgDomRepLeg" required>
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Credencial de Elector del representante legal frente</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgINEFreLegal" id="imgINEFreLegal" required>
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                    <div class="form-group">
-                      <label>Credencial de Elector del representante legal reverso</label>
-                      <input type="file" class="btn btn-warning form-control-file" name="imgINERevLegal" id="imgINERevLegal" required>
-                    </div>
-                  </div>
-                </div>
-                <script>
-                  document.getElementById("Factura").style.display = "none";
-                  document.getElementById("NoFactura").style.display = "none";
-                  document.getElementById("inputEmailSi").style.display = "none";
-                  document.getElementById("inputEmailNo").style.display = "none";
-                </script>
-                <div class="form-group">';
-    $print .=     "<button type='submit' class='btn btn-success btn-lg btn-block' id='autoriza' onClick='enviarEmail($perid)'>Subir</button>";
-    $print .=   '</div>
-              </form>
-            </div>';
+                  <div class="form-group">';
+      $print .=     "<button type='submit' class='btn btn-primary btn-lg btn-block' id='modificar'>Modificar</button>";
+      $print .=   '</div>
+                </form>
+              </div>';
+    }
     echo $print;
-    $getConnection->close();
+    $mysqliCon->close();
   }
 }
 

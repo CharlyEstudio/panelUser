@@ -35,7 +35,7 @@ if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
         } elseif($rol == "ventas") {
           $section = "sale";
         } elseif($rol == "VENDEDORES") {
-          $section = "dashBoardVendedores";
+          $section = "dashBoardAsesor";
         }
         echo $section;
         break;

@@ -36,6 +36,21 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $session = $_SESSION["data"];
         $report->getterReportService($session);
         break;
+      case"getBackOrder":
+        $session = $_SESSION["data"];
+        $report->getterBackOrder($session);
+        break;
+      case"showBackOrderActual":
+        $session = $_SESSION["data"];
+        $report->getterShowBackOrderActual($session);
+        break;
+      case"showBackOrderReng":
+        $session = $_SESSION["data"];
+        $proveedor = $paramFunctions->sanitize($_POST["proveedor"]);
+        $params = array("session"=> $session,
+                        "proveedor" => $proveedor);
+        $report->getterShowBackOrderReng($params);
+        break;
       case"getEnlaceZona1":
         $session = $_SESSION["data"];
         $report->getterEnlaceZona1($session);
@@ -58,6 +73,11 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $params = array("session"=> $session,
                         "perID" => $perID);
         $report->getterGetReporteVendedor($params);
+        break;
+      case"getDashBoardAsesor":
+        $session = $_SESSION["data"];
+        $params = array("session"=> $session);
+        $report->getterGetDashBoardAsesor($params);
         break;
       case"getReporteVendedorSession":
         $perID = $_SESSION["data"]["id"];
@@ -83,6 +103,15 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $session = $_SESSION["data"];
         $params = array("session"=> $session,
                         "perid" => $perid);
+        $report->getterGetNewCustomer($params);
+        break;
+      case"getModCustomer":
+        $perid = $paramFunctions->sanitize($_POST["perid"]);
+        $clienteid = $paramFunctions->sanitize($_POST["clienteid"]);
+        $session = $_SESSION["data"];
+        $params = array("session"=> $session,
+                        "perid" => $perid,
+                        "clienteid" => $clienteid);
         $report->getterGetNewCustomer($params);
         break;
       case"getNewCustomerVen":

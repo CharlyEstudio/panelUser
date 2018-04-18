@@ -10,7 +10,8 @@
     $queryPedDiaCancelacion = "SELECT docid
                             FROM doc d
                             WHERE d.fecha = '$dia'
-                              AND estado = 'C'";
+                              AND d.tipo NOT LIKE 'E'
+                              AND d.estado = 'C'";
     $resultQueryDiaCancelacion = $getConnection->query($queryPedDiaCancelacion);
     $numPedDiaCancelacion = mysqli_num_rows($resultQueryDiaCancelacion);
     if($numPedDiaCancelacion === NULL){
