@@ -34,7 +34,29 @@ if(isset($_POST['user']) && isset($_POST['pass'])) {
 		$categoria 			= $rowUser[1];
 		$nombre 			= $rowUser[2];
 		try {
-			$data 			= array(
+			if($getParamUser == 'CO'){
+				$data 		= array(
+					"id" => $password,
+					"username" => 'compras',
+					"name" => $nombre,
+					"rol" => "compras",
+					"rfc" => 0,
+					"saldo" => 0,
+					"limite" => 0,
+					"vendedorid" => 0,
+					"diacredito" => 0,
+					"diavis" => 0,
+					"ucompra" => 0,
+					"compraReciente" => 0,
+					"vendedor" => 0,
+					"ignorasuspender" => 0,
+					"activo" => 0,
+					"correo" => 0,
+					"tel" => 0,
+					"pas2" => 'Correcto',
+					"pasAnt" => 'Correcto');
+			}else{
+				$data 		= array(
 								"id" => $password,
 								"username" => 'vendedores',
 								"name" => $nombre,
@@ -54,6 +76,7 @@ if(isset($_POST['user']) && isset($_POST['pass'])) {
 								"tel" => 0,
 								"pas2" => 'Correcto',
 								"pasAnt" => 'Correcto');
+				}
 			if($rowUser) {
 				$status	= "Correcto ".$getParamUser."";
 				$_SESSION["data"] = $data;

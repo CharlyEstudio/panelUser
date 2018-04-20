@@ -16,6 +16,10 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $session = $_SESSION["data"];
         $report->getterDashBoardAdmin($session);
         break;
+      case"getDashBoardComp":
+        $session = $_SESSION["data"];
+        $report->getterDashBoardComp($session);
+        break;
       case"getDashBoardSz":
         $session = $_SESSION["data"];
         $report->getterDashBoardSz($session);
@@ -78,6 +82,11 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $session = $_SESSION["data"];
         $params = array("session"=> $session);
         $report->getterGetDashBoardAsesor($params);
+        break;
+      case"getPedidosPorHora":
+        $session = $_SESSION["data"];
+        $params = array("session"=> $session);
+        $report->getterGetPedidosPorHora($params);
         break;
       case"getReporteVendedorSession":
         $perID = $_SESSION["data"]["id"];

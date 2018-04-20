@@ -14,15 +14,17 @@
                             LEFT OUTER JOIN inv i ON i.articuloid = p.articuloid
                         where i.clvprov LIKE '8%'
                             and i.clvprov = $codigo
-                            and p.nprecio = 3";
+                            and p.nprecio = 1";
     $resultExistencia8 = mysqli_query($getConnection,$Existencia8);
     $rowExistencia = mysqli_fetch_array($resultExistencia8);
     if($rowExistencia === NULL){
       $nombre = 'Sin Existencia';
+        $precio = 0;
     } else {
       $nombre = $rowExistencia["precio"];
+      $precio = $nombre * 1.16;
     }
-    $existencias = '$ ' . number_format($nombre, 2, ".", ",");
+    $existencias = '$ ' . number_format($precio, 2, ".", ",");
     
     //TODO En vez de buscar el total de ventas, BUSCAR EL NUMERO DE PEDIDOS
     echo $existencias;

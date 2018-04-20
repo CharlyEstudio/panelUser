@@ -13,8 +13,7 @@
                         from alm
                             LEFT OUTER JOIN inv i ON i.articuloid = alm.articuloid
                         where i.clvprov LIKE '8%'
-                            and i.clvprov = $codigo
-                            and alm.existencia > 0";
+                            and i.clvprov = $codigo";
     $resultExistencia8 = mysqli_query($getConnection,$Existencia8);
     $rowExistencia = mysqli_fetch_array($resultExistencia8);
     if($rowExistencia === NULL){

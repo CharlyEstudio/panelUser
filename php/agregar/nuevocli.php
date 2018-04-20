@@ -86,20 +86,19 @@ $mlocal         = $_POST["inputM2"];
 $tlocal         = utf8_decode($_POST["selectPropiedad"]);
 $ladode         = utf8_decode($_POST["textareaALado"]);
 $frentede       = utf8_decode($_POST["textareaFrente"]);
-$notas          = utf8_decode($_POST["textareaNota"]);
 
 $activo         = 'N';
 
 $insertar       = "INSERT INTO nuevoscli(NOMBRE, COMERCIAL, RFC, FECALTA, DIRECCION, CP, COLONIA, CIUDAD, TEL, CEL, EMAIL,
                     CREDITO, DIASCRED, METPAG, HACERPED, RECIBIRPED, MLOCAL, TLOCAL, LADODE, FRENTEDE, VENDEDORID, ACTIVO,
                     IMGSOLICITUD, IMGPOLITICA, IMGFACHADA, IMGDOM, IMGINEFRE, IMGINEREV, IMGCEDULA, IMGHACIENDA, MORAL, REPRESENTANTE,
-                    INEREPF, INEREPR, NOTAS)
+                    INEREPF, INEREPR)
                         VALUES ('$nombre','$comercial','$rfc',$fecalta,'$direccion',$cp,'$colonia',
                         '$ciudad','$tel','$cel','$email',$credito,$diascred,'$metpag','$hacerped',
                         '$recibirped',$mlocal,'$tlocal','$ladode','$frentede',$vendedorid, '$activo','$fichero_Solicitud',
                         '$fichero_Politica', '$fichero_Fachada', '$fichero_Domicilio','$fichero_INEFre',
                         '$fichero_INERev','$fichero_Cedula','$fichero_Hacienda','$fichero_Moral',
-                        '$fichero_Repre','$fichero_INERepF','$fichero_INERepR', '$notas')";
+                        '$fichero_Repre','$fichero_INERepF','$fichero_INERepR')";
 if($mysqliCon->query($insertar) === TRUE){
     header("location: ../../intranet/index.php");
 } else {

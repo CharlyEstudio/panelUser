@@ -8,6 +8,10 @@ class Report {
     $this->getDashBoardAdmin($params);
   }
 
+  public function getterDashBoardComp($params) {
+    $this->getDashBoardComp($params);
+  }
+
   public function getterDashBoardCartera($params) {
     $this->getDashBoardCartera($params);
   }
@@ -18,6 +22,10 @@ class Report {
 
   public function getterDashBoardDireccion($params) {
     $this->getDashBoardDireccion($params);
+  }
+
+  public function getterGetPedidosPorHora($params) {
+    $this->getPedidosPorHora($params);
   }
 
   public function getterShowBackOrderActual($params) {
@@ -80,6 +88,908 @@ class Report {
     $this->getNewCustomer($params);
   }
 
+  private function getPedidosPorHora($params) {
+    $paramFunctions = new Util();
+    $paramDb = new Database();
+    $getConnection = $paramDb->GetLink();
+
+    // Se busca a los vendedores
+    $buscarVendedoresZona1 ="SELECT perid, nombre
+                          FROM per
+                          WHERE grupo = 'MV'
+                            AND caja > 0
+                            AND sermov = 1";
+    $venEncontradoZona1 = mysqli_query($getConnection, $buscarVendedoresZona1);
+
+    $linkActualizar = "showInformation('pedidosPorHora')";
+
+    $print = '<div class="col-12 paddingT paddinB">
+              <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                <img src="../img/barrafmo2.gif" width="200"/>
+              </div>
+              <h4 class="display-4 text-center">LINEA DE TIEM<span class="text-tomato">PO DEL ASESOR</span></h4>
+              <div class="row paddingT">
+                <div class="col-12 text-center paddingB">
+                <button type="button" class="btn btn-outline-primary text-center" onClick="'.$linkActualizar.'">Actualizar</button>
+                </div>
+                <div class="col-12 text-center paddingB">
+                  <h4 class="h4">ZONA 1</h4>
+                </div>
+                <div class="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>ASESOR</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>TOTAL</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>8:00 - 9:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>9:00 - 10:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>10:00 - 11:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>11:00 - 12:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>12:00 - 13:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>13:00 - 14:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>14:00 - 15:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>15:00 - 16:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>16:00 - 17:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>17:00 - 18:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>18:00 - 19:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>19:00 - 20:00</span>
+                </div>';
+    $indice = 0;
+    while($rowVenZona1 = mysqli_fetch_row($venEncontradoZona1)){
+      // var_dump($rowVenZona1);
+      $perid = $rowVenZona1[0];
+      $nombre = $rowVenZona1[1];
+      $dia = date('Y-m-d');
+      $print .= '<span id="per'.$indice.'" style="display: none;">'.$perid.'</span>';
+
+      $indice++;
+
+      $linkFunctionPersonal = "showPersonal(".$perid.")";
+
+      $print .= '<div class="colTime" style="border-left: 1px solid #d7d7d7;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <a class="nav-link" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'"><span style="font-size: .6em;">'.$nombre.'</span></a>
+                </div>';
+
+      $buscarSum8a9 = "SELECT count(total)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '08:00' and hora <= '20:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontradoSum8a9 = mysqli_query($getConnection, $buscarSum8a9);
+      $rowSum8a9 = mysqli_fetch_row($encontradoSum8a9);
+      $suma8a9 = $rowSum8a9[0];
+
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span class="text-green" id="total'.$perid.'">'.$suma8a9.'</span>
+                </div>';
+      
+      $print .= '<div class="colTime">
+                  <div class="row">';
+
+      $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 50%; flex: 0 0 50%; mas-width: 50%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      CV:<span>20</span>
+                    </div>
+                    <div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 50%; flex: 0 0 50%; mas-width: 50%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      PV:<span>20</span>
+                    </div>
+                    <div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 50%; flex: 0 0 50%; mas-width: 50%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      CD:<span>20</span>
+                    </div>';
+      
+      $buscar8a9 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '08:00' and hora <= '09:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado8a9 = mysqli_query($getConnection, $buscar8a9);
+
+      while($row8a9 = mysqli_fetch_row($encontrado8a9)){
+        $n8a9 = $row8a9[0];
+        if($n8a9 > 0){
+    $print .=       '<div class ="text-center text-yellow centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 50%; flex: 0 0 50%; mas-width: 50%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      PD:<span id="n8a9'.$perid.'">'.$n8a9.'</span>
+                    </div>';
+        }else{
+    $print .=       '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 50%; flex: 0 0 50%; mas-width: 50%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      PD:<span id="n8a9'.$perid.'">'.$n8a9.'</span>
+                    </div>';
+        }
+      }
+
+      $print .=   '</div>
+                </div>';
+
+      $buscar9a10 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '09:00' and hora <= '10:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado9a10 = mysqli_query($getConnection, $buscar9a10);
+
+      while($row9a10 = mysqli_fetch_row($encontrado9a10)){
+        $n9a10 = $row9a10[0];
+        if($n9a10 > 0){
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n9a10'.$perid.'">'.$n9a10.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n9a10'.$perid.'">'.$n9a10.'</span>
+                </div>';
+        }
+      }
+
+      $buscar10a11 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '10:00' and hora <= '11:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado10a11 = mysqli_query($getConnection, $buscar10a11);
+
+      while($row10a11 = mysqli_fetch_row($encontrado10a11)){
+        $n10a11 = $row10a11[0];
+        if($n10a11 > 0){
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n10a11'.$perid.'">'.$n10a11.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n10a11'.$perid.'">'.$n10a11.'</span>
+                </div>';
+        }
+      }
+
+      $buscar11a12 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '11:00' and hora <= '12:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado11a12 = mysqli_query($getConnection, $buscar11a12);
+
+      while($row11a12 = mysqli_fetch_row($encontrado11a12)){
+        $n11a12 = $row11a12[0];
+        if($n11a12 > 0){
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n11a12'.$perid.'">'.$n11a12.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n11a12'.$perid.'">'.$n11a12.'</span>
+                </div>';
+        }
+      }
+
+      $buscar12a13 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '12:00' and hora <= '13:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado12a13 = mysqli_query($getConnection, $buscar12a13);
+
+      while($row12a13 = mysqli_fetch_row($encontrado12a13)){
+        $n12a13 = $row12a13[0];
+        if($n12a13 > 0){
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n12a13'.$perid.'">'.$n12a13.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n12a13'.$perid.'">'.$n12a13.'</span>
+                </div>';
+        }
+      }
+
+      $buscar13a14 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '13:00' and hora <= '14:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado13a14 = mysqli_query($getConnection, $buscar13a14);
+
+      while($row13a14 = mysqli_fetch_row($encontrado13a14)){
+        $n13a14 = $row13a14[0];
+        if($n13a14 > 0){
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n13a14'.$perid.'">'.$n13a14.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n13a14'.$perid.'">'.$n13a14.'</span>
+                </div>';
+        }
+      }
+
+      $buscar14a15 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '14:00' and hora <= '15:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado14a15 = mysqli_query($getConnection, $buscar14a15);
+
+      while($row14a15 = mysqli_fetch_row($encontrado14a15)){
+        $n14a15 = $row14a15[0];
+        if($n14a15 > 0){
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n14a15'.$perid.'">'.$n14a15.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n14a15'.$perid.'">'.$n14a15.'</span>
+                </div>';
+        }
+      }
+
+      $buscar15a16 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '15:00' and hora <= '16:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado15a16 = mysqli_query($getConnection, $buscar15a16);
+
+      while($row15a16 = mysqli_fetch_row($encontrado15a16)){
+        $n15a16 = $row15a16[0];
+        if($n15a16 > 0){
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n15a16'.$perid.'">'.$n15a16.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n15a16'.$perid.'">'.$n15a16.'</span>
+                </div>';
+        }
+      }
+
+      $buscar16a17 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '16:00' and hora <= '17:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado16a17 = mysqli_query($getConnection, $buscar16a17);
+
+      while($row16a17 = mysqli_fetch_row($encontrado16a17)){
+        $n16a17 = $row16a17[0];
+        if($n16a17 > 0){
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n16a17'.$perid.'">'.$n16a17.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n16a17'.$perid.'">'.$n16a17.'</span>
+                </div>';
+        }
+      }
+
+      $buscar17a18 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '17:00' and hora <= '18:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado17a18 = mysqli_query($getConnection, $buscar17a18);
+
+      while($row17a18 = mysqli_fetch_row($encontrado17a18)){
+        $n17a18 = $row17a18[0];
+        if($n17a18 > 0){
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n17a18'.$perid.'">'.$n17a18.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n17a18'.$perid.'">'.$n17a18.'</span>
+                </div>';
+        }
+      }
+
+      $buscar18a19 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '18:00' and hora <= '19:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado18a19 = mysqli_query($getConnection, $buscar18a19);
+
+      while($row18a19 = mysqli_fetch_row($encontrado18a19)){
+        $n18a19 = $row18a19[0];
+        if($n18a19 > 0){
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n18a19'.$perid.'">'.$n18a19.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n18a19'.$perid.'">'.$n18a19.'</span>
+                </div>';
+        }
+      }
+
+      $buscar19A20 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '19:00' and hora <= '20:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado19A20 = mysqli_query($getConnection, $buscar19A20);
+
+      while($row19A20 = mysqli_fetch_row($encontrado19A20)){
+        $n19A20 = $row19A20[0];
+        if($n19A20 > 0){
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n19A20'.$perid.'">'.$n19A20.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n19A20'.$perid.'">'.$n19A20.'</span>
+                </div>';
+        }
+      }
+    }
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border: 1px solid #d7d7d7;">
+                  <span>Total</span>
+                </div>';
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>0</span>
+                </div>';
+
+    $totalCol8a9 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol8a9 = mysqli_query($getConnection, $totalCol8a9);
+    $rowTotalCol8a9 = mysqli_fetch_row($totalEncontradoCol8a9);
+    $nTotal8a9 = $rowTotalCol8a9[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal8a9.'</span>
+                </div>';
+
+    $totalCol9a10 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol9a10 = mysqli_query($getConnection, $totalCol9a10);
+    $rowTotalCol9a10 = mysqli_fetch_row($totalEncontradoCol9a10);
+    $nTotal9a10 = $rowTotalCol9a10[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal9a10.'</span>
+                </div>';
+
+    $totalCol10a11 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol10a11 = mysqli_query($getConnection, $totalCol10a11);
+    $rowTotalCol10a11 = mysqli_fetch_row($totalEncontradoCol10a11);
+    $nTotal10a11 = $rowTotalCol10a11[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal10a11.'</span>
+                </div>';
+
+    $totalCol11a12 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol11a12 = mysqli_query($getConnection, $totalCol11a12);
+    $rowTotalCol11a12 = mysqli_fetch_row($totalEncontradoCol11a12);
+    $nTotal11a12 = $rowTotalCol11a12[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal11a12.'</span>
+                </div>';
+
+    $totalCol12a13 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol12a13 = mysqli_query($getConnection, $totalCol12a13);
+    $rowTotalCol12a13 = mysqli_fetch_row($totalEncontradoCol12a13);
+    $nTotal12a13 = $rowTotalCol12a13[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal12a13.'</span>
+                </div>';
+
+    $totalCol13a14 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol13a14 = mysqli_query($getConnection, $totalCol13a14);
+    $rowTotalCol13a14 = mysqli_fetch_row($totalEncontradoCol13a14);
+    $nTotal13a14 = $rowTotalCol13a14[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal13a14.'</span>
+                </div>';
+
+    $totalCol14a15 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol14a15 = mysqli_query($getConnection, $totalCol14a15);
+    $rowTotalCol14a15 = mysqli_fetch_row($totalEncontradoCol14a15);
+    $nTotal14a15 = $rowTotalCol14a15[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal14a15.'</span>
+                </div>';
+
+    $totalCol15a16 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol15a16 = mysqli_query($getConnection, $totalCol15a16);
+    $rowTotalCol15a16 = mysqli_fetch_row($totalEncontradoCol15a16);
+    $nTotal15a16 = $rowTotalCol15a16[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal15a16.'</span>
+                </div>';
+
+    $totalCol16a17 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol16a17 = mysqli_query($getConnection, $totalCol16a17);
+    $rowTotalCol16a17 = mysqli_fetch_row($totalEncontradoCol16a17);
+    $nTotal16a17 = $rowTotalCol16a17[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal16a17.'</span>
+                </div>';
+
+    $totalCol17a18 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol17a18 = mysqli_query($getConnection, $totalCol17a18);
+    $rowTotalCol17a18 = mysqli_fetch_row($totalEncontradoCol17a18);
+    $nTotal17a18 = $rowTotalCol17a18[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal17a18.'</span>
+                </div>';
+
+    $totalCol18a19 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol18a19 = mysqli_query($getConnection, $totalCol18a19);
+    $rowTotalCol18a19 = mysqli_fetch_row($totalEncontradoCol18a19);
+    $nTotal18a19 = $rowTotalCol18a19[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal18a19.'</span>
+                </div>';
+
+    $totalCol19a20 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and p.sermov = 1";
+    $totalEncontradoCol19a20 = mysqli_query($getConnection, $totalCol19a20);
+    $rowTotalCol19a20 = mysqli_fetch_row($totalEncontradoCol19a20);
+    $nTotal19a20 = $rowTotalCol19a20[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal19a20.'</span>
+                </div>';
+
+    $print .= '</div>
+            </div>
+            <div class="col-12 paddingT paddingB">
+              <div class="row paddingT">
+                <div class="col-12 text-center paddingB">
+                    <h4 class="h4">ZONA 2</h4>
+                </div>
+                <div class="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>ASESOR</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>TOTAL</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>8:00 - 9:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>9:00 - 10:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>10:00 - 11:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>11:00 - 12:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>12:00 - 13:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>13:00 - 14:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>14:00 - 15:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>15:00 - 16:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>16:00 - 17:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>17:00 - 18:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>18:00 - 19:00</span>
+                </div>
+                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                  <span>19:00 - 20:00</span>
+                </div>';
+        
+              // Se busca a los vendedores
+    $buscarVendedoresZona2 ="SELECT perid, nombre
+                          FROM per
+                          WHERE grupo = 'MV'
+                            AND caja > 0
+                            AND sermov = 2";
+    $venEncontradoZona2 = mysqli_query($getConnection, $buscarVendedoresZona2);
+
+    $indice2 = 0;
+    while($rowVenZona2 = mysqli_fetch_row($venEncontradoZona2)){
+      // var_dump($rowVenZona2);
+      $perid = $rowVenZona2[0];
+      $nombre = $rowVenZona2[1];
+      $dia = date('Y-m-d');
+      $print .= '<span id="per'.$indice2.'" style="display: none;">'.$perid.'</span>';
+
+      $indice2++;
+
+      $linkFunctionPersonal = "showPersonal(".$perid.")";
+
+      $print .= '<div class="colTime" style="border-left: 1px solid #d7d7d7;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <a class="nav-link" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'"><span style="font-size: .6em;">'.$nombre.'</span></a>
+                </div>';
+
+      $buscarSum8a9 = "SELECT count(total)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '08:00' and hora <= '20:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontradoSum8a9 = mysqli_query($getConnection, $buscarSum8a9);
+      $rowSum8a9 = mysqli_fetch_row($encontradoSum8a9);
+      $suma8a9 = $rowSum8a9[0];
+
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span class="text-green" id="total'.$perid.'">'.$suma8a9.'</span>
+                </div>';
+      
+      $buscar8a9 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '08:00' and hora <= '09:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado8a9 = mysqli_query($getConnection, $buscar8a9);
+
+      while($row8a9 = mysqli_fetch_row($encontrado8a9)){
+        $n8a9 = $row8a9[0];
+        if($n8a9 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n8a9'.$perid.'">'.$n8a9.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n8a9'.$perid.'">'.$n8a9.'</span>
+                </div>';
+        }
+      }
+
+      $buscar9a10 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '09:00' and hora <= '10:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado9a10 = mysqli_query($getConnection, $buscar9a10);
+
+      while($row9a10 = mysqli_fetch_row($encontrado9a10)){
+        $n9a10 = $row9a10[0];
+        if($n9a10 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n9a10'.$perid.'">'.$n9a10.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n9a10'.$perid.'">'.$n9a10.'</span>
+                </div>';
+        }
+      }
+
+      $buscar10a11 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '10:00' and hora <= '11:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado10a11 = mysqli_query($getConnection, $buscar10a11);
+
+      while($row10a11 = mysqli_fetch_row($encontrado10a11)){
+        $n10a11 = $row10a11[0];
+        if($n10a11 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n10a11'.$perid.'">'.$n10a11.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n10a11'.$perid.'">'.$n10a11.'</span>
+                </div>';
+        }
+      }
+
+      $buscar11a12 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '11:00' and hora <= '12:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado11a12 = mysqli_query($getConnection, $buscar11a12);
+
+      while($row11a12 = mysqli_fetch_row($encontrado11a12)){
+        $n11a12 = $row11a12[0];
+        if($n11a12 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n11a12'.$perid.'">'.$n11a12.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n11a12'.$perid.'">'.$n11a12.'</span>
+                </div>';
+        }
+      }
+
+      $buscar12a13 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '12:00' and hora <= '13:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado12a13 = mysqli_query($getConnection, $buscar12a13);
+
+      while($row12a13 = mysqli_fetch_row($encontrado12a13)){
+        $n12a13 = $row12a13[0];
+        if($n12a13 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n12a13'.$perid.'">'.$n12a13.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n12a13'.$perid.'">'.$n12a13.'</span>
+                </div>';
+        }
+      }
+
+      $buscar13a14 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '13:00' and hora <= '14:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado13a14 = mysqli_query($getConnection, $buscar13a14);
+
+      while($row13a14 = mysqli_fetch_row($encontrado13a14)){
+        $n13a14 = $row13a14[0];
+        if($n13a14 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n13a14'.$perid.'">'.$n13a14.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n13a14'.$perid.'">'.$n13a14.'</span>
+                </div>';
+        }
+      }
+
+      $buscar14a15 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '14:00' and hora <= '15:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado14a15 = mysqli_query($getConnection, $buscar14a15);
+
+      while($row14a15 = mysqli_fetch_row($encontrado14a15)){
+        $n14a15 = $row14a15[0];
+        if($n14a15 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n14a15'.$perid.'">'.$n14a15.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n14a15'.$perid.'">'.$n14a15.'</span>
+                </div>';
+        }
+      }
+
+      $buscar15a16 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '15:00' and hora <= '16:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado15a16 = mysqli_query($getConnection, $buscar15a16);
+
+      while($row15a16 = mysqli_fetch_row($encontrado15a16)){
+        $n15a16 = $row15a16[0];
+        if($n15a16 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n15a16'.$perid.'">'.$n15a16.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n15a16'.$perid.'">'.$n15a16.'</span>
+                </div>';
+        }
+      }
+
+      $buscar16a17 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '16:00' and hora <= '17:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado16a17 = mysqli_query($getConnection, $buscar16a17);
+
+      while($row16a17 = mysqli_fetch_row($encontrado16a17)){
+        $n16a17 = $row16a17[0];
+        if($n16a17 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n16a17'.$perid.'">'.$n16a17.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n16a17'.$perid.'">'.$n16a17.'</span>
+                </div>';
+        }
+      }
+
+      $buscar17a18 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '17:00' and hora <= '18:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado17a18 = mysqli_query($getConnection, $buscar17a18);
+
+      while($row17a18 = mysqli_fetch_row($encontrado17a18)){
+        $n17a18 = $row17a18[0];
+        if($n17a18 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n17a18'.$perid.'">'.$n17a18.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n17a18'.$perid.'">'.$n17a18.'</span>
+                </div>';
+        }
+      }
+
+      $buscar18a19 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '18:00' and hora <= '19:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado18a19 = mysqli_query($getConnection, $buscar18a19);
+
+      while($row18a19 = mysqli_fetch_row($encontrado18a19)){
+        $n18a19 = $row18a19[0];
+        if($n18a19 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n18a19'.$perid.'">'.$n18a19.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n18a19'.$perid.'">'.$n18a19.'</span>
+                </div>';
+        }
+      }
+
+      $buscar19A20 = "SELECT count(docid)
+                      FROM doc
+                      where fecha = '".$dia."'
+                        and (hora >= '19:00' and hora <= '20:00')
+                        and vendedorid = ".$perid."
+                        and tipo = 'C'";
+      $encontrado19A20 = mysqli_query($getConnection, $buscar19A20);
+
+      while($row19A20 = mysqli_fetch_row($encontrado19A20)){
+        $n19A20 = $row19A20[0];
+        if($n19A20 > 0){
+      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n19A20'.$perid.'">'.$n19A20.'</span>
+                </div>';
+        }else{
+      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n19A20'.$perid.'">'.$n19A20.'</span>
+                </div>';
+        }
+      }
+    }
+    $print .= '</div>
+            </div>';
+
+    echo $print;
+
+    $getConnection->close();
+  }
   private function getReport($params) {
     $paramFunctions = new Util();
     $paramDb = new Database();
@@ -1027,6 +1937,9 @@ class Report {
                             <p class="lead text-tomato" style="font-size: 1.7em !important;">'.$numeroVecesFacVenc.'</p>
                           </div>
                         </div>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
+                        <a class="btn btn-secondary btn-enl btn-block" href="javascript:location.reload(true)">Borrar Historial</a>
                       </div>
                     </div>
                   </div>
@@ -4827,7 +5740,7 @@ class Report {
                             <div class="form-group">
                               <div class="row">
                                 <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
-                                  <span>Costo</span>
+                                  <span>Precio</span>
                                 </div>
                                 <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                   <div class="row">
@@ -5389,6 +6302,115 @@ class Report {
     } catch (Exception $e){
       echo "Problema al listar la morosidad: " . $e->getMessage();
     }
+    $getConnection->close();
+  }
+
+  private function getDashBoardComp($params) {
+    $paramDb = new Database();
+    $paramFunctions = new Util();
+    $getConnection = $paramDb->GetLink();
+
+    $print =  '<div class="container paddingT paddingB">
+                <h4 class="display-4 text-center">BUSQUEDA DE <span class="text-tomato">CODIGOS 8</span></h4>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
+                  <div class="form-group">
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                        <span>Código a Buscar</span>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                            <input type="text" class="form-control text-center" id="codigo" onChange="existencias8(); existencias8Name(); existencias8Costo();" placeholder="Código"/>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                  <div class="form-group">
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                        <span>Existencias</span>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                            <input type="text" class="form-control text-center" id="existencias8" readonly />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                  <div class="form-group">
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                        <span>Descripción</span>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                          <textarea type="text" class="form-control text-center" rows="2" id="existencias8name" readonly></textarea>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                  <div class="form-group">
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 text-input">
+                        <span>Precio</span>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                          <input type="text" class="form-control text-center" id="existencia8costo" readonly />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <script>
+                    // $("#existencias8").hide();
+                    // $("#existencias8name").hide();
+                    function existencias8(){
+                      var codigo = document.getElementById("codigo").value;
+                      
+                      $.post("../php/busquedas/existencias8.php", {codigo: codigo}, function(existencias){
+                        // console.log(existencias);
+                        document.getElementById("existencias8").value = existencias;
+                        // $("#existencias8").show();
+                      });
+                    }
+                    function existencias8Name(){
+                      var codigo = document.getElementById("codigo").value;
+                      
+                      $.post("../php/busquedas/existencia8name.php", {codigo: codigo}, function(existencias){
+                        // console.log(existencias);
+                        document.getElementById("existencias8name").value = existencias;
+                        // $("#existencias8name").show();
+                      });
+                    }
+                    function existencias8Costo(){
+                      var codigo = document.getElementById("codigo").value;
+                      
+                      $.post("../php/busquedas/existencia8costo.php", {codigo: codigo}, function(existencias){
+                        // console.log(existencias);
+                        document.getElementById("existencia8costo").value = existencias;
+                        // $("#existencia8costo").show();
+                      });
+                    }
+                  </script>
+                </div>
+              </div>';
+
+    echo $print;
+
     $getConnection->close();
   }
 
@@ -7699,7 +8721,7 @@ class Report {
                   <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
                     <div class="row">
                       <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT paddingB text-center">
-                        <h3>VENDEDORES DE <spam class="text-tomato">ZONA '.$zona.'</spam></h3>
+                        <h3>ASESORES DE <spam class="text-tomato">ZONA '.$zona.'</spam></h3>
                       </div>
                       <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                         <div class="row">';
@@ -7864,7 +8886,6 @@ class Report {
           $tlocal             = $row[18];
           $ladode             = utf8_encode($row[19]);
           $frentede           = utf8_encode($row[20]);
-          $notas              = utf8_encode($row[35]);
           $vendedorid         = $row[21];
           $activo             = $row[22];
           $fichero_Solicitud  = $row[23];
@@ -8148,12 +9169,6 @@ class Report {
                                   <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10 input-falsoComersLeft">
                                     <span>'.$frentede.'</span>
                                   </div>
-                                  <div class="col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
-                                    <label>Notas:</label>
-                                  </div>
-                                  <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10 input-falsoComersLeft">
-                                    <span>'.$notas.'</span>
-                                  </div>
                                 </div>
                               </div>
                               <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT paddingB">
@@ -8327,7 +9342,6 @@ class Report {
           $tlocal             = $row[18];
           $ladode             = utf8_encode($row[19]);
           $frentede           = utf8_encode($row[20]);
-          $notas              = utf8_encode($row[35]);
           $vendedorid         = $row[21];
           $activo             = $row[22];
           $fichero_Solicitud  = $row[23];
@@ -8624,12 +9638,6 @@ class Report {
                                     <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
                                       <input type="text" name="frenteDe'.$clienteid.'" value="'.$frentede.'" style="width: 100%; text-align: left!important;">
                                     </div>
-                                    <div class="col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
-                                      <label>Notas:</label>
-                                    </div>
-                                    <div class="col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
-                                      <input type="text" name="frenteDe'.$clienteid.'" value="'.$notas.'" style="width: 100%; text-align: left!important;">
-                                    </div>
                                   </div>
                                 </div>
                                 <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 centrar paddingT paddingB">
@@ -8903,7 +9911,7 @@ class Report {
                           <option value="1">Selecciona...</option>
                           <option value="0">Cliente de Contado</option>
                           <option value="7">7</option>
-                          <option value="13">13</option>
+                          <option value="14">14</option>
                           <option value="21">21</option>
                           <option value="28">28</option>
                         </select>
@@ -8956,10 +9964,6 @@ class Report {
                   <div class="form-group">
                     <label>Frente de</label>
                     <textarea class="form-control" name="textareaFrente" id="textareaFrente" rows="3" required></textarea>
-                  </div>
-                  <div class="form-group">
-                    <label>Notas:</label>
-                    <textarea class="form-control" name="textareaNota" id="textareaNota" rows="3"></textarea>
                   </div>
                   <div class="row text-center">
                     <h4>Favor de subir imagenes preliminares para poder empezar con la verificación con el cliente y poder autorizar su línea de crédito</h4>

@@ -1205,6 +1205,12 @@ function showInformation(location) {
       dataSend.location = 'getDashBoardAdmin';
       dataSend.section = 'reports-partner';
       break;
+    case 'dashBoardComp':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getDashBoardComp';
+      dataSend.section = 'reports-partner';
+      break;
     case 'shopping':
       url = '../php/shopping/shopping.php';
       dataSend.data = 'empty';
@@ -1219,6 +1225,12 @@ function showInformation(location) {
       url = '../php/report/report.php';
       dataSend.data = 'empty';
       dataSend.location = 'getDashBoardSz';
+      dataSend.section = 'reports-partner';
+      break;
+    case 'pedidosPorHora':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getPedidosPorHora';
       dataSend.section = 'reports-partner';
       break;
     case 'dashBoardDirIndex':
