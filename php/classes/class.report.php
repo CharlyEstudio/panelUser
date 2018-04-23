@@ -92,7 +92,28 @@ class Report {
     $paramFunctions = new Util();
     $paramDb = new Database();
     $getConnection = $paramDb->GetLink();
+    $rol = $params["session"]["rol"];
 
+    $dv = date('D');
+    switch($dv){
+      case 'Mon':
+        $diaVis = 'L';
+        break;
+      case 'Tue':
+        $diaVis = 'I';
+        break;
+      case 'Wed':
+        $diaVis = 'M';
+        break;
+      case 'Thu':
+        $diaVis = 'J';
+        break;
+      case 'Fri':
+        $diaVis = 'V';
+        break;
+    }
+
+    if($rol == "direccion"){
     // Se busca a los vendedores
     $buscarVendedoresZona1 ="SELECT perid, nombre
                           FROM per
@@ -115,47 +136,56 @@ class Report {
                 </div>
                 <div class="col-12 text-center paddingB">
                   <h4 class="h4">ZONA 1</h4>
+                  <ul class="list-inline">
+                    <li class="list-inline-item">CD: Clientes del Día</li>
+                    <li class="list-inline-item">PD: Pedidos del Día</li>
+                    <li class="list-inline-item">C: Clientes</li>
+                    <li class="list-inline-item">P: Pedidos</li>
+                  </ul>
                 </div>
-                <div class="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>ASESOR</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
-                  <span>TOTAL</span>
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                  <span>CLIENTES DEL DIA</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                  <span>PEDIDOS</span>
+                </div>
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>8:00 - 9:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>9:00 - 10:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>10:00 - 11:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>11:00 - 12:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>12:00 - 13:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>13:00 - 14:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>14:00 - 15:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>15:00 - 16:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>16:00 - 17:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>17:00 - 18:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>18:00 - 19:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>19:00 - 20:00</span>
                 </div>';
     $indice = 0;
@@ -170,88 +200,141 @@ class Report {
 
       $linkFunctionPersonal = "showPersonal(".$perid.")";
 
-      $print .= '<div class="colTime" style="border-left: 1px solid #d7d7d7;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <a class="nav-link" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'"><span style="font-size: .6em;">'.$nombre.'</span></a>
+      $print .= '<div class="colTime centrar" style="border-left: 1px solid #d7d7d7;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <a class="nav-link text-truncate" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'" data-toggle="tooltip" data-placement="top" title="'.$nombre.'"><span class="text-truncate" style="font-size: .6em;">'.$nombre.'</span></a>
                 </div>';
 
-      $buscarSum8a9 = "SELECT count(total)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '08:00' and hora <= '20:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
-      $encontradoSum8a9 = mysqli_query($getConnection, $buscarSum8a9);
-      $rowSum8a9 = mysqli_fetch_row($encontradoSum8a9);
-      $suma8a9 = $rowSum8a9[0];
-
-      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span class="text-green" id="total'.$perid.'">'.$suma8a9.'</span>
-                </div>';
-      
       $print .= '<div class="colTime">
                   <div class="row">';
 
-      $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 50%; flex: 0 0 50%; mas-width: 50%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                      CV:<span>20</span>
-                    </div>
-                    <div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 50%; flex: 0 0 50%; mas-width: 50%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                      PV:<span>20</span>
-                    </div>
-                    <div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 50%; flex: 0 0 50%; mas-width: 50%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                      CD:<span>20</span>
+      $buscarCDTotFil = "SELECT count(c.clienteid)
+                        FROM cli c
+                        where c.vendedorid = ".$perid."
+                          and (
+                                c.diavis LIKE '$diaVis'
+                                OR c.diavis LIKE '%".$diaVis."'
+                                OR c.diavis LIKE '".$diaVis."%'
+                                OR c.diavis LIKE '%".$diaVis."%'
+                              )";
+      $encontradoCDTotFil = mysqli_query($getConnection, $buscarCDTotFil);
+      $rowCDTotFil = mysqli_fetch_row($encontradoCDTotFil);
+      $nCDTotFil = $rowCDTotFil[0];
+      $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      CD:<span class="text-green" id="totalDia'.$perid.'">'.$nCDTotFil.'</span>
                     </div>';
       
-      $buscar8a9 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '08:00' and hora <= '09:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscarPDTotFil = "SELECT c.clienteid
+                        from doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.vendedorid = ".$perid."
+                          and d.fecha = '".$dia."'
+                          and (
+                                c.diavis LIKE '$diaVis'
+                                OR c.diavis LIKE '%".$diaVis."'
+                                OR c.diavis LIKE '".$diaVis."%'
+                                OR c.diavis LIKE '%".$diaVis."%'
+                              )
+                          and c.vendedor NOT LIKE 'OF'
+                        group by c.clienteid";
+      $encontradoPDTotFil = mysqli_query($getConnection, $buscarPDTotFil);
+      $rowPDTotFil = mysqli_num_rows($encontradoPDTotFil);
+
+      $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      PD:<span class="text-green">'.$rowPDTotFil.'</span>
+                    </div>';
+      
+      $print .=   '</div>
+                </div>';
+
+      $print .= '<div class="colTime">
+                  <div class="row">';
+
+      $buscarCTotFil = "SELECT c.clienteid
+                          from doc d
+                            left outer join cli c on c.clienteid = d.clienteid
+                          where d.vendedorid = ".$perid."
+                            and d.fecha = '".$dia."'
+                            and c.vendedor NOT LIKE 'OF'
+                          group by c.clienteid";
+      $encontradoCTotFil = mysqli_query($getConnection, $buscarCTotFil);
+      $rowCTotFil = mysqli_num_rows($encontradoCTotFil);
+
+      $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      C:<span class="text-green">'.$rowCTotFil.'</span>
+                    </div>';
+
+      $buscarSumTotFil = "SELECT count(d.total)
+                            FROM doc d
+                              left outer join cli c on c.clienteid = d.clienteid
+                            where d.fecha = '".$dia."'
+                              and d.vendedorid = ".$perid."
+                              and c.vendedor NOT LIKE 'OF'
+                              and d.tipo = 'C'";
+      $encontradoSumTotFil = mysqli_query($getConnection, $buscarSumTotFil);
+      $rowSumTotFil = mysqli_fetch_row($encontradoSumTotFil);
+      $sumaTotFil = $rowSumTotFil[0];
+                
+      $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      P:<span class="text-green" id="total'.$perid.'">'.$sumaTotFil.'</span>
+                    </div>';
+      
+      $print .=   '</div>
+                </div>';
+      
+      $buscar8a9 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '08:00' and d.hora <= '09:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado8a9 = mysqli_query($getConnection, $buscar8a9);
 
       while($row8a9 = mysqli_fetch_row($encontrado8a9)){
         $n8a9 = $row8a9[0];
         if($n8a9 > 0){
-    $print .=       '<div class ="text-center text-yellow centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 50%; flex: 0 0 50%; mas-width: 50%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                      PD:<span id="n8a9'.$perid.'">'.$n8a9.'</span>
-                    </div>';
+    $print .=   '<div class="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n8a9'.$perid.'">'.$n8a9.'</span>
+                </div>';
         }else{
-    $print .=       '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 50%; flex: 0 0 50%; mas-width: 50%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                      PD:<span id="n8a9'.$perid.'">'.$n8a9.'</span>
-                    </div>';
+    $print .=   '<div class=" colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span id="n8a9'.$perid.'">'.$n8a9.'</span>
+                </div>';
         }
       }
 
-      $print .=   '</div>
-                </div>';
-
-      $buscar9a10 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '09:00' and hora <= '10:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar9a10 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '09:00' and d.hora <= '10:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado9a10 = mysqli_query($getConnection, $buscar9a10);
 
       while($row9a10 = mysqli_fetch_row($encontrado9a10)){
         $n9a10 = $row9a10[0];
         if($n9a10 > 0){
-      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+    $print .=   '<div class="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n9a10'.$perid.'">'.$n9a10.'</span>
                 </div>';
         }else{
-      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+    $print .=   '<div class=" colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n9a10'.$perid.'">'.$n9a10.'</span>
                 </div>';
         }
       }
 
-      $buscar10a11 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '10:00' and hora <= '11:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar10a11 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '10:00' and d.hora <= '11:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado10a11 = mysqli_query($getConnection, $buscar10a11);
 
       while($row10a11 = mysqli_fetch_row($encontrado10a11)){
@@ -267,12 +350,14 @@ class Report {
         }
       }
 
-      $buscar11a12 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '11:00' and hora <= '12:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar11a12 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '11:00' and d.hora <= '12:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado11a12 = mysqli_query($getConnection, $buscar11a12);
 
       while($row11a12 = mysqli_fetch_row($encontrado11a12)){
@@ -288,12 +373,14 @@ class Report {
         }
       }
 
-      $buscar12a13 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '12:00' and hora <= '13:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar12a13 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '12:00' and d.hora <= '13:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado12a13 = mysqli_query($getConnection, $buscar12a13);
 
       while($row12a13 = mysqli_fetch_row($encontrado12a13)){
@@ -309,12 +396,14 @@ class Report {
         }
       }
 
-      $buscar13a14 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '13:00' and hora <= '14:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar13a14 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '13:00' and d.hora <= '14:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado13a14 = mysqli_query($getConnection, $buscar13a14);
 
       while($row13a14 = mysqli_fetch_row($encontrado13a14)){
@@ -330,12 +419,14 @@ class Report {
         }
       }
 
-      $buscar14a15 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '14:00' and hora <= '15:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar14a15 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '14:00' and d.hora <= '15:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado14a15 = mysqli_query($getConnection, $buscar14a15);
 
       while($row14a15 = mysqli_fetch_row($encontrado14a15)){
@@ -351,12 +442,14 @@ class Report {
         }
       }
 
-      $buscar15a16 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '15:00' and hora <= '16:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar15a16 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '15:00' and d.hora <= '16:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado15a16 = mysqli_query($getConnection, $buscar15a16);
 
       while($row15a16 = mysqli_fetch_row($encontrado15a16)){
@@ -372,12 +465,14 @@ class Report {
         }
       }
 
-      $buscar16a17 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '16:00' and hora <= '17:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar16a17 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '16:00' and d.hora <= '17:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado16a17 = mysqli_query($getConnection, $buscar16a17);
 
       while($row16a17 = mysqli_fetch_row($encontrado16a17)){
@@ -393,12 +488,14 @@ class Report {
         }
       }
 
-      $buscar17a18 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '17:00' and hora <= '18:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar17a18 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '17:00' and d.hora <= '18:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado17a18 = mysqli_query($getConnection, $buscar17a18);
 
       while($row17a18 = mysqli_fetch_row($encontrado17a18)){
@@ -414,12 +511,14 @@ class Report {
         }
       }
 
-      $buscar18a19 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '18:00' and hora <= '19:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar18a19 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '18:00' and d.hora <= '19:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado18a19 = mysqli_query($getConnection, $buscar18a19);
 
       while($row18a19 = mysqli_fetch_row($encontrado18a19)){
@@ -435,12 +534,14 @@ class Report {
         }
       }
 
-      $buscar19A20 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '19:00' and hora <= '20:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar19A20 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '19:00' and d.hora <= '20:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado19A20 = mysqli_query($getConnection, $buscar19A20);
 
       while($row19A20 = mysqli_fetch_row($encontrado19A20)){
@@ -456,19 +557,50 @@ class Report {
         }
       }
     }
+
+    $buscarTotalPedDia = "SELECT count(d.docid)
+                            FROM doc d
+                              left outer join per p on p.perid = d.vendedorid
+                              left outer join cli c on c.clienteid = d.clienteid
+                            where d.fecha = '".$dia."'
+                              and d.tipo = 'C'
+                              and c.vendedor NOT LIKE 'OF'
+                              and p.sermov = 1";
+    $enconTotalPedDia = mysqli_query($getConnection, $buscarTotalPedDia);
+    $rowTotalPedDia = mysqli_fetch_row($enconTotalPedDia);
+    $totalPedDia = $rowTotalPedDia[0];
+
+    $buscarTotalPedDiaVis = "SELECT c.clienteid
+                              from doc d
+                                left outer join cli c on c.clienteid = d.clienteid
+                                LEFT OUTER JOIN per p ON p.perid = D.vendedorid
+                              where d.fecha = '".$dia."'
+                                and c.diavis = '$diaVis'
+                                and p.sermov = 1
+                                and c.vendedor NOT LIKE 'OF'
+                              group by c.clienteid";
+    $enconTotalPedDiaVis = mysqli_query($getConnection, $buscarTotalPedDiaVis);
+    $rowTotalPedDiaVis = mysqli_num_rows($enconTotalPedDiaVis);
+
+    // Total por columna
     $print .=   '<div class ="colTime text-center centrar text-yellow" style="border: 1px solid #d7d7d7;">
                   <span>Total</span>
                 </div>';
     $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span>0</span>
+                  <span>'.$rowTotalPedDiaVis.'</span>
+                </div>';
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$totalPedDia.'</span>
                 </div>';
 
     $totalCol8a9 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
                         and (doc.hora >= '08:00' and doc.hora <= '09:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol8a9 = mysqli_query($getConnection, $totalCol8a9);
     $rowTotalCol8a9 = mysqli_fetch_row($totalEncontradoCol8a9);
@@ -481,9 +613,11 @@ class Report {
     $totalCol9a10 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
-                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and (doc.hora >= '09:00' and doc.hora <= '10:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol9a10 = mysqli_query($getConnection, $totalCol9a10);
     $rowTotalCol9a10 = mysqli_fetch_row($totalEncontradoCol9a10);
@@ -496,9 +630,11 @@ class Report {
     $totalCol10a11 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
-                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and (doc.hora >= '10:00' and doc.hora <= '11:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol10a11 = mysqli_query($getConnection, $totalCol10a11);
     $rowTotalCol10a11 = mysqli_fetch_row($totalEncontradoCol10a11);
@@ -511,9 +647,11 @@ class Report {
     $totalCol11a12 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
-                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and (doc.hora >= '11:00' and doc.hora <= '12:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol11a12 = mysqli_query($getConnection, $totalCol11a12);
     $rowTotalCol11a12 = mysqli_fetch_row($totalEncontradoCol11a12);
@@ -526,9 +664,11 @@ class Report {
     $totalCol12a13 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
-                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and (doc.hora >= '12:00' and doc.hora <= '13:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol12a13 = mysqli_query($getConnection, $totalCol12a13);
     $rowTotalCol12a13 = mysqli_fetch_row($totalEncontradoCol12a13);
@@ -541,9 +681,11 @@ class Report {
     $totalCol13a14 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
-                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and (doc.hora >= '13:00' and doc.hora <= '14:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol13a14 = mysqli_query($getConnection, $totalCol13a14);
     $rowTotalCol13a14 = mysqli_fetch_row($totalEncontradoCol13a14);
@@ -556,9 +698,11 @@ class Report {
     $totalCol14a15 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
-                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and (doc.hora >= '14:00' and doc.hora <= '15:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol14a15 = mysqli_query($getConnection, $totalCol14a15);
     $rowTotalCol14a15 = mysqli_fetch_row($totalEncontradoCol14a15);
@@ -571,9 +715,11 @@ class Report {
     $totalCol15a16 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
-                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and (doc.hora >= '15:00' and doc.hora <= '16:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol15a16 = mysqli_query($getConnection, $totalCol15a16);
     $rowTotalCol15a16 = mysqli_fetch_row($totalEncontradoCol15a16);
@@ -586,9 +732,11 @@ class Report {
     $totalCol16a17 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
-                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and (doc.hora >= '16:00' and doc.hora <= '17:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol16a17 = mysqli_query($getConnection, $totalCol16a17);
     $rowTotalCol16a17 = mysqli_fetch_row($totalEncontradoCol16a17);
@@ -601,9 +749,11 @@ class Report {
     $totalCol17a18 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
-                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and (doc.hora >= '17:00' and doc.hora <= '18:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol17a18 = mysqli_query($getConnection, $totalCol17a18);
     $rowTotalCol17a18 = mysqli_fetch_row($totalEncontradoCol17a18);
@@ -616,9 +766,11 @@ class Report {
     $totalCol18a19 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
-                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and (doc.hora >= '18:00' and doc.hora <= '19:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol18a19 = mysqli_query($getConnection, $totalCol18a19);
     $rowTotalCol18a19 = mysqli_fetch_row($totalEncontradoCol18a19);
@@ -631,9 +783,11 @@ class Report {
     $totalCol19a20 = "SELECT count(doc.docid)
                       FROM doc
                         LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
                       where doc.fecha ='".$dia."'
-                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and (doc.hora >= '19:00' and doc.hora <= '20:00')
                         and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
                         and p.sermov = 1";
     $totalEncontradoCol19a20 = mysqli_query($getConnection, $totalCol19a20);
     $rowTotalCol19a20 = mysqli_fetch_row($totalEncontradoCol19a20);
@@ -650,50 +804,53 @@ class Report {
                 <div class="col-12 text-center paddingB">
                     <h4 class="h4">ZONA 2</h4>
                 </div>
-                <div class="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>ASESOR</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
-                  <span>TOTAL</span>
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                  <span>CLIENTES DEL DIA</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                  <span>PEDIDOS</span>
+                </div>
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>8:00 - 9:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>9:00 - 10:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>10:00 - 11:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>11:00 - 12:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>12:00 - 13:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>13:00 - 14:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>14:00 - 15:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>15:00 - 16:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>16:00 - 17:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>17:00 - 18:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>18:00 - 19:00</span>
                 </div>
-                <div class ="colTime text-center text-tomato" style="border: 1px solid tomato;">
+                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>19:00 - 20:00</span>
                 </div>';
         
-              // Se busca a los vendedores
+    // Se busca a los vendedores
     $buscarVendedoresZona2 ="SELECT perid, nombre
                           FROM per
                           WHERE grupo = 'MV'
@@ -713,78 +870,148 @@ class Report {
 
       $linkFunctionPersonal = "showPersonal(".$perid.")";
 
-      $print .= '<div class="colTime" style="border-left: 1px solid #d7d7d7;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <a class="nav-link" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'"><span style="font-size: .6em;">'.$nombre.'</span></a>
+      $print .= '<div class="colTime centrar" style="border-left: 1px solid #d7d7d7;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <a class="nav-link text-truncate" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'" data-toggle="tooltip" data-placement="top" title="'.$nombre.'"><span class="text-truncate" style="font-size: .6em;">'.$nombre.'</span></a>
                 </div>';
 
-      $buscarSum8a9 = "SELECT count(total)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '08:00' and hora <= '20:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
-      $encontradoSum8a9 = mysqli_query($getConnection, $buscarSum8a9);
-      $rowSum8a9 = mysqli_fetch_row($encontradoSum8a9);
-      $suma8a9 = $rowSum8a9[0];
+      $print .= '<div class="colTime">
+                  <div class="row">';
 
-      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span class="text-green" id="total'.$perid.'">'.$suma8a9.'</span>
+      $buscarCDTotFil = "SELECT count(c.clienteid)
+                          FROM cli c
+                          where c.vendedorid = ".$perid."
+                            and (
+                                  c.diavis LIKE '$diaVis'
+                                  OR c.diavis LIKE '%".$diaVis."'
+                                  OR c.diavis LIKE '".$diaVis."%'
+                                  OR c.diavis LIKE '%".$diaVis."%'
+                                )";
+      $encontradoCDTotFil = mysqli_query($getConnection, $buscarCDTotFil);
+      $rowCDTotFil = mysqli_fetch_row($encontradoCDTotFil);
+      $nCDTotFil = $rowCDTotFil[0];
+      $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      CD:<span class="text-green" id="totalDia'.$perid.'">'.$nCDTotFil.'</span>
+                    </div>';
+
+      $buscarPDTotFil = "SELECT c.clienteid
+                        from doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.vendedorid = ".$perid."
+                          and d.fecha = '".$dia."'
+                          and (
+                                c.diavis LIKE '$diaVis'
+                                OR c.diavis LIKE '%".$diaVis."'
+                                OR c.diavis LIKE '".$diaVis."%'
+                                OR c.diavis LIKE '%".$diaVis."%'
+                              )
+                          and c.vendedor NOT LIKE 'OF'
+                        group by c.clienteid";
+      $encontradoPDTotFil = mysqli_query($getConnection, $buscarPDTotFil);
+      $rowPDTotFil = mysqli_num_rows($encontradoPDTotFil);
+
+      $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      PD:<span class="text-green">'.$rowPDTotFil.'</span>
+                    </div>';
+
+      $print .=   '</div>
                 </div>';
-      
-      $buscar8a9 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '08:00' and hora <= '09:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+
+      $print .= '<div class="colTime">
+                  <div class="row">';
+
+      $buscarCTotFil = "SELECT c.clienteid
+                          from doc d
+                            left outer join cli c on c.clienteid = d.clienteid
+                          where d.vendedorid = ".$perid."
+                            and d.fecha = '".$dia."'
+                            and c.vendedor NOT LIKE 'OF'
+                          group by c.clienteid";
+      $encontradoCTotFil = mysqli_query($getConnection, $buscarCTotFil);
+      $rowCTotFil = mysqli_num_rows($encontradoCTotFil);
+
+      $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      C:<span class="text-green">'.$rowCTotFil.'</span>
+                    </div>';
+
+      $buscarSumTotFil = "SELECT count(d.total)
+                            FROM doc d
+                              left outer join cli c on c.clienteid = d.clienteid
+                            where d.fecha = '".$dia."'
+                              and (d.hora >= '08:00' and d.hora <= '20:00')
+                              and d.vendedorid = ".$perid."
+                              and c.vendedor NOT LIKE 'OF'
+                              and d.tipo = 'C'";
+      $encontradoSumTotFil = mysqli_query($getConnection, $buscarSumTotFil);
+      $rowSumTotFil = mysqli_fetch_row($encontradoSumTotFil);
+      $sumaTotFil = $rowSumTotFil[0];
+                
+      $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                      P:<span class="text-green" id="total'.$perid.'">'.$sumaTotFil.'</span>
+                    </div>';
+
+      $print .=   '</div>
+                </div>';
+
+      $buscar8a9 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '08:00' and d.hora <= '09:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado8a9 = mysqli_query($getConnection, $buscar8a9);
 
       while($row8a9 = mysqli_fetch_row($encontrado8a9)){
         $n8a9 = $row8a9[0];
         if($n8a9 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .=   '<div class="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n8a9'.$perid.'">'.$n8a9.'</span>
                 </div>';
         }else{
-      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .=   '<div class=" colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n8a9'.$perid.'">'.$n8a9.'</span>
                 </div>';
         }
       }
 
-      $buscar9a10 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '09:00' and hora <= '10:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar9a10 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '09:00' and d.hora <= '10:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado9a10 = mysqli_query($getConnection, $buscar9a10);
 
       while($row9a10 = mysqli_fetch_row($encontrado9a10)){
         $n9a10 = $row9a10[0];
         if($n9a10 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .=   '<div class="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n9a10'.$perid.'">'.$n9a10.'</span>
                 </div>';
         }else{
-      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .=   '<div class=" colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n9a10'.$perid.'">'.$n9a10.'</span>
                 </div>';
         }
       }
 
-      $buscar10a11 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '10:00' and hora <= '11:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar10a11 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '10:00' and d.hora <= '11:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado10a11 = mysqli_query($getConnection, $buscar10a11);
 
       while($row10a11 = mysqli_fetch_row($encontrado10a11)){
         $n10a11 = $row10a11[0];
         if($n10a11 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n10a11'.$perid.'">'.$n10a11.'</span>
                 </div>';
         }else{
@@ -794,18 +1021,20 @@ class Report {
         }
       }
 
-      $buscar11a12 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '11:00' and hora <= '12:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar11a12 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '11:00' and d.hora <= '12:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado11a12 = mysqli_query($getConnection, $buscar11a12);
 
       while($row11a12 = mysqli_fetch_row($encontrado11a12)){
         $n11a12 = $row11a12[0];
         if($n11a12 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n11a12'.$perid.'">'.$n11a12.'</span>
                 </div>';
         }else{
@@ -815,18 +1044,20 @@ class Report {
         }
       }
 
-      $buscar12a13 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '12:00' and hora <= '13:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar12a13 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '12:00' and d.hora <= '13:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado12a13 = mysqli_query($getConnection, $buscar12a13);
 
       while($row12a13 = mysqli_fetch_row($encontrado12a13)){
         $n12a13 = $row12a13[0];
         if($n12a13 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n12a13'.$perid.'">'.$n12a13.'</span>
                 </div>';
         }else{
@@ -836,18 +1067,20 @@ class Report {
         }
       }
 
-      $buscar13a14 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '13:00' and hora <= '14:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar13a14 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '13:00' and d.hora <= '14:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado13a14 = mysqli_query($getConnection, $buscar13a14);
 
       while($row13a14 = mysqli_fetch_row($encontrado13a14)){
         $n13a14 = $row13a14[0];
         if($n13a14 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n13a14'.$perid.'">'.$n13a14.'</span>
                 </div>';
         }else{
@@ -857,18 +1090,20 @@ class Report {
         }
       }
 
-      $buscar14a15 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '14:00' and hora <= '15:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar14a15 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '14:00' and d.hora <= '15:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado14a15 = mysqli_query($getConnection, $buscar14a15);
 
       while($row14a15 = mysqli_fetch_row($encontrado14a15)){
         $n14a15 = $row14a15[0];
         if($n14a15 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n14a15'.$perid.'">'.$n14a15.'</span>
                 </div>';
         }else{
@@ -878,18 +1113,20 @@ class Report {
         }
       }
 
-      $buscar15a16 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '15:00' and hora <= '16:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar15a16 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '15:00' and d.hora <= '16:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado15a16 = mysqli_query($getConnection, $buscar15a16);
 
       while($row15a16 = mysqli_fetch_row($encontrado15a16)){
         $n15a16 = $row15a16[0];
         if($n15a16 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n15a16'.$perid.'">'.$n15a16.'</span>
                 </div>';
         }else{
@@ -899,18 +1136,20 @@ class Report {
         }
       }
 
-      $buscar16a17 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '16:00' and hora <= '17:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar16a17 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '16:00' and d.hora <= '17:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado16a17 = mysqli_query($getConnection, $buscar16a17);
 
       while($row16a17 = mysqli_fetch_row($encontrado16a17)){
         $n16a17 = $row16a17[0];
         if($n16a17 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n16a17'.$perid.'">'.$n16a17.'</span>
                 </div>';
         }else{
@@ -920,18 +1159,20 @@ class Report {
         }
       }
 
-      $buscar17a18 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '17:00' and hora <= '18:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar17a18 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '17:00' and d.hora <= '18:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado17a18 = mysqli_query($getConnection, $buscar17a18);
 
       while($row17a18 = mysqli_fetch_row($encontrado17a18)){
         $n17a18 = $row17a18[0];
         if($n17a18 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n17a18'.$perid.'">'.$n17a18.'</span>
                 </div>';
         }else{
@@ -941,18 +1182,20 @@ class Report {
         }
       }
 
-      $buscar18a19 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '18:00' and hora <= '19:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar18a19 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '18:00' and d.hora <= '19:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado18a19 = mysqli_query($getConnection, $buscar18a19);
 
       while($row18a19 = mysqli_fetch_row($encontrado18a19)){
         $n18a19 = $row18a19[0];
         if($n18a19 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n18a19'.$perid.'">'.$n18a19.'</span>
                 </div>';
         }else{
@@ -962,18 +1205,20 @@ class Report {
         }
       }
 
-      $buscar19A20 = "SELECT count(docid)
-                      FROM doc
-                      where fecha = '".$dia."'
-                        and (hora >= '19:00' and hora <= '20:00')
-                        and vendedorid = ".$perid."
-                        and tipo = 'C'";
+      $buscar19A20 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '19:00' and d.hora <= '20:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
       $encontrado19A20 = mysqli_query($getConnection, $buscar19A20);
 
       while($row19A20 = mysqli_fetch_row($encontrado19A20)){
         $n19A20 = $row19A20[0];
         if($n19A20 > 0){
-      $print .= '<div class ="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span id="n19A20'.$perid.'">'.$n19A20.'</span>
                 </div>';
         }else{
@@ -983,8 +1228,940 @@ class Report {
         }
       }
     }
+
+    $buscarTotalPedDia = "SELECT count(d.docid)
+                            FROM doc d
+                              left outer join per p on p.perid = d.vendedorid
+                              left outer join cli c on c.clienteid = d.clienteid
+                            where d.fecha = '".$dia."'
+                              and d.tipo = 'C'
+                              and c.vendedor NOT LIKE 'OF'
+                              and p.sermov = 2";
+    $enconTotalPedDia = mysqli_query($getConnection, $buscarTotalPedDia);
+    $rowTotalPedDia = mysqli_fetch_row($enconTotalPedDia);
+    $totalPedDia = $rowTotalPedDia[0];
+
+    $buscarTotalPedDiaVis = "SELECT c.clienteid
+                              from doc d
+                                left outer join cli c on c.clienteid = d.clienteid
+                                LEFT OUTER JOIN per p ON p.perid = D.vendedorid
+                              where d.fecha = '".$dia."'
+                                and c.diavis = '$diaVis'
+                                and p.sermov = 2
+                                and c.vendedor NOT LIKE 'OF'
+                              group by c.clienteid";
+    $enconTotalPedDiaVis = mysqli_query($getConnection, $buscarTotalPedDiaVis);
+    $rowTotalPedDiaVis = mysqli_num_rows($enconTotalPedDiaVis);
+
+    // Total por columna
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border: 1px solid #d7d7d7;">
+                  <span>Total</span>
+                </div>';
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$rowTotalPedDiaVis.'</span>
+                </div>';
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$totalPedDia.'</span>
+                </div>';
+
+    $totalCol8a9 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol8a9 = mysqli_query($getConnection, $totalCol8a9);
+    $rowTotalCol8a9 = mysqli_fetch_row($totalEncontradoCol8a9);
+    $nTotal8a9 = $rowTotalCol8a9[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal8a9.'</span>
+                </div>';
+
+    $totalCol9a10 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '09:00' and doc.hora <= '10:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol9a10 = mysqli_query($getConnection, $totalCol9a10);
+    $rowTotalCol9a10 = mysqli_fetch_row($totalEncontradoCol9a10);
+    $nTotal9a10 = $rowTotalCol9a10[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal9a10.'</span>
+                </div>';
+
+    $totalCol10a11 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '10:00' and doc.hora <= '11:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol10a11 = mysqli_query($getConnection, $totalCol10a11);
+    $rowTotalCol10a11 = mysqli_fetch_row($totalEncontradoCol10a11);
+    $nTotal10a11 = $rowTotalCol10a11[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal10a11.'</span>
+                </div>';
+
+    $totalCol11a12 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '11:00' and doc.hora <= '12:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol11a12 = mysqli_query($getConnection, $totalCol11a12);
+    $rowTotalCol11a12 = mysqli_fetch_row($totalEncontradoCol11a12);
+    $nTotal11a12 = $rowTotalCol11a12[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal11a12.'</span>
+                </div>';
+
+    $totalCol12a13 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '12:00' and doc.hora <= '13:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol12a13 = mysqli_query($getConnection, $totalCol12a13);
+    $rowTotalCol12a13 = mysqli_fetch_row($totalEncontradoCol12a13);
+    $nTotal12a13 = $rowTotalCol12a13[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal12a13.'</span>
+                </div>';
+
+    $totalCol13a14 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '13:00' and doc.hora <= '14:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol13a14 = mysqli_query($getConnection, $totalCol13a14);
+    $rowTotalCol13a14 = mysqli_fetch_row($totalEncontradoCol13a14);
+    $nTotal13a14 = $rowTotalCol13a14[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal13a14.'</span>
+                </div>';
+
+    $totalCol14a15 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '14:00' and doc.hora <= '15:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol14a15 = mysqli_query($getConnection, $totalCol14a15);
+    $rowTotalCol14a15 = mysqli_fetch_row($totalEncontradoCol14a15);
+    $nTotal14a15 = $rowTotalCol14a15[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal14a15.'</span>
+                </div>';
+
+    $totalCol15a16 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '15:00' and doc.hora <= '16:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol15a16 = mysqli_query($getConnection, $totalCol15a16);
+    $rowTotalCol15a16 = mysqli_fetch_row($totalEncontradoCol15a16);
+    $nTotal15a16 = $rowTotalCol15a16[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal15a16.'</span>
+                </div>';
+
+    $totalCol16a17 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '16:00' and doc.hora <= '17:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol16a17 = mysqli_query($getConnection, $totalCol16a17);
+    $rowTotalCol16a17 = mysqli_fetch_row($totalEncontradoCol16a17);
+    $nTotal16a17 = $rowTotalCol16a17[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal16a17.'</span>
+                </div>';
+
+    $totalCol17a18 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '17:00' and doc.hora <= '18:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol17a18 = mysqli_query($getConnection, $totalCol17a18);
+    $rowTotalCol17a18 = mysqli_fetch_row($totalEncontradoCol17a18);
+    $nTotal17a18 = $rowTotalCol17a18[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal17a18.'</span>
+                </div>';
+
+    $totalCol18a19 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '18:00' and doc.hora <= '19:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol18a19 = mysqli_query($getConnection, $totalCol18a19);
+    $rowTotalCol18a19 = mysqli_fetch_row($totalEncontradoCol18a19);
+    $nTotal18a19 = $rowTotalCol18a19[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal18a19.'</span>
+                </div>';
+
+    $totalCol19a20 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '19:00' and doc.hora <= '20:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = 2";
+    $totalEncontradoCol19a20 = mysqli_query($getConnection, $totalCol19a20);
+    $rowTotalCol19a20 = mysqli_fetch_row($totalEncontradoCol19a20);
+    $nTotal19a20 = $rowTotalCol19a20[0];
+
+    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                  <span>'.$nTotal19a20.'</span>
+                </div>';
+
     $print .= '</div>
             </div>';
+    }else{
+      if($rol == 'SZ-01'){
+        $sermov = 1;
+      }else if($rol == 'SZ-02'){
+        $sermov = 2;
+      }
+      // Se busca a los vendedores
+    $buscarVendedoresZona1 ="SELECT perid, nombre
+                              FROM per
+                              WHERE grupo = 'MV'
+                                AND caja > 0
+                                AND sermov = $sermov";
+    $venEncontradoZona1 = mysqli_query($getConnection, $buscarVendedoresZona1);
+
+    $linkActualizar = "showInformation('pedidosPorHora')";
+
+    $print =  '<div class="col-12 paddingT paddinB">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
+                <h4 class="display-4 text-center">LINEA DE TIEM<span class="text-tomato">PO DEL ASESOR</span></h4>
+                <div class="row paddingT paddingB">
+                  <div class="col-12 text-center paddingB">
+                    <button type="button" class="btn btn-outline-primary text-center" onClick="'.$linkActualizar.'">Actualizar</button>
+                  </div>
+                  <div class="col-12 text-center paddingB">
+                    <h4 class="h4">ZONA '.$sermov.'</h4>
+                    <ul class="list-inline">
+                      <li class="list-inline-item">CD: Clientes del Día</li>
+                      <li class="list-inline-item">PD: Pedidos del Día</li>
+                      <li class="list-inline-item">C: Clientes</li>
+                      <li class="list-inline-item">P: Pedidos</li>
+                    </ul>
+                  </div>
+                  <div class="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>ASESOR</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>CLIENTES DEL DIA</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>PEDIDOS</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">|
+                    <span>8:00 - 9:00</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>9:00 - 10:00</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>10:00 - 11:00</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>11:00 - 12:00</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>12:00 - 13:00</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>13:00 - 14:00</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>14:00 - 15:00</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>15:00 - 16:00</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>16:00 - 17:00</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>17:00 - 18:00</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>18:00 - 19:00</span>
+                  </div>
+                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
+                    <span>19:00 - 20:00</span>
+                  </div>';
+    $indice = 0;
+    while($rowVenZona1 = mysqli_fetch_row($venEncontradoZona1)){
+      // var_dump($rowVenZona1);
+      $perid = $rowVenZona1[0];
+      $nombre = $rowVenZona1[1];
+      $dia = date('Y-m-d');
+      $print .= '<span id="per'.$indice.'" style="display: none;">'.$perid.'</span>';
+
+      $indice++;
+
+      $linkFunctionPersonal = "showPersonal(".$perid.")";
+
+      $print .=   '<div class="colTime centrar" style="border-left: 1px solid #d7d7d7;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <a class="nav-link text-truncate" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'" data-toggle="tooltip" data-placement="top" title="'.$nombre.'"><span class="text-truncate" style="font-size: .6em;">'.$nombre.'</span></a>
+                  </div>';
+
+      $print .=   '<div class="colTime">
+                    <div class="row">';
+
+      $buscarCDTotFil = "SELECT count(c.clienteid)
+                          FROM cli c
+                          where c.vendedorid = ".$perid."
+                            and (
+                                  c.diavis LIKE '$diaVis'
+                                  OR c.diavis LIKE '%".$diaVis."'
+                                  OR c.diavis LIKE '".$diaVis."%'
+                                  OR c.diavis LIKE '%".$diaVis."%'
+                                )";
+      $encontradoCDTotFil = mysqli_query($getConnection, $buscarCDTotFil);
+      $rowCDTotFil = mysqli_fetch_row($encontradoCDTotFil);
+      $nCDTotFil = $rowCDTotFil[0];
+      $print .=       '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                        CD:<span class="text-green" id="totalDia'.$perid.'">'.$nCDTotFil.'</span>
+                      </div>';
+
+      $buscarPDTotFil = "SELECT c.clienteid
+                          from doc d
+                            left outer join cli c on c.clienteid = d.clienteid
+                          where d.vendedorid = ".$perid."
+                            and d.fecha = '".$dia."'
+                            and (
+                                  c.diavis LIKE '$diaVis'
+                                  OR c.diavis LIKE '%".$diaVis."'
+                                  OR c.diavis LIKE '".$diaVis."%'
+                                  OR c.diavis LIKE '%".$diaVis."%'
+                                )
+                            and c.vendedor NOT LIKE 'OF'
+                          group by c.clienteid";
+      $encontradoPDTotFil = mysqli_query($getConnection, $buscarPDTotFil);
+      $rowPDTotFil = mysqli_num_rows($encontradoPDTotFil);
+
+      $print .=       '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                        PD:<span class="text-green">'.$rowPDTotFil.'</span>
+                      </div>';
+
+      $print .=     '</div>
+                  </div>';
+
+      $print .=   '<div class="colTime">
+                    <div class="row">';
+
+      $buscarCTotFil = "SELECT c.clienteid
+                        from doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.vendedorid = ".$perid."
+                          and d.fecha = '".$dia."'
+                          and c.vendedor NOT LIKE 'OF'
+                        group by c.clienteid";
+      $encontradoCTotFil = mysqli_query($getConnection, $buscarCTotFil);
+      $rowCTotFil = mysqli_num_rows($encontradoCTotFil);
+
+      $print .=       '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                        C:<span class="text-green">'.$rowCTotFil.'</span>
+                      </div>';
+
+      $buscarSumTotFil = "SELECT count(d.total)
+                            FROM doc d
+                              left outer join cli c on c.clienteid = d.clienteid
+                            where d.fecha = '".$dia."'
+                              and d.vendedorid = ".$perid."
+                              and c.vendedor NOT LIKE 'OF'
+                              and d.tipo = 'C'";
+      $encontradoSumTotFil = mysqli_query($getConnection, $buscarSumTotFil);
+      $rowSumTotFil = mysqli_fetch_row($encontradoSumTotFil);
+      $sumaTotFil = $rowSumTotFil[0];
+
+      $print .=       '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                        P:<span class="text-green" id="total'.$perid.'">'.$sumaTotFil.'</span>
+                      </div>';
+
+      $print .=     '</div>
+                  </div>';
+
+      $buscar8a9 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '08:00' and d.hora <= '09:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
+      $encontrado8a9 = mysqli_query($getConnection, $buscar8a9);
+
+      while($row8a9 = mysqli_fetch_row($encontrado8a9)){
+        $n8a9 = $row8a9[0];
+        if($n8a9 > 0){
+        $print .= '<div class="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n8a9'.$perid.'">'.$n8a9.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class=" colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n8a9'.$perid.'">'.$n8a9.'</span>
+                  </div>';
+        }
+      }
+
+      $buscar9a10 = "SELECT count(d.docid)
+                      FROM doc d
+                        left outer join cli c on c.clienteid = d.clienteid
+                      where d.fecha = '".$dia."'
+                        and (d.hora >= '09:00' and d.hora <= '10:00')
+                        and d.vendedorid = ".$perid."
+                        and c.vendedor NOT LIKE 'OF'
+                        and d.tipo = 'C'";
+      $encontrado9a10 = mysqli_query($getConnection, $buscar9a10);
+
+      while($row9a10 = mysqli_fetch_row($encontrado9a10)){
+        $n9a10 = $row9a10[0];
+        if($n9a10 > 0){
+        $print .= '<div class="colTime text-center text-yellow centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n9a10'.$perid.'">'.$n9a10.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class=" colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n9a10'.$perid.'">'.$n9a10.'</span>
+                  </div>';
+        }
+      }
+
+      $buscar10a11 = "SELECT count(d.docid)
+                        FROM doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.fecha = '".$dia."'
+                          and (d.hora >= '10:00' and d.hora <= '11:00')
+                          and d.vendedorid = ".$perid."
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'";
+      $encontrado10a11 = mysqli_query($getConnection, $buscar10a11);
+
+      while($row10a11 = mysqli_fetch_row($encontrado10a11)){
+        $n10a11 = $row10a11[0];
+        if($n10a11 > 0){
+        $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n10a11'.$perid.'">'.$n10a11.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n10a11'.$perid.'">'.$n10a11.'</span>
+                  </div>';
+        }
+      }
+
+      $buscar11a12 = "SELECT count(d.docid)
+                        FROM doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.fecha = '".$dia."'
+                          and (d.hora >= '11:00' and d.hora <= '12:00')
+                          and d.vendedorid = ".$perid."
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'";
+      $encontrado11a12 = mysqli_query($getConnection, $buscar11a12);
+
+      while($row11a12 = mysqli_fetch_row($encontrado11a12)){
+        $n11a12 = $row11a12[0];
+        if($n11a12 > 0){
+        $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n11a12'.$perid.'">'.$n11a12.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n11a12'.$perid.'">'.$n11a12.'</span>
+                  </div>';
+        }
+      }
+
+      $buscar12a13 = "SELECT count(d.docid)
+                        FROM doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.fecha = '".$dia."'
+                          and (d.hora >= '12:00' and d.hora <= '13:00')
+                          and d.vendedorid = ".$perid."
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'";
+      $encontrado12a13 = mysqli_query($getConnection, $buscar12a13);
+
+      while($row12a13 = mysqli_fetch_row($encontrado12a13)){
+        $n12a13 = $row12a13[0];
+        if($n12a13 > 0){
+        $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n12a13'.$perid.'">'.$n12a13.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n12a13'.$perid.'">'.$n12a13.'</span>
+                  </div>';
+        }
+      }
+
+      $buscar13a14 = "SELECT count(d.docid)
+                        FROM doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.fecha = '".$dia."'
+                          and (d.hora >= '13:00' and d.hora <= '14:00')
+                          and d.vendedorid = ".$perid."
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'";
+      $encontrado13a14 = mysqli_query($getConnection, $buscar13a14);
+
+      while($row13a14 = mysqli_fetch_row($encontrado13a14)){
+        $n13a14 = $row13a14[0];
+        if($n13a14 > 0){
+        $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n13a14'.$perid.'">'.$n13a14.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n13a14'.$perid.'">'.$n13a14.'</span>
+                  </div>';
+        }
+      }
+
+      $buscar14a15 = "SELECT count(d.docid)
+                        FROM doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.fecha = '".$dia."'
+                          and (d.hora >= '14:00' and d.hora <= '15:00')
+                          and d.vendedorid = ".$perid."
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'";
+      $encontrado14a15 = mysqli_query($getConnection, $buscar14a15);
+
+      while($row14a15 = mysqli_fetch_row($encontrado14a15)){
+        $n14a15 = $row14a15[0];
+        if($n14a15 > 0){
+        $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n14a15'.$perid.'">'.$n14a15.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n14a15'.$perid.'">'.$n14a15.'</span>
+                  </div>';
+        }
+      }
+
+      $buscar15a16 = "SELECT count(d.docid)
+                        FROM doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.fecha = '".$dia."'
+                          and (d.hora >= '15:00' and d.hora <= '16:00')
+                          and d.vendedorid = ".$perid."
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'";
+      $encontrado15a16 = mysqli_query($getConnection, $buscar15a16);
+
+      while($row15a16 = mysqli_fetch_row($encontrado15a16)){
+        $n15a16 = $row15a16[0];
+        if($n15a16 > 0){
+        $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n15a16'.$perid.'">'.$n15a16.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n15a16'.$perid.'">'.$n15a16.'</span>
+                  </div>';
+        }
+      }
+
+      $buscar16a17 = "SELECT count(d.docid)
+                        FROM doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.fecha = '".$dia."'
+                          and (d.hora >= '16:00' and d.hora <= '17:00')
+                          and d.vendedorid = ".$perid."
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'";
+      $encontrado16a17 = mysqli_query($getConnection, $buscar16a17);
+
+      while($row16a17 = mysqli_fetch_row($encontrado16a17)){
+        $n16a17 = $row16a17[0];
+        if($n16a17 > 0){
+        $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n16a17'.$perid.'">'.$n16a17.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n16a17'.$perid.'">'.$n16a17.'</span>
+                  </div>';
+        }
+      }
+
+      $buscar17a18 = "SELECT count(d.docid)
+                        FROM doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.fecha = '".$dia."'
+                          and (d.hora >= '17:00' and d.hora <= '18:00')
+                          and d.vendedorid = ".$perid."
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'";
+      $encontrado17a18 = mysqli_query($getConnection, $buscar17a18);
+
+      while($row17a18 = mysqli_fetch_row($encontrado17a18)){
+        $n17a18 = $row17a18[0];
+        if($n17a18 > 0){
+        $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n17a18'.$perid.'">'.$n17a18.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n17a18'.$perid.'">'.$n17a18.'</span>
+                  </div>';
+        }
+      }
+
+      $buscar18a19 = "SELECT count(d.docid)
+                        FROM doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.fecha = '".$dia."'
+                          and (d.hora >= '18:00' and d.hora <= '19:00')
+                          and d.vendedorid = ".$perid."
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'";
+      $encontrado18a19 = mysqli_query($getConnection, $buscar18a19);
+
+      while($row18a19 = mysqli_fetch_row($encontrado18a19)){
+        $n18a19 = $row18a19[0];
+        if($n18a19 > 0){
+        $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n18a19'.$perid.'">'.$n18a19.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n18a19'.$perid.'">'.$n18a19.'</span>
+                  </div>';
+        }
+      }
+
+      $buscar19A20 = "SELECT count(d.docid)
+                        FROM doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where d.fecha = '".$dia."'
+                          and (d.hora >= '19:00' and d.hora <= '20:00')
+                          and d.vendedorid = ".$perid."
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'";
+      $encontrado19A20 = mysqli_query($getConnection, $buscar19A20);
+
+      while($row19A20 = mysqli_fetch_row($encontrado19A20)){
+        $n19A20 = $row19A20[0];
+        if($n19A20 > 0){
+        $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n19A20'.$perid.'">'.$n19A20.'</span>
+                  </div>';
+        }else{
+        $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span id="n19A20'.$perid.'">'.$n19A20.'</span>
+                  </div>';
+        }
+      }
+    }
+
+    $buscarTotalPedDia = "SELECT count(d.docid)
+                            FROM doc d
+                              left outer join per p on p.perid = d.vendedorid
+                              left outer join cli c on c.clienteid = d.clienteid
+                            where d.fecha = '".$dia."'
+                              and d.tipo = 'C'
+                              and c.vendedor NOT LIKE 'OF'
+                              and p.sermov = $sermov";
+    $enconTotalPedDia = mysqli_query($getConnection, $buscarTotalPedDia);
+    $rowTotalPedDia = mysqli_fetch_row($enconTotalPedDia);
+    $totalPedDia = $rowTotalPedDia[0];
+
+    $buscarTotalPedDiaVis = "SELECT c.clienteid
+                              from doc d
+                                left outer join cli c on c.clienteid = d.clienteid
+                                LEFT OUTER JOIN per p ON p.perid = D.vendedorid
+                              where d.fecha = '".$dia."'
+                                and c.diavis = '$diaVis'
+                                and p.sermov = $sermov
+                                and c.vendedor NOT LIKE 'OF'
+                              group by c.clienteid";
+    $enconTotalPedDiaVis = mysqli_query($getConnection, $buscarTotalPedDiaVis);
+    $rowTotalPedDiaVis = mysqli_num_rows($enconTotalPedDiaVis);
+
+    // Total por columna
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border: 1px solid #d7d7d7;">
+                    <span>Total</span>
+                  </div>';
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$rowTotalPedDiaVis.'</span>
+                  </div>';
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$totalPedDia.'</span>
+                  </div>';
+
+    $totalCol8a9 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '08:00' and doc.hora <= '09:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = $sermov";
+    $totalEncontradoCol8a9 = mysqli_query($getConnection, $totalCol8a9);
+    $rowTotalCol8a9 = mysqli_fetch_row($totalEncontradoCol8a9);
+    $nTotal8a9 = $rowTotalCol8a9[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal8a9.'</span>
+                  </div>';
+
+    $totalCol9a10 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '09:00' and doc.hora <= '10:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = $sermov";
+    $totalEncontradoCol9a10 = mysqli_query($getConnection, $totalCol9a10);
+    $rowTotalCol9a10 = mysqli_fetch_row($totalEncontradoCol9a10);
+    $nTotal9a10 = $rowTotalCol9a10[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal9a10.'</span>
+                  </div>';
+
+    $totalCol10a11 = "SELECT count(doc.docid)
+                        FROM doc
+                          LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                          left outer join cli c on c.clienteid = doc.clienteid
+                        where doc.fecha ='".$dia."'
+                          and (doc.hora >= '10:00' and doc.hora <= '11:00')
+                          and doc.tipo = 'C'
+                          and c.vendedor NOT LIKE 'OF'
+                          and p.sermov = $sermov";
+    $totalEncontradoCol10a11 = mysqli_query($getConnection, $totalCol10a11);
+    $rowTotalCol10a11 = mysqli_fetch_row($totalEncontradoCol10a11);
+    $nTotal10a11 = $rowTotalCol10a11[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal10a11.'</span>
+                  </div>';
+
+    $totalCol11a12 = "SELECT count(doc.docid)
+                        FROM doc
+                          LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                          left outer join cli c on c.clienteid = doc.clienteid
+                        where doc.fecha ='".$dia."'
+                          and (doc.hora >= '11:00' and doc.hora <= '12:00')
+                          and doc.tipo = 'C'
+                          and c.vendedor NOT LIKE 'OF'
+                          and p.sermov = $sermov";
+    $totalEncontradoCol11a12 = mysqli_query($getConnection, $totalCol11a12);
+    $rowTotalCol11a12 = mysqli_fetch_row($totalEncontradoCol11a12);
+    $nTotal11a12 = $rowTotalCol11a12[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal11a12.'</span>
+                  </div>';
+
+    $totalCol12a13 = "SELECT count(doc.docid)
+                        FROM doc
+                          LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                          left outer join cli c on c.clienteid = doc.clienteid
+                        where doc.fecha ='".$dia."'
+                          and (doc.hora >= '12:00' and doc.hora <= '13:00')
+                          and doc.tipo = 'C'
+                          and c.vendedor NOT LIKE 'OF'
+                          and p.sermov = $sermov";
+    $totalEncontradoCol12a13 = mysqli_query($getConnection, $totalCol12a13);
+    $rowTotalCol12a13 = mysqli_fetch_row($totalEncontradoCol12a13);
+    $nTotal12a13 = $rowTotalCol12a13[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal12a13.'</span>
+                  </div>';
+
+    $totalCol13a14 = "SELECT count(doc.docid)
+                        FROM doc
+                          LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                          left outer join cli c on c.clienteid = doc.clienteid
+                        where doc.fecha ='".$dia."'
+                          and (doc.hora >= '13:00' and doc.hora <= '14:00')
+                          and doc.tipo = 'C'
+                          and c.vendedor NOT LIKE 'OF'
+                          and p.sermov = $sermov";
+    $totalEncontradoCol13a14 = mysqli_query($getConnection, $totalCol13a14);
+    $rowTotalCol13a14 = mysqli_fetch_row($totalEncontradoCol13a14);
+    $nTotal13a14 = $rowTotalCol13a14[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal13a14.'</span>
+                  </div>';
+
+    $totalCol14a15 = "SELECT count(doc.docid)
+                        FROM doc
+                          LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                          left outer join cli c on c.clienteid = doc.clienteid
+                        where doc.fecha ='".$dia."'
+                          and (doc.hora >= '14:00' and doc.hora <= '15:00')
+                          and doc.tipo = 'C'
+                          and c.vendedor NOT LIKE 'OF'
+                          and p.sermov = $sermov";
+    $totalEncontradoCol14a15 = mysqli_query($getConnection, $totalCol14a15);
+    $rowTotalCol14a15 = mysqli_fetch_row($totalEncontradoCol14a15);
+    $nTotal14a15 = $rowTotalCol14a15[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal14a15.'</span>
+                  </div>';
+
+    $totalCol15a16 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '15:00' and doc.hora <= '16:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = $sermov";
+    $totalEncontradoCol15a16 = mysqli_query($getConnection, $totalCol15a16);
+    $rowTotalCol15a16 = mysqli_fetch_row($totalEncontradoCol15a16);
+    $nTotal15a16 = $rowTotalCol15a16[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal15a16.'</span>
+                  </div>';
+
+    $totalCol16a17 = "SELECT count(doc.docid)
+                        FROM doc
+                          LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                          left outer join cli c on c.clienteid = doc.clienteid
+                        where doc.fecha ='".$dia."'
+                          and (doc.hora >= '16:00' and doc.hora <= '17:00')
+                          and doc.tipo = 'C'
+                          and c.vendedor NOT LIKE 'OF'
+                          and p.sermov = $sermov";
+    $totalEncontradoCol16a17 = mysqli_query($getConnection, $totalCol16a17);
+    $rowTotalCol16a17 = mysqli_fetch_row($totalEncontradoCol16a17);
+    $nTotal16a17 = $rowTotalCol16a17[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal16a17.'</span>
+                  </div>';
+
+    $totalCol17a18 = "SELECT count(doc.docid)
+                        FROM doc
+                          LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                          left outer join cli c on c.clienteid = doc.clienteid
+                        where doc.fecha ='".$dia."'
+                          and (doc.hora >= '17:00' and doc.hora <= '18:00')
+                          and doc.tipo = 'C'
+                          and c.vendedor NOT LIKE 'OF'
+                          and p.sermov = $sermov";
+    $totalEncontradoCol17a18 = mysqli_query($getConnection, $totalCol17a18);
+    $rowTotalCol17a18 = mysqli_fetch_row($totalEncontradoCol17a18);
+    $nTotal17a18 = $rowTotalCol17a18[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal17a18.'</span>
+                  </div>';
+
+    $totalCol18a19 = "SELECT count(doc.docid)
+                      FROM doc
+                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                        left outer join cli c on c.clienteid = doc.clienteid
+                      where doc.fecha ='".$dia."'
+                        and (doc.hora >= '18:00' and doc.hora <= '19:00')
+                        and doc.tipo = 'C'
+                        and c.vendedor NOT LIKE 'OF'
+                        and p.sermov = $sermov";
+    $totalEncontradoCol18a19 = mysqli_query($getConnection, $totalCol18a19);
+    $rowTotalCol18a19 = mysqli_fetch_row($totalEncontradoCol18a19);
+    $nTotal18a19 = $rowTotalCol18a19[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal18a19.'</span>
+                  </div>';
+
+    $totalCol19a20 = "SELECT count(doc.docid)
+                        FROM doc
+                          LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
+                          left outer join cli c on c.clienteid = doc.clienteid
+                        where doc.fecha ='".$dia."'
+                          and (doc.hora >= '19:00' and doc.hora <= '20:00')
+                          and doc.tipo = 'C'
+                          and c.vendedor NOT LIKE 'OF'
+                          and p.sermov = $sermov";
+    $totalEncontradoCol19a20 = mysqli_query($getConnection, $totalCol19a20);
+    $rowTotalCol19a20 = mysqli_fetch_row($totalEncontradoCol19a20);
+    $nTotal19a20 = $rowTotalCol19a20[0];
+
+    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
+                    <span>'.$nTotal19a20.'</span>
+                  </div>';
+
+    $print .=   '</div>
+              </div>';
+    }
 
     echo $print;
 
@@ -1946,8 +3123,9 @@ class Report {
                   <script type="text/javascript">
                     var f=new Date();
                     var hora=f.getHours();
-                    if(hora < 20 || hora > 8){
-                      $(document).ready(function() {	
+                    if(hora < 21 && hora > 8){
+                      $(document).ready(function() {
+                        console.log("Sistema Abierto");
                         function pedidosDia(){
                           $.ajax({
                             type: "POST",
@@ -2262,6 +3440,319 @@ class Report {
                       });
                     } else {
                       console.log("Fuera de Línea");
+                      $(document).ready(function() {	
+                        function pedidosDia(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodia.php",
+                            success: function(pedido) {
+                              $("#totalpedidodia").text(pedido);
+                              // $("#totalpedidodia").addClass("aviso");
+                              // console.log("No. Pedidos: ",pedido);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDia, 1000);
+
+                        function pedidosDiaSaldo(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiasaldo.php",
+                            success: function(pedidoSaldo) {
+                              $("#totalpedidodiaSaldo").text(pedidoSaldo);
+                              // $("#totalpedidodiaSaldo").addClass("aviso");
+                              // console.log("Saldo Pedidos Total: ", pedidoSaldo);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaSaldo, 1000);
+
+                        function pedidosDiaIva(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiaiva.php",
+                            success: function(pedidoIva) {
+                              $("#ivaPed").text(pedidoIva);
+                              // $("#ivaPed").addClass("aviso");
+                              // console.log("Iva Pedidos Total: ", pedidoIva);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaIva, 1000);
+
+                        function pedidosDiaTotal(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiatotal.php",
+                            success: function(pedidoTotal) {
+                              $("#totalPed").text(pedidoTotal);
+                              // $("#totalPed").addClass("aviso");
+                              // console.log("Total Pedidos Total: ", pedidoTotal);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaTotal, 1000);
+
+                        function pedidosDiaSurtir(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiasurtir.php",
+                            success: function(pedidoSurtir) {
+                              $("#porsurtir").text(pedidoSurtir);
+                              // $("#porsurtir").addClass("aviso");
+                              // console.log("Surti: ", pedidoSurtir);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaSurtir, 1000);
+
+                        function pedidosDiaSurtirSaldo(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiasurtirsaldo.php",
+                            success: function(pedidoSurtirSaldo) {
+                              $("#impoporsurtir").text(pedidoSurtirSaldo);
+                              // $("#impoporsurtir").addClass("aviso");
+                              // console.log("Saldo por Surtir: ", pedidoSurtirSaldo);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaSurtirSaldo, 1000);
+
+                        function pedidosDiaBajar(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiabajar.php",
+                            success: function(pedidoBajar) {
+                              $("#porbajar").text(pedidoBajar);
+                              // $("#porbajar").addClass("aviso");
+                              // console.log("Bajar: ", pedidoBajar);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaBajar, 1000);
+                        
+                        function pedidosDiaBajarSaldo(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiabajarsaldo.php",
+                            success: function(pedidoBajarSaldo) {
+                              $("#impoporbajar").text(pedidoBajarSaldo);
+                              // $("#impoporbajar").addClass("aviso");
+                              // console.log("Saldo Bajar: ", pedidoBajarSaldo);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaBajarSaldo, 1000);
+
+                        function pedidosDiaFactura(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiafacturar.php",
+                            success: function(pedidoFactura) {
+                              $("#porfactura").text(pedidoFactura);
+                              // $("#porfactura").addClass("aviso");
+                              // console.log("Facturadas: ", pedidoFactura);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaFactura, 1000);
+
+                        function pedidosDiaFacturaSaldo(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiafacturarsaldo.php",
+                            success: function(pedidoFacturaSaldo) {
+                              $("#porfacturaSaldo").text(pedidoFacturaSaldo);
+                              // $("#porfacturaSaldo").addClass("aviso");
+                              // console.log("Saldo Facturadas: ", pedidoFacturaSaldo);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaFacturaSaldo, 1000);
+
+                        function pedidosDiaCancelacion(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiacancelacion.php",
+                            success: function(pedidoCancelacion) {
+                              $("#porCancelacion").text(pedidoCancelacion);
+                              // $("#porCancelacion").addClass("aviso");
+                              // console.log("Cancelaciondas: ", pedidoCancelacion);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaCancelacion, 1000);
+
+                        function pedidosDiaCancelacionSaldo(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiacancelacionsaldo.php",
+                            success: function(pedidoCancelacionSaldo) {
+                              $("#porCancelacionSaldo").text(pedidoCancelacionSaldo);
+                              // $("#porCancelacionSaldo").addClass("aviso");
+                              // console.log("Saldo Canceladas: ", pedidoCancelacionSaldo);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaCancelacionSaldo, 1000);
+                        
+                        function ventasMes(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/ventames.php",
+                            success: function(venta) {
+                              $("#totalventames").text(venta);
+                              // $("#totalventames").addClass("aviso");
+                              // console.log(venta);
+                            }
+                          });
+                        }
+                        setTimeout(ventasMes, 1000);
+
+                        function nS(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/ns.php",
+                            success: function(ns) {
+                              $("#ns").text(ns);
+                              // $("#ns").addClass("aviso");
+                              // console.log("Nivel de Servicio: ", ns);
+                            }
+                          });
+                        }
+                        setTimeout(nS, 1000);
+
+                        function nsTruperEst(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/nsTruperEstimado.php",
+                            success: function(nsTruEstimado) {
+                              $("#nsTruEstimado").text(nsTruEstimado);
+                              // $("#nsTruEstimado").addClass("aviso");
+                              // console.log("Nivel de Servicio Truper Estimado: ", nsTruEstimado);
+                            }
+                          });
+                        }
+                        setTimeout(nsTruperEst, 1000);
+
+                        function nsTruperRe(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/nsTruperReal.php",
+                            success: function(nsTruReal) {
+                              $("#nsTruReal").text(nsTruReal);
+                              // $("#nsTruReal").addClass("aviso");
+                              // console.log("Nivel de Servicio Truper Estimado: ", nsTruReal);
+                            }
+                          });
+                        }
+                        setTimeout(nsTruperRe, 1000);
+
+                        function nsFerreEstimado(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/nsFMOEstimado.php",
+                            success: function(nsFMOEstimado) {
+                              $("#nsFerreMEstimado").text(nsFMOEstimado);
+                              // $("#nsFerreMEstimado").addClass("aviso");
+                              // console.log("Nivel de Servicio FMO: ", nsFMOEstimado);
+                            }
+                          });
+                        }
+                        setTimeout(nsFerreEstimado, 1000);
+
+                        function nsFerreReal(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/nsFMOReal.php",
+                            success: function(nsFMOReal) {
+                              $("#nsFMOReal").text(nsFMOReal);
+                              // $("#nsFMOReal").addClass("aviso");
+                              // console.log("Nivel de Servicio FMO: ", nsFMOReal);
+                            }
+                          });
+                        }
+                        setTimeout(nsFerreReal, 1000);
+                        
+                        function carteraTotal(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/carteratotal.php",
+                            success: function(carterato) {
+                              $("#carteratotal").text(carterato);
+                              // $("#carteratotal").addClass("aviso");
+                              // console.log("Cartera Total: ", carterato);
+                            }
+                          });
+                        }
+                        setTimeout(carteraTotal, 61000);
+                        
+                        function morosidad(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/morosidad.php",
+                            success: function(moros) {
+                              $("#morosidad").text(moros);
+                              // $("#morosidad").addClass("aviso");
+                              // console.log("Cartera Vencida: ", moros);
+                            }
+                          });
+                        }
+                        setTimeout(morosidad, 61000);
+                        
+                        function carteraSana(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/carterasana.php",
+                            success: function(carteraS) {
+                              $("#carterasana").text(carteraS);
+                              // $("#carterasana").addClass("aviso");
+                              // console.log("Cartera al Día: ", carteraS);
+                            }
+                          });
+                        }
+                        setTimeout(carteraSana, 61000);
+                        
+                        function vtaZN1(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/vtazona1.php",
+                            success: function(vtaZ1) {
+                              $("#vtaZona1 ").text(vtaZ1);
+                              // $("#vtaZona1 ").addClass("aviso");
+                              // console.log("Zona1: ", vtaZ1);
+                            }
+                          });
+                        }
+                        setTimeout(vtaZN1, 1000);
+                        
+                        function vtaZN2(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/vtazona2.php",
+                            success: function(vtaZ2) {
+                              $("#vtaZona2 ").text(vtaZ2);
+                              // $("#vtaZona2 ").addClass("aviso");
+                              // console.log("Zona2: ", vtaZ2);
+                            }
+                          });
+                        }
+                        setTimeout(vtaZN2, 1000);
+                        
+                        function vtaEspec(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/vtaespecial.php",
+                            success: function(vtaEspe) {
+                              $("#vtaEspecial  ").text(vtaEspe);
+                              // $("#vtaEspecial  ").addClass("aviso");
+                              // console.log("Especial: ", vtaEspe);
+                            }
+                          });
+                        }
+                        setTimeout(vtaEspec, 1000);
+                      });
                     }
                   </script>
                   <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB text-center">
@@ -9757,22 +11248,21 @@ class Report {
 
     $mysqliCon      = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
 
-    // var_dump($params["clienteid"]);
+    // var_dump($params);
 
     $perid = $paramDb->SecureInput($params["perid"]);
-    if($params["clienteid"] <> NULL){
-      $clienteid = $paramDb->SecureInput($params["clienteid"]);
-    }else{
-      $clienteid = 0;
-    }
 
+    if(isset($params["clienteid"])){
+      $clienteid = 0;
+    }else{
+      $clienteid = $paramDb->SecureInput($params["clienteid"]);
+    }
     // var_dump($clienteid);
 
     if($perid == 0 || $perid == NULL){
       $perid = 0;
     }
 
-    // ../php/agregar/nuevocli.php
     $print = '<div class="container">';
     if($clienteid == 0){
     $print .= '<h4 class="display-4 text-center">Alta de Nuevos Clientes</h4>
@@ -9900,7 +11390,7 @@ class Report {
                   <div class="row">
                     <div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
                       <div class="form-group">
-                        <label>Cantida de Crédito</label>
+                        <label>Cantidad de Crédito</label>
                         <input type="number" class="form-control" name="inputCantidadCredito" id="inputCantidadCredito" value="9000" readonly required>
                       </div>
                     </div>

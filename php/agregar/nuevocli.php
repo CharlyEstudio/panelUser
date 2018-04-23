@@ -89,7 +89,14 @@ $frentede       = utf8_decode($_POST["textareaFrente"]);
 
 $activo         = 'N';
 
-$insertar       = "INSERT INTO nuevoscli(NOMBRE, COMERCIAL, RFC, FECALTA, DIRECCION, CP, COLONIA, CIUDAD, TEL, CEL, EMAIL,
+function flush_buffers(){
+    ob_end_flush();
+    ob_flush();
+    flush();
+    ob_start();
+}
+
+$insertar       = "INSERT INTO nuevoscli2(NOMBRE, COMERCIAL, RFC, FECALTA, DIRECCION, CP, COLONIA, CIUDAD, TEL, CEL, EMAIL,
                     CREDITO, DIASCRED, METPAG, HACERPED, RECIBIRPED, MLOCAL, TLOCAL, LADODE, FRENTEDE, VENDEDORID, ACTIVO,
                     IMGSOLICITUD, IMGPOLITICA, IMGFACHADA, IMGDOM, IMGINEFRE, IMGINEREV, IMGCEDULA, IMGHACIENDA, MORAL, REPRESENTANTE,
                     INEREPF, INEREPR)
@@ -99,11 +106,16 @@ $insertar       = "INSERT INTO nuevoscli(NOMBRE, COMERCIAL, RFC, FECALTA, DIRECC
                         '$fichero_Politica', '$fichero_Fachada', '$fichero_Domicilio','$fichero_INEFre',
                         '$fichero_INERev','$fichero_Cedula','$fichero_Hacienda','$fichero_Moral',
                         '$fichero_Repre','$fichero_INERepF','$fichero_INERepR')";
-if($mysqliCon->query($insertar) === TRUE){
-    header("location: ../../intranet/index.php");
-} else {
-    echo "Error: " . $insertar . "<br>" . $mysqliCon->error;
-    var_dump($_POST);
+while($mysqliCon->query($insertar)){
+    echo "Subiendo Imagenes";
+    flush_buffers();
+    sleep(1);
+    if($mysqliCon->query($insertar) === TRUE){
+        header("location: ../../intranet/index.php");
+    } else {
+        echo "Error: " . $insertar . "<br>" . $mysqliCon->error;
+        var_dump($_POST);
+    }
 }
 $_FILES = [];
 $mysqliCon->close();
