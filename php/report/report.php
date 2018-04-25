@@ -32,6 +32,10 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $session = $_SESSION["data"];
         $report->getterDashBoardDirIndex($session);
         break;
+      case"getDashBoardAlamcen":
+        $session = $_SESSION["data"];
+        $report->getterDashBoardAlamcen($session);
+        break;
       case"getDashBoardDireccion":
         $session = $_SESSION["data"];
         $report->getterDashBoardDireccion($session);

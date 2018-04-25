@@ -232,7 +232,7 @@ if(isset($_POST['user']) && isset($_POST['pass'])) {
 					$data 			= array(
 										"id" => $userid,
 										"username" => $username,
-										"name" => 0,
+										"name" => $username,
 										"rol" => $rol,
 										"rfc" => 0,
 										"saldo" => 0,

@@ -20,6 +20,10 @@ class Report {
     $this->getDashBoardDirIndex($params);
   }
 
+  public function getterDashBoardAlamcen($params) {
+    $this->getDashBoardAlamcen($params);
+  }
+
   public function getterDashBoardDireccion($params) {
     $this->getDashBoardDireccion($params);
   }
@@ -100,10 +104,10 @@ class Report {
         $diaVis = 'L';
         break;
       case 'Tue':
-        $diaVis = 'I';
+        $diaVis = 'M';
         break;
       case 'Wed':
-        $diaVis = 'M';
+        $diaVis = 'I';
         break;
       case 'Thu':
         $diaVis = 'J';
@@ -2323,6 +2327,342 @@ class Report {
                 </div>
               </div>';
     echo $print;
+    $getConnection->close();
+  }
+
+  private function getDashBoardAlamcen($params) {
+    $paramFunctions   = new Util();
+    $paramDb          = new Database();
+    $getConnection    = $paramDb->GetLink();
+
+    $dia  = date("Y-m-d");
+    $month = date('m');
+    //Sacamos el mes en que estamos
+    switch ($month) {
+      case 1:
+        $mes='Enero';
+        $diasTotalMes = 31;
+      break;
+      case 2:
+        $mes='Febrero';
+        $diasTotalMes = 28;
+      break;
+      case 3:
+        $mes='Marzo';
+        $diasTotalMes = 31;
+      break;
+      case 4:
+        $mes='Abril';
+        $diasTotalMes = 30;
+      break;
+      case 5:
+        $mes='Mayo';
+        $diasTotalMes = 31;
+      break;
+      case 6:
+        $mes='Junio';
+        $diasTotalMes = 30;
+      break;
+      case 7:
+        $mes='Julio';
+        $diasTotalMes = 31;
+      break;
+      case 8:
+        $mes='Agosto';
+        $diasTotalMes = 31;
+      break;
+      case 9:
+        $mes='Septiembre';
+        $diasTotalMes = 30;
+      break;
+      case 10:
+        $mes='Octubre';
+        $diasTotalMes = 31;
+      break;
+      case 11:
+        $mes='Noviembre';
+        $diasTotalMes = 30;
+      break;
+      case 12:
+        $mes='Diciembre';
+        $diasTotalMes = 31;
+      break;
+    }
+
+    $print =  '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT centrar text-center">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
+                    <div class="row">
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB table-responsive-sm">
+                        <p style="display:none;">Almacén</p>
+                        <h4 class="display-1">PEDIDOS</h4>
+                        <table class="table table-bordered">
+                          <thead>
+                            <tr>
+                              <th scope="col" style="font-size: 2em !important;">POR SURTIR</th>
+                              <th scope="col" style="font-size: 2em !important;">POR BAJAR</th>
+                              <th scope="col" style="font-size: 2em !important;">FACTURADO</th>
+                              <th scope="col" style="font-size: 2em !important;">CANCELADOS</th>
+                              <th scope="col" style="font-size: 2em !important;">TOTAL</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td style="font-size: 10em !important;"><span id="porsurtir">-</span></td>
+                              <td style="font-size: 10em !important;"><span id="porbajar">-</span></td>
+                              <td style="font-size: 10em !important;"><span id="porfactura">-</span></td>
+                              <td style="font-size: 10em !important;"><span id="porCancelacion">-</span></td>
+                              <td style="font-size: 10em !important;"><span id="totalpedidodia">-</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                        <a class="btn btn-secondary btn-enl btn-block" href="javascript:location.reload(true)">Borrar Historial</a>
+                      </div>
+                    </div>
+                  </div>
+                  <script type="text/javascript">
+                    var f=new Date();
+                    var hora=f.getHours();
+
+                    if(hora < 21 && hora > 8){
+                      $(document).ready(function() {
+                        console.log("Sistema Abierto");
+
+                        function cambiarColorTotal(numero){
+                          var d = new Date();
+                          var horaCambio = d.getHours();
+                          var mediaCambio = d.getMinutes();
+                          var tiempo = horaCambio+":"+mediaCambio;
+
+                          var total = parseFloat(numero);
+                          var res = (total * 100) / 350;
+
+                          if(tiempo > "17:29" && tiempo < "18:30"){
+                            if(res < 75){
+                              $("#totalpedidodia").addClass("alertaRoja");
+                            }
+
+                            if(res < 81){
+                              $("#totalpedidodia").addClass("alertaAmarillo");
+                            }
+
+                            if(res > 80){
+                              $("#totalpedidodia").addClass("alertaVerde");
+                            }
+                          }
+
+                          if(tiempo > "18:29"){
+                            if(res < 85){
+                              $("#totalpedidodia").addClass("alertaRoja");
+                            }
+
+                            if(res < 91){
+                              $("#totalpedidodia").addClass("alertaAmarillo");
+                            }
+
+                            if(res > 90){
+                              $("#totalpedidodia").addClass("alertaVerde");
+                            }
+                          }
+                        }
+
+                        function pedidosDia(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodia.php",
+                            success: function(pedido) {
+                              $("#totalpedidodia").text(pedido);
+                              var numero = parseInt(pedido);
+                              cambiarColorTotal(numero);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDia, 2000);
+
+                        function cambiarColorSurtir(numero){
+                          var surtir = parseFloat(numero);
+                          var res = (surtir * 100) / 350;
+
+                          var d = new Date();
+                          var horaCambio = d.getHours();
+                          var mediaCambio = d.getMinutes();
+                          var tiempo = horaCambio+":"+mediaCambio;
+                          
+                          if(tiempo > "17:29" && tiempo < "18:30"){
+                            if(res < 24){
+                              $("#porsurtir").addClass("alertaVerde");
+                            }
+
+                            if(res > 25){
+                              $("#porsurtir").addClass("alertaAmarillo");
+                            }
+
+                            if(res > 30){
+                              $("#porsurtir").addClass("alertaRoja");
+                            }
+                          }
+
+                          if(tiempo > "18:29"){
+                            if(res < 16){
+                              $("#porsurtir").addClass("alertaVerde");
+                            }
+
+                            if(res > 15){
+                              $("#porsurtir").addClass("alertaAmarillo");
+                            }
+
+                            if(res > 20){
+                              $("#porsurtir").addClass("alertaRoja");
+                            }
+                          }
+                        }
+
+                        function pedidosDiaSurtir(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiasurtir.php",
+                            success: function(pedidoSurtir) {
+                              $("#porsurtir").text(pedidoSurtir);
+                              var numero = parseInt(pedidoSurtir);
+                              cambiarColorSurtir(numero);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaSurtir, 2000);
+
+                        function pedidosDiaBajar(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiabajar.php",
+                            success: function(pedidoBajar) {
+                              $("#porbajar").text(pedidoBajar);
+                              // $("#porbajar").addClass("aviso");
+                              // console.log("Bajar: ", pedidoBajar);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaBajar, 2000);
+                        
+                        function pedidosDiaFactura(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiafacturar.php",
+                            success: function(pedidoFactura) {
+                              $("#porfactura").text(pedidoFactura);
+                              // $("#porfactura").addClass("aviso");
+                              // console.log("Facturadas: ", pedidoFactura);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaFactura, 2000);
+
+                        function pedidosDiaCancelacion(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiacancelacion.php",
+                            success: function(pedidoCancelacion) {
+                              $("#porCancelacion").text(pedidoCancelacion);
+                              // $("#porCancelacion").addClass("aviso");
+                              // console.log("Cancelaciondas: ", pedidoCancelacion);
+                            }
+                          });
+                        }
+                        setInterval(pedidosDiaCancelacion, 2000);
+                      });
+                    } else {
+                      console.log("Fuera de Línea");
+                      $(document).ready(function() {	
+                        function pedidosDia(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodia.php",
+                            success: function(pedido) {
+                              $("#totalpedidodia").text(pedido);
+                              // $("#totalpedidodia").addClass("aviso");
+                              // console.log("No. Pedidos: ",pedido);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDia, 1000);
+
+                        function pedidosDiaTotal(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiatotal.php",
+                            success: function(pedidoTotal) {
+                              $("#totalPed").text(pedidoTotal);
+                              // $("#totalPed").addClass("aviso");
+                              // console.log("Total Pedidos Total: ", pedidoTotal);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaTotal, 1000);
+
+                        function pedidosDiaSurtir(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiasurtir.php",
+                            success: function(pedidoSurtir) {
+                              $("#porsurtir").text(pedidoSurtir);
+                              // $("#porsurtir").addClass("aviso");
+                              // console.log("Surti: ", pedidoSurtir);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaSurtir, 1000);
+
+                        function pedidosDiaBajar(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiabajar.php",
+                            success: function(pedidoBajar) {
+                              $("#porbajar").text(pedidoBajar);
+                              // $("#porbajar").addClass("aviso");
+                              // console.log("Bajar: ", pedidoBajar);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaBajar, 1000);
+                        
+                        function pedidosDiaFactura(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiafacturar.php",
+                            success: function(pedidoFactura) {
+                              $("#porfactura").text(pedidoFactura);
+                              // $("#porfactura").addClass("aviso");
+                              // console.log("Facturadas: ", pedidoFactura);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaFactura, 1000);
+
+                        function pedidosDiaCancelacion(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/busquedas/pedidodiacancelacion.php",
+                            success: function(pedidoCancelacion) {
+                              $("#porCancelacion").text(pedidoCancelacion);
+                              // $("#porCancelacion").addClass("aviso");
+                              // console.log("Cancelaciondas: ", pedidoCancelacion);
+                            }
+                          });
+                        }
+                        setTimeout(pedidosDiaCancelacion, 1000);
+                      });
+                    }
+                  </script>
+                </div>
+              </div>';
+
+    echo $print;
+
     $getConnection->close();
   }
 
@@ -5649,7 +5989,7 @@ class Report {
         $queryPedDiaCancelacion = "SELECT *
                                     FROM doc
                                     WHERE fecha = '$dia'
-                                      AND tipo NOT LIKE 'E'
+                                      AND (tipo NOT LIKE 'E' and tipo NOT LIKE 'M')
                                       AND estado = 'C'";
         $resultado = $getConnection->query($queryPedDiaCancelacion);
         // $numPedDiaCancelacion = mysqli_num_rows($resultQueryDiaCancelacion);
@@ -10379,14 +10719,14 @@ class Report {
           $frentede           = utf8_encode($row[20]);
           $vendedorid         = $row[21];
           $activo             = $row[22];
+
           $fichero_Solicitud  = $row[23];
           $fichero_Politica   = $row[24];
           $fichero_Fachada    = $row[25];
           $fichero_Domicilio  = $row[26];
           $fichero_INEFre     = $row[27];
           $fichero_INERev     = $row[28];
-          $fichero_Cedula     = $row[29];
-          $fichero_Hacienda   = $row[30];
+
           $observacion        = $row[36];
           $status             = $row[37];
 
@@ -10398,18 +10738,6 @@ class Report {
           $nombreVendedor = $rowVen["nombre"];
 
           $buscarFotos = 'docs/';
-
-          if($row[29] <> $buscarFotos){
-            $fichero_Moral      = $row[31];
-            $fichero_Repre      = $row[32];
-            $fichero_INERepF    = $row[33];
-            $fichero_INERepR    = $row[34];
-          } else {
-            $fichero_Moral      = 'Sin imagen';
-            $fichero_Repre      = 'Sin imagen';
-            $fichero_INERepF    = 'Sin imagen';
-            $fichero_INERepR    = 'Sin imagen';
-          }
 
           $print .=   '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB">
                         <div class="row">';
@@ -10685,24 +11013,6 @@ class Report {
           if($fichero_INERev <> $buscarFotos){
             $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERev.'" target="_blanck">Credencial de Elector reverso</a></li>';
           }
-          if($fichero_Cedula <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Cedula.'" target="_blanck">Cedula</a></li>';
-          }
-          if($fichero_Hacienda <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Hacienda.'" target="_blanck">Alta en Hacienda</a></li>';
-          }
-          if($row[31] <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Moral.'" target="_blanck">Acta Constitutiva</a></li>';
-          }
-          if($row[32] <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Repre.'" target="_blanck">representante Moral</a></li>';
-          }
-          if($row[33] <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepF.'" target="_blanck">INE Representante Frente</a></li>';
-          }
-          if($row[34] <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepR.'" target="_blanck">INE Representante Reverso</a></li>';
-          }
           $print .=                 '</ul>
                                   </div>
                                   <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9 charlaCard">
@@ -10732,7 +11042,7 @@ class Report {
                               </div>';
           if($observacion <> NULL){
             $print .=         '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
-                                <p>Observaciónes anteriores</p>
+                                <p>Observaciones anteriores</p>
                                 <div class="form-group">
                                   <textarea class="form-control" rows="2" readonly>'.utf8_encode($observacion).'</textarea>
                                 </div>
@@ -10750,7 +11060,7 @@ class Report {
             $linkDatosModificar = 'Modificar('.$clienteid.', '.$perid.')';
             $print .=         '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                                 <div class=row>
-                                  <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                                     <div class="row">
                                       <div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 centrar">
                                         <button type="button" class="btn btn-outline-danger btn-lg btn-block" onClick="Activar('.$clienteid.')">Mensaje</button>
@@ -10779,10 +11089,10 @@ class Report {
                                       </div>
                                     </div>
                                   </div>
-                                  <div class="col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1 centrar">';
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 centrar">';
           $print .=                 "<button type='button' class='btn btn-outline-primary btn-lg btn-block' onClick='$linkDatosModificar'>Modificar</button>";
           $print .=               '</div>
-                                  <div class="col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1 centrar">';
+                                  <div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 centrar">';
           $print .=                 "<button type='button' class='btn btn-outline-success btn-lg btn-block' onClick='$linkDatosEmail'>Autorizado</button>";
           $print .=               '</div>
                                 </div>
@@ -10835,14 +11145,14 @@ class Report {
           $frentede           = utf8_encode($row[20]);
           $vendedorid         = $row[21];
           $activo             = $row[22];
+
           $fichero_Solicitud  = $row[23];
           $fichero_Politica   = $row[24];
           $fichero_Fachada    = $row[25];
           $fichero_Domicilio  = $row[26];
           $fichero_INEFre     = $row[27];
           $fichero_INERev     = $row[28];
-          $fichero_Cedula     = $row[29];
-          $fichero_Hacienda   = $row[30];
+          
           $observacion        = $row[36];
           $status             = $row[37];
 
@@ -10851,18 +11161,6 @@ class Report {
           $rowVen = mysqli_fetch_array($vendedorEncontrado);
           $nombreVendedor = $rowVen["nombre"];
 
-          $buscarFotos = 'docs/';
-          if($row[29] <> $buscarFotos){
-            $fichero_Moral      = $row[30];
-            $fichero_Repre      = $row[31];
-            $fichero_INERepF    = $row[32];
-            $fichero_INERepR    = $row[33];
-          } else {
-            $fichero_Moral      = 'Sin imagen';
-            $fichero_Repre      = 'Sin imagen';
-            $fichero_INERepF    = 'Sin imagen';
-            $fichero_INERepR    = 'Sin imagen';
-          }
           $print .=     '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingB paddingT">
                           <div class="row">';
           if($activo === 'N'){
@@ -11045,7 +11343,7 @@ class Report {
                                               <select class="form-control" name="inputMetPago'.$clienteid.'">
                                                 <option value="'.$metpag.'">'.$metpag.'</option>
                                                 <option value="Efectivo">7</option>
-                                                <option value="Cheque">13</option>
+                                                <option value="Cheque">14</option>
                                                 <option value="T. Débito">21</option>
                                                 <option value="T. Crédito">28</option>
                                               </select>
@@ -11134,6 +11432,7 @@ class Report {
                                 <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 centrar paddingT paddingB">
                                   <div class="row">
                                     <ul class="navImg list-inline">';
+            $buscarFotos = 'docs/';
             if($fichero_Solicitud <> $buscarFotos){
             $print .=                 '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Solicitud.'" target="_blanck">Solicitud</a></li>';
             }
@@ -11151,24 +11450,6 @@ class Report {
             }
             if($fichero_INERev <> $buscarFotos){
             $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERev.'" target="_blanck">Credencial de Elector reverso</a></li>';
-            }
-            if($fichero_Cedula <> $buscarFotos){
-            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Cedula.'" target="_blanck">Cedula</a></li>';
-            }
-            if($fichero_Hacienda <> $buscarFotos){
-            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Hacienda.'" target="_blanck">Alta en Hacienda</a></li>';
-            }
-            if($row[31] <> $buscarFotos){
-            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Moral.'" target="_blanck">Acta Constitutiva</a></li>';
-            }
-            if($row[32] <> $buscarFotos){
-            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Repre.'" target="_blanck">representante Moral</a></li>';
-            }
-            if($row[33] <> $buscarFotos){
-            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepF.'" target="_blanck">INE Representante Frente</a></li>';
-            }
-            if($row[34] <> $buscarFotos){
-            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERepR.'" target="_blanck">INE Representante Reverso</a></li>';
             }
           $print .=                 '</ul>
                                   </div>
@@ -11248,16 +11529,13 @@ class Report {
 
     $mysqliCon      = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
 
-    // var_dump($params);
-
     $perid = $paramDb->SecureInput($params["perid"]);
 
     if(isset($params["clienteid"])){
-      $clienteid = 0;
-    }else{
       $clienteid = $paramDb->SecureInput($params["clienteid"]);
+    }else{
+      $clienteid = 0;
     }
-    // var_dump($clienteid);
 
     if($perid == 0 || $perid == NULL){
       $perid = 0;
@@ -11285,13 +11563,6 @@ class Report {
                       <option>Contado o Financiado</option>
                       <option value="1">Contado</option>
                       <option value="2">Financiado</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <select class="form-control" name="selectTipoCliente" id="tipoCliente" onChange="tipoClienteCustomer(event);">
-                      <option>Física o Moral</option>
-                      <option value="1">Física</option>
-                      <option value="2">Moral</option>
                     </select>
                   </div>
                   <div class="form-group">
@@ -11491,42 +11762,6 @@ class Report {
                       <div class="form-group">
                         <label>Credencial de Elector reverso</label>
                         <input type="file" class="btn btn-warning form-control-file" name="imgINERev" id="imgINERev" required>
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                      <div class="form-group">
-                        <label>Cedula Fiscal</label>
-                        <input type="file" class="btn btn-warning form-control-file" name="imgCedula" id="imgCedula">
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                      <div class="form-group">
-                        <label>Alta Hacienda</label>
-                        <input type="file" class="btn btn-warning form-control-file" name="imgHacienda" id="imgHacienda">
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                      <div class="form-group">
-                        <label>Acta Constitutiva</label>
-                        <input type="file" class="btn btn-warning form-control-file" name="imgActaMoral" id="imgActaMoral">
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                      <div class="form-group">
-                        <label>Comprobante de domicilio del representante legal</label>
-                        <input type="file" class="btn btn-warning form-control-file" name="imgDomRepLeg" id="imgDomRepLeg">
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                      <div class="form-group">
-                        <label>Credencial de Elector del representante legal frente</label>
-                        <input type="file" class="btn btn-warning form-control-file" name="imgINEFreLegal" id="imgINEFreLegal">
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                      <div class="form-group">
-                        <label>Credencial de Elector del representante legal reverso</label>
-                        <input type="file" class="btn btn-warning form-control-file" name="imgINERevLegal" id="imgINERevLegal">
                       </div>
                     </div>
                   </div>

@@ -1,12 +1,5 @@
 <?php
 $mysqliCon      = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
-// $rs = mysqli_query("SELECT MAX(clienteid) AS id FROM nuevoscli");
-// if ($row = mysqli_fetch_row($rs)) {
-//     $id = trim($row[0]);
-//     $id++;
-// } else {
-//     $id = 1;
-// }
 
 $dir_subida     = 'docs/';
 
@@ -29,29 +22,6 @@ move_uploaded_file($_FILES['imgINEFre']['tmp_name'], $fichero_INEFre);
 
 $fichero_INERev = $dir_subida . basename($_FILES['imgINERev']['name']);
 move_uploaded_file($_FILES['imgINERev']['tmp_name'], $fichero_INERev);
-
-$fichero_Cedula = $dir_subida . basename($_FILES['imgCedula']['name']);
-move_uploaded_file($_FILES['imgCedula']['tmp_name'], $fichero_Hacienda);
-
-$fichero_Hacienda = $dir_subida . basename($_FILES['imgHacienda']['name']);
-move_uploaded_file($_FILES['imgHacienda']['tmp_name'], $fichero_Hacienda);
-
-//Doc's obligados para Persona Moral
-$fichero_Moral = $dir_subida . basename($_FILES['imgActaMoral']['name']);
-move_uploaded_file($_FILES['imgActaMoral']['tmp_name'], $fichero_Moral);
-
-$fichero_Repre = $dir_subida . basename($_FILES['imgDomRepLeg']['name']);
-move_uploaded_file($_FILES['imgDomRepLeg']['tmp_name'], $fichero_Repre);
-
-$fichero_INERepF = $dir_subida . basename($_FILES['imgINEFreLegal']['name']);
-move_uploaded_file($_FILES['imgINEFreLegal']['tmp_name'], $fichero_INERepF);
-
-$fichero_INERepR = $dir_subida . basename($_FILES['imgINERevLegal']['name']);
-move_uploaded_file($_FILES['imgINERevLegal']['tmp_name'], $fichero_INERepR);
-
-// var_dump($_FILES);
-
-// var_dump($_POST);
 
 $vendedorid     = $_POST["inputVendedor"];
 $nombre         = utf8_decode($_POST["inputRazonSocial"]);
@@ -96,16 +66,14 @@ function flush_buffers(){
     ob_start();
 }
 
-$insertar       = "INSERT INTO nuevoscli2(NOMBRE, COMERCIAL, RFC, FECALTA, DIRECCION, CP, COLONIA, CIUDAD, TEL, CEL, EMAIL,
+$insertar       = "INSERT INTO nuevoscli(NOMBRE, COMERCIAL, RFC, FECALTA, DIRECCION, CP, COLONIA, CIUDAD, TEL, CEL, EMAIL,
                     CREDITO, DIASCRED, METPAG, HACERPED, RECIBIRPED, MLOCAL, TLOCAL, LADODE, FRENTEDE, VENDEDORID, ACTIVO,
-                    IMGSOLICITUD, IMGPOLITICA, IMGFACHADA, IMGDOM, IMGINEFRE, IMGINEREV, IMGCEDULA, IMGHACIENDA, MORAL, REPRESENTANTE,
-                    INEREPF, INEREPR)
+                    IMGSOLICITUD, IMGPOLITICA, IMGFACHADA, IMGDOM, IMGINEFRE, IMGINEREV)
                         VALUES ('$nombre','$comercial','$rfc',$fecalta,'$direccion',$cp,'$colonia',
                         '$ciudad','$tel','$cel','$email',$credito,$diascred,'$metpag','$hacerped',
                         '$recibirped',$mlocal,'$tlocal','$ladode','$frentede',$vendedorid, '$activo','$fichero_Solicitud',
                         '$fichero_Politica', '$fichero_Fachada', '$fichero_Domicilio','$fichero_INEFre',
-                        '$fichero_INERev','$fichero_Cedula','$fichero_Hacienda','$fichero_Moral',
-                        '$fichero_Repre','$fichero_INERepF','$fichero_INERepR')";
+                        '$fichero_INERev')";
 while($mysqliCon->query($insertar)){
     echo "Subiendo Imagenes";
     flush_buffers();

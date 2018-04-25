@@ -38,6 +38,8 @@ if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
           $section = "sale";
         } elseif($rol == "VENDEDORES") {
           $section = "dashBoardAsesor";
+        } elseif($rol == "almacen") {
+          $section = "dashBoardAlmacen";
         }
         echo $section;
         break;

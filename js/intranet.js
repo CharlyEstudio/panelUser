@@ -152,11 +152,11 @@ function tipoCompraCustomer(event){
   if(comprar == 1){
     $("#imgINEFre").removeAttr("required");
     $("#imgINERev").removeAttr("required");
-    $("#imgCedula").removeAttr("required");
-    $("#imgActaMoral").removeAttr("required");
-    $("#imgDomRepLeg").removeAttr("required");
-    $("#imgINEFreLegal").removeAttr("required");
-    $("#imgINERevLegal").removeAttr("required");
+    // $("#imgCedula").removeAttr("required");
+    // $("#imgActaMoral").removeAttr("required");
+    // $("#imgDomRepLeg").removeAttr("required");
+    // $("#imgINEFreLegal").removeAttr("required");
+    // $("#imgINERevLegal").removeAttr("required");
     document.getElementById("inputCantidadCredito").value = 0;
     document.getElementById("inputCantidadCredito").setAttribute("readonly", "true");
     document.getElementById("selectDiasCredito").value = 0;
@@ -171,21 +171,21 @@ function tipoCompraCustomer(event){
   }
 }
 
-function tipoClienteCustomer(event){
-  var tipoCliente = parseInt(event.path[0].value);
-  console.log(tipoCliente);
-  if(tipoCliente == 1){
-    $("#imgActaMoral").removeAttr("required");
-    $("#imgDomRepLeg").removeAttr("required");
-    $("#imgINEFreLegal").removeAttr("required");
-    $("#imgINERevLegal").removeAttr("required");
-  } else if(tipoCliente == 2){
-    document.getElementById("imgActaMoral").setAttribute("required", "required");
-    document.getElementById("imgDomRepLeg").setAttribute("required", "required");
-    document.getElementById("imgINEFreLegal").setAttribute("required", "required");
-    document.getElementById("imgINERevLegal").setAttribute("required", "required");
-  }
-}
+// function tipoClienteCustomer(event){
+//   var tipoCliente = parseInt(event.path[0].value);
+//   console.log(tipoCliente);
+//   if(tipoCliente == 1){
+//     $("#imgActaMoral").removeAttr("required");
+//     $("#imgDomRepLeg").removeAttr("required");
+//     $("#imgINEFreLegal").removeAttr("required");
+//     $("#imgINERevLegal").removeAttr("required");
+//   } else if(tipoCliente == 2){
+//     document.getElementById("imgActaMoral").setAttribute("required", "required");
+//     document.getElementById("imgDomRepLeg").setAttribute("required", "required");
+//     document.getElementById("imgINEFreLegal").setAttribute("required", "required");
+//     document.getElementById("imgINERevLegal").setAttribute("required", "required");
+//   }
+// }
 
 function deleteProductShoppinCarPartner(productID) {
   if(typeof productID === 'undefined') return false;
@@ -1237,6 +1237,12 @@ function showInformation(location) {
       url = '../php/report/report.php';
       dataSend.data = 'empty';
       dataSend.location = 'getDashBoardDirIndex';
+      dataSend.section = 'reports-partner';
+      break;
+    case 'dashBoardAlmacen':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getDashBoardAlamcen';
       dataSend.section = 'reports-partner';
       break;
     case 'reportService':

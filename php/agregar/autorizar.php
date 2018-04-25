@@ -59,22 +59,9 @@ $fichero_Fachada    = $rowDatos[25];
 $fichero_Domicilio  = $rowDatos[26];
 $fichero_INEFre     = $rowDatos[27];
 $fichero_INERev     = $rowDatos[28];
-$fichero_Cedula     = $rowDatos[29];
-$fichero_Hacienda   = $rowDatos[30];
+
 $observacion        = $rowDatos[36];
 $status             = $rowDatos[37];
-$buscarFotos = 'docs/';
-if($rowDatos[29] <> $buscarFotos){
-$fichero_Moral      = $rowDatos[31];
-$fichero_Repre      = $rowDatos[32];
-$fichero_INERepF    = $rowDatos[33];
-$fichero_INERepR    = $rowDatos[34];
-} else {
-$fichero_Moral      = 'Sin imagen';
-$fichero_Repre      = 'Sin imagen';
-$fichero_INERepF    = 'Sin imagen';
-$fichero_INERepR    = 'Sin imagen';
-}
 
 $cuerpo = '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -1554,10 +1541,6 @@ $cuerpo = '
                                                                             <th scope="col">Frente de: </th>
                                                                             <th><b>'.utf8_decode($frentede).'</b></th>
                                                                         </tr>
-                                                                        <tr>
-                                                                            <th scope="col">Notas: </th>
-                                                                            <th><b>'.utf8_decode($notas).'</b></th>
-                                                                        </tr>
                                                                     </tbody>
                                                                 </table>
                                                             </th>
@@ -1571,22 +1554,8 @@ $cuerpo = '
                                                                 <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_Politica.'" target="_balnk">Pol&iacute;ca</a></th>
                                                                 <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_Fachada.'" target="_balnk">Fachada</a></th>
                                                                 <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_Domicilio.'" target="_balnk">Domicilio</a></th>
-                                                            </tr>
-                                                        </tbody>
-                                                        <tbody>
-                                                            <tr>
                                                                 <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_INEFre.'" target="_balnk">INE Frente</a></th>
                                                                 <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_INERev.'" target="_balnk">INE Reverso</a></th>
-                                                                <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_Cedula.'" target="_balnk">Cedula</a></th>
-                                                                <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_Hacienda.'" target="_balnk">Alta Hacienda</a></th>
-                                                            </tr>
-                                                        </tbody>
-                                                        <tbody>
-                                                            <tr>
-                                                                <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_Moral.'" target="_balnk">Acta de Persona Moral</a></th>
-                                                                <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_Repre.'" target="_balnk">Representante</a></th>
-                                                                <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_INERepF.'" target="_balnk">INE Representante Frente</a></th>
-                                                                <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_INERepR.'" target="_balnk">INE Representante Reverso</a></th>
                                                             </tr>
                                                         </tbody>
                                                     </table>
