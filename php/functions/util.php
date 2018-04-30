@@ -56,6 +56,17 @@ class Util {
     return $array;
   }
 
+  public function deleteElementArrayCFDI($array, $element) {
+    $length = count($array);
+    $element = $element + "";
+    for ($i=0; $i < $length; $i++) {
+      if($array[$i]["folio"] == $element) {
+        unset($array[$i]);
+      }
+    }
+    return $array;
+  }
+
   // print nav, depend what kind of user has been logged show menu them
   public function drawNavMenu($rol, $disponible, $saldo, $diasRestantesNewMes, $vendedor, $ignorasuspender, $activo, $user) {
 

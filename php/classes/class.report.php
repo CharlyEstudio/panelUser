@@ -12,6 +12,10 @@ class Report {
     $this->getDashBoardComp($params);
   }
 
+  public function getterDashBoardMesaQro($params) {
+    $this->getDashBoardMesaQro($params);
+  }
+
   public function getterDashBoardCartera($params) {
     $this->getDashBoardCartera($params);
   }
@@ -227,19 +231,19 @@ class Report {
                       CD:<span class="text-green" id="totalDia'.$perid.'">'.$nCDTotFil.'</span>
                     </div>';
       
-      $buscarPDTotFil = "SELECT c.clienteid
+      $buscarPDTotFil = "SELECT d.docid
                         from doc d
                           left outer join cli c on c.clienteid = d.clienteid
-                        where d.vendedorid = ".$perid."
+                        where c.vendedorid = ".$perid."
                           and d.fecha = '".$dia."'
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'
                           and (
                                 c.diavis LIKE '$diaVis'
                                 OR c.diavis LIKE '%".$diaVis."'
                                 OR c.diavis LIKE '".$diaVis."%'
                                 OR c.diavis LIKE '%".$diaVis."%'
-                              )
-                          and c.vendedor NOT LIKE 'OF'
-                        group by c.clienteid";
+                              )";
       $encontradoPDTotFil = mysqli_query($getConnection, $buscarPDTotFil);
       $rowPDTotFil = mysqli_num_rows($encontradoPDTotFil);
 
@@ -253,13 +257,19 @@ class Report {
       $print .= '<div class="colTime">
                   <div class="row">';
 
-      $buscarCTotFil = "SELECT c.clienteid
+      $buscarCTotFil = "SELECT d.clienteid
                           from doc d
                             left outer join cli c on c.clienteid = d.clienteid
-                          where d.vendedorid = ".$perid."
+                          where c.vendedorid = ".$perid."
                             and d.fecha = '".$dia."'
                             and c.vendedor NOT LIKE 'OF'
-                          group by c.clienteid";
+                            and (
+                              c.diavis NOT LIKE '".$diaVis."'
+                              OR c.diavis NOT LIKE '%".$diaVis."'
+                              OR c.diavis NOT LIKE '".$diaVis."%'
+                              OR c.diavis NOT LIKE '%".$diaVis."%'
+                            )
+                          group by d.clienteid";
       $encontradoCTotFil = mysqli_query($getConnection, $buscarCTotFil);
       $rowCTotFil = mysqli_num_rows($encontradoCTotFil);
 
@@ -271,9 +281,15 @@ class Report {
                             FROM doc d
                               left outer join cli c on c.clienteid = d.clienteid
                             where d.fecha = '".$dia."'
-                              and d.vendedorid = ".$perid."
+                              and c.vendedorid = ".$perid."
                               and c.vendedor NOT LIKE 'OF'
-                              and d.tipo = 'C'";
+                              and d.tipo = 'C'
+                              and (
+                                c.diavis NOT LIKE '".$diaVis."'
+                                OR c.diavis NOT LIKE '%".$diaVis."'
+                                OR c.diavis NOT LIKE '".$diaVis."%'
+                                OR c.diavis NOT LIKE '%".$diaVis."%'
+                              )";
       $encontradoSumTotFil = mysqli_query($getConnection, $buscarSumTotFil);
       $rowSumTotFil = mysqli_fetch_row($encontradoSumTotFil);
       $sumaTotFil = $rowSumTotFil[0];
@@ -290,7 +306,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '08:00' and d.hora <= '09:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado8a9 = mysqli_query($getConnection, $buscar8a9);
@@ -313,7 +329,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '09:00' and d.hora <= '10:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado9a10 = mysqli_query($getConnection, $buscar9a10);
@@ -336,7 +352,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '10:00' and d.hora <= '11:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado10a11 = mysqli_query($getConnection, $buscar10a11);
@@ -359,7 +375,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '11:00' and d.hora <= '12:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado11a12 = mysqli_query($getConnection, $buscar11a12);
@@ -382,7 +398,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '12:00' and d.hora <= '13:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado12a13 = mysqli_query($getConnection, $buscar12a13);
@@ -405,7 +421,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '13:00' and d.hora <= '14:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado13a14 = mysqli_query($getConnection, $buscar13a14);
@@ -428,7 +444,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '14:00' and d.hora <= '15:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado14a15 = mysqli_query($getConnection, $buscar14a15);
@@ -451,7 +467,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '15:00' and d.hora <= '16:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado15a16 = mysqli_query($getConnection, $buscar15a16);
@@ -474,7 +490,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '16:00' and d.hora <= '17:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado16a17 = mysqli_query($getConnection, $buscar16a17);
@@ -497,7 +513,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '17:00' and d.hora <= '18:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado17a18 = mysqli_query($getConnection, $buscar17a18);
@@ -520,7 +536,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '18:00' and d.hora <= '19:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado18a19 = mysqli_query($getConnection, $buscar18a19);
@@ -543,7 +559,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '19:00' and d.hora <= '20:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado19A20 = mysqli_query($getConnection, $buscar19A20);
@@ -569,6 +585,12 @@ class Report {
                             where d.fecha = '".$dia."'
                               and d.tipo = 'C'
                               and c.vendedor NOT LIKE 'OF'
+                              and (
+                                c.diavis LIKE '$diaVis'
+                                OR c.diavis LIKE '%".$diaVis."'
+                                OR c.diavis LIKE '".$diaVis."%'
+                                OR c.diavis LIKE '%".$diaVis."%'
+                              )
                               and p.sermov = 1";
     $enconTotalPedDia = mysqli_query($getConnection, $buscarTotalPedDia);
     $rowTotalPedDia = mysqli_fetch_row($enconTotalPedDia);
@@ -577,11 +599,16 @@ class Report {
     $buscarTotalPedDiaVis = "SELECT c.clienteid
                               from doc d
                                 left outer join cli c on c.clienteid = d.clienteid
-                                LEFT OUTER JOIN per p ON p.perid = D.vendedorid
+                                left OUTER JOIN per p ON p.perid = D.vendedorid
                               where d.fecha = '".$dia."'
-                                and c.diavis = '$diaVis'
                                 and p.sermov = 1
                                 and c.vendedor NOT LIKE 'OF'
+                                and (
+                                  c.diavis NOT LIKE '$diaVis'
+                                  OR c.diavis NOT LIKE '%".$diaVis."'
+                                  OR c.diavis NOT LIKE '".$diaVis."%'
+                                  OR c.diavis NOT LIKE '%".$diaVis."%'
+                                )
                               group by c.clienteid";
     $enconTotalPedDiaVis = mysqli_query($getConnection, $buscarTotalPedDiaVis);
     $rowTotalPedDiaVis = mysqli_num_rows($enconTotalPedDiaVis);
@@ -591,10 +618,10 @@ class Report {
                   <span>Total</span>
                 </div>';
     $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span>'.$rowTotalPedDiaVis.'</span>
+                  <span>'.$totalPedDia.'</span>
                 </div>';
     $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span>'.$totalPedDia.'</span>
+                  <span>'.$rowTotalPedDiaVis.'</span>
                 </div>';
 
     $totalCol8a9 = "SELECT count(doc.docid)
@@ -897,19 +924,19 @@ class Report {
                       CD:<span class="text-green" id="totalDia'.$perid.'">'.$nCDTotFil.'</span>
                     </div>';
 
-      $buscarPDTotFil = "SELECT c.clienteid
+      $buscarPDTotFil = "SELECT d.docid
                         from doc d
                           left outer join cli c on c.clienteid = d.clienteid
                         where d.vendedorid = ".$perid."
                           and d.fecha = '".$dia."'
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'
                           and (
                                 c.diavis LIKE '$diaVis'
                                 OR c.diavis LIKE '%".$diaVis."'
                                 OR c.diavis LIKE '".$diaVis."%'
                                 OR c.diavis LIKE '%".$diaVis."%'
-                              )
-                          and c.vendedor NOT LIKE 'OF'
-                        group by c.clienteid";
+                              )";
       $encontradoPDTotFil = mysqli_query($getConnection, $buscarPDTotFil);
       $rowPDTotFil = mysqli_num_rows($encontradoPDTotFil);
 
@@ -926,9 +953,15 @@ class Report {
       $buscarCTotFil = "SELECT c.clienteid
                           from doc d
                             left outer join cli c on c.clienteid = d.clienteid
-                          where d.vendedorid = ".$perid."
+                          where c.vendedorid = ".$perid."
                             and d.fecha = '".$dia."'
                             and c.vendedor NOT LIKE 'OF'
+                            and (
+                              c.diavis NOT LIKE '".$diaVis."'
+                              OR c.diavis NOT LIKE '%".$diaVis."'
+                              OR c.diavis NOT LIKE '".$diaVis."%'
+                              OR c.diavis NOT LIKE '%".$diaVis."%'
+                            )
                           group by c.clienteid";
       $encontradoCTotFil = mysqli_query($getConnection, $buscarCTotFil);
       $rowCTotFil = mysqli_num_rows($encontradoCTotFil);
@@ -941,10 +974,15 @@ class Report {
                             FROM doc d
                               left outer join cli c on c.clienteid = d.clienteid
                             where d.fecha = '".$dia."'
-                              and (d.hora >= '08:00' and d.hora <= '20:00')
-                              and d.vendedorid = ".$perid."
+                              and c.vendedorid = ".$perid."
                               and c.vendedor NOT LIKE 'OF'
-                              and d.tipo = 'C'";
+                              and d.tipo = 'C'
+                              and (
+                                c.diavis NOT LIKE '".$diaVis."'
+                                OR c.diavis NOT LIKE '%".$diaVis."'
+                                OR c.diavis NOT LIKE '".$diaVis."%'
+                                OR c.diavis NOT LIKE '%".$diaVis."%'
+                              )";
       $encontradoSumTotFil = mysqli_query($getConnection, $buscarSumTotFil);
       $rowSumTotFil = mysqli_fetch_row($encontradoSumTotFil);
       $sumaTotFil = $rowSumTotFil[0];
@@ -961,7 +999,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '08:00' and d.hora <= '09:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado8a9 = mysqli_query($getConnection, $buscar8a9);
@@ -984,7 +1022,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '09:00' and d.hora <= '10:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado9a10 = mysqli_query($getConnection, $buscar9a10);
@@ -1007,7 +1045,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '10:00' and d.hora <= '11:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado10a11 = mysqli_query($getConnection, $buscar10a11);
@@ -1030,7 +1068,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '11:00' and d.hora <= '12:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado11a12 = mysqli_query($getConnection, $buscar11a12);
@@ -1053,7 +1091,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '12:00' and d.hora <= '13:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado12a13 = mysqli_query($getConnection, $buscar12a13);
@@ -1076,7 +1114,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '13:00' and d.hora <= '14:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado13a14 = mysqli_query($getConnection, $buscar13a14);
@@ -1099,7 +1137,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '14:00' and d.hora <= '15:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado14a15 = mysqli_query($getConnection, $buscar14a15);
@@ -1122,7 +1160,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '15:00' and d.hora <= '16:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado15a16 = mysqli_query($getConnection, $buscar15a16);
@@ -1145,7 +1183,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '16:00' and d.hora <= '17:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado16a17 = mysqli_query($getConnection, $buscar16a17);
@@ -1168,7 +1206,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '17:00' and d.hora <= '18:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado17a18 = mysqli_query($getConnection, $buscar17a18);
@@ -1191,7 +1229,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '18:00' and d.hora <= '19:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado18a19 = mysqli_query($getConnection, $buscar18a19);
@@ -1214,7 +1252,7 @@ class Report {
                         left outer join cli c on c.clienteid = d.clienteid
                       where d.fecha = '".$dia."'
                         and (d.hora >= '19:00' and d.hora <= '20:00')
-                        and d.vendedorid = ".$perid."
+                        and c.vendedorid = ".$perid."
                         and c.vendedor NOT LIKE 'OF'
                         and d.tipo = 'C'";
       $encontrado19A20 = mysqli_query($getConnection, $buscar19A20);
@@ -1240,6 +1278,12 @@ class Report {
                             where d.fecha = '".$dia."'
                               and d.tipo = 'C'
                               and c.vendedor NOT LIKE 'OF'
+                              and (
+                                c.diavis LIKE '$diaVis'
+                                OR c.diavis LIKE '%".$diaVis."'
+                                OR c.diavis LIKE '".$diaVis."%'
+                                OR c.diavis LIKE '%".$diaVis."%'
+                              )
                               and p.sermov = 2";
     $enconTotalPedDia = mysqli_query($getConnection, $buscarTotalPedDia);
     $rowTotalPedDia = mysqli_fetch_row($enconTotalPedDia);
@@ -1248,11 +1292,16 @@ class Report {
     $buscarTotalPedDiaVis = "SELECT c.clienteid
                               from doc d
                                 left outer join cli c on c.clienteid = d.clienteid
-                                LEFT OUTER JOIN per p ON p.perid = D.vendedorid
+                                left OUTER JOIN per p ON p.perid = D.vendedorid
                               where d.fecha = '".$dia."'
-                                and c.diavis = '$diaVis'
                                 and p.sermov = 2
                                 and c.vendedor NOT LIKE 'OF'
+                                and (
+                                  c.diavis NOT LIKE '$diaVis'
+                                  OR c.diavis NOT LIKE '%".$diaVis."'
+                                  OR c.diavis NOT LIKE '".$diaVis."%'
+                                  OR c.diavis NOT LIKE '%".$diaVis."%'
+                                )
                               group by c.clienteid";
     $enconTotalPedDiaVis = mysqli_query($getConnection, $buscarTotalPedDiaVis);
     $rowTotalPedDiaVis = mysqli_num_rows($enconTotalPedDiaVis);
@@ -1262,10 +1311,10 @@ class Report {
                   <span>Total</span>
                 </div>';
     $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span>'.$rowTotalPedDiaVis.'</span>
+                  <span>'.$totalPedDia.'</span>
                 </div>';
     $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span>'.$totalPedDia.'</span>
+                  <span>'.$rowTotalPedDiaVis.'</span>
                 </div>';
 
     $totalCol8a9 = "SELECT count(doc.docid)
@@ -2430,7 +2479,7 @@ class Report {
                     var f=new Date();
                     var hora=f.getHours();
 
-                    if(hora < 21 && hora > 8){
+                    if(hora < 21 && hora > 7){
                       $(document).ready(function() {
                         console.log("Sistema Abierto");
 
@@ -2457,7 +2506,7 @@ class Report {
                             }
                           }
 
-                          if(tiempo > "18:29"){
+                          if(tiempo > "18:29" && tiempo < "20:01"){
                             if(res < 85){
                               $("#totalpedidodia").addClass("alertaRoja");
                             }
@@ -2493,6 +2542,16 @@ class Report {
                           var horaCambio = d.getHours();
                           var mediaCambio = d.getMinutes();
                           var tiempo = horaCambio+":"+mediaCambio;
+
+                          if(res > 20){
+                            var bandera = res;
+                          }
+
+                          if(typeof(bandera) === "undefined"){
+                            console.log("Por Surtir(","Hora:", tiempo, " Porcentaje: ", res, "% )");
+                          }else{
+                            console.log("Por Surtir(","Hora:", tiempo, " Porcentaje: ", res, "%  Bandera: ", bandera, ")");
+                          }
                           
                           if(tiempo > "17:29" && tiempo < "18:30"){
                             if(res < 24){
@@ -2508,17 +2567,21 @@ class Report {
                             }
                           }
 
-                          if(tiempo > "18:29"){
-                            if(res < 16){
-                              $("#porsurtir").addClass("alertaVerde");
-                            }
-
-                            if(res > 15){
-                              $("#porsurtir").addClass("alertaAmarillo");
-                            }
-
-                            if(res > 20){
+                          if(tiempo > "18:29" && tiempo < "20:01"){
+                            if(tiempo > "18:59" && bandera > 20){
                               $("#porsurtir").addClass("alertaRoja");
+                            }else{
+                              if(res < 16){
+                                $("#porsurtir").addClass("alertaVerde");
+                              }
+
+                              if(res > 15){
+                                $("#porsurtir").addClass("alertaAmarillo");
+                              }
+
+                              if(res > 20){
+                                $("#porsurtir").addClass("alertaRoja");
+                              }
                             }
                           }
                         }
@@ -5807,6 +5870,7 @@ class Report {
     $getMorosidad = "SELECT 
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
+                    RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                   WHERE d.total > d.totalpagado
                     AND (
                           d.tipo = 'F'
@@ -5821,6 +5885,7 @@ class Report {
     $get030DiasDist = "SELECT 
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
+                    RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
@@ -5836,6 +5901,7 @@ class Report {
     $get3060DiasDist = "SELECT
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
+                    RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
@@ -5851,6 +5917,7 @@ class Report {
     $get6090DiasDist = "SELECT 
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
+                    RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
@@ -5866,6 +5933,7 @@ class Report {
     $get90DiasDist = "SELECT
                   SUM(d.totalpagado - d.total) as TotalDeuda
                   FROM doc d
+                    RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                   WHERE d.total > d.totalpagado
                       AND (
                           d.tipo = 'F'
@@ -6610,7 +6678,8 @@ class Report {
     $getMorosidad = "SELECT 
                       SUM(d.totalpagado - d.total) as TotalDeuda
                       FROM doc d
-                        JOIN cli c ON c.clienteid = d.clienteid
+                        RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                        RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                       WHERE d.total > d.totalpagado
                           AND c.vendedorid = $perid
                           AND (
@@ -6631,7 +6700,8 @@ class Report {
     $getMorosidadDia = "SELECT 
                       SUM(d.totalpagado - d.total) as CobranzaDia
                       FROM doc d
-                        JOIN cli c ON c.clienteid = d.clienteid
+                        RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                        RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                       WHERE c.diavis = '$diaVis'
 						            AND d.total > d.totalpagado
                         AND c.vendedorid = $perid
@@ -6935,7 +7005,8 @@ class Report {
       $get030DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                     WHERE d.total > d.totalpagado
                         AND c.vendedorid = $perid
                         AND (
@@ -6956,7 +7027,8 @@ class Report {
       $get3060DiasDist = "SELECT
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                     WHERE d.total > d.totalpagado
                         AND c.vendedorid = $perid
                         AND (
@@ -6977,7 +7049,8 @@ class Report {
       $get6090DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                     WHERE d.total > d.totalpagado
                       AND c.vendedorid = $perid
                       AND (
@@ -6998,7 +7071,8 @@ class Report {
       $get90DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                     WHERE d.total > d.totalpagado
                         AND c.vendedorid = $perid
                         AND (
@@ -7326,7 +7400,8 @@ class Report {
     $getMorosidad = "SELECT 
                       SUM(d.totalpagado - d.total) as TotalDeuda
                       FROM doc d
-                        JOIN cli c ON c.clienteid = d.clienteid
+                        RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                        RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                       WHERE d.total > d.totalpagado
                         AND c.vendedorid = $perid
                         AND (
@@ -7347,7 +7422,8 @@ class Report {
     $getMorosidadDia = "SELECT 
                       SUM(d.totalpagado - d.total) as CobranzaDia
                       FROM doc d
-                        JOIN cli c ON c.clienteid = d.clienteid
+                        RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                        RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                       WHERE c.diavis = '$diaVis'
 						            AND d.total > d.totalpagado
                         AND c.vendedorid = $perid
@@ -7710,7 +7786,8 @@ class Report {
       $get030DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                     WHERE d.total > d.totalpagado
                         AND c.vendedorid = $perid
                         AND (
@@ -7731,7 +7808,8 @@ class Report {
       $get3060DiasDist = "SELECT
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                     WHERE d.total > d.totalpagado
                         AND c.vendedorid = $perid
                         AND (
@@ -7752,7 +7830,8 @@ class Report {
       $get6090DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                     WHERE d.total > d.totalpagado
                       AND c.vendedorid = $perid
                       AND (
@@ -7773,7 +7852,8 @@ class Report {
       $get90DiasDist = "SELECT 
                     SUM(d.totalpagado - d.total) as TotalDeuda
                     FROM doc d
-                      JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
                     WHERE d.total > d.totalpagado
                         AND c.vendedorid = $perid
                         AND (
@@ -7972,12 +8052,15 @@ class Report {
     $tiempoMor = $paramDb->SecureInput($params["tiempoMor"]);
     $hoyMor = date("Y-m-d");
     // TODO buscar morosidad por el tipo de tiempo, vendedor y lista de cliente
-    $getMor = "SELECT c.clienteid, c.numero, c.nombre, dom.direccion, dom.numero as numerocli, dom.interior, dom.colonia, dom.ciudad, dom.municipio, dom.estado, dom.cp, cfd.folio, (d.totalpagado - d.total) as total, (SELECT DATEDIFF(d.vence, '".$hoyMor."')) as dias, p.nombre as nombreVen
+    $getMor = "SELECT c.clienteid, c.numero, c.nombre, dom.direccion, dom.numero as numerocli,
+                dom.interior, dom.colonia, dom.ciudad, dom.municipio, dom.estado, dom.cp, cfd.folio,
+                (d.totalpagado - d.total) as total, (SELECT DATEDIFF(d.vence, '".$hoyMor."')) as dias,
+                p.nombre as nombreVen
                     FROM doc d
-                      JOIN cfd ON cfd.docid = d.docid
-                      JOIN cli c ON c.clienteid = d.clienteid
-                      JOIN dom ON dom.clienteid = d.clienteid
-                      JOIN per p ON p.perid = c.vendedorid
+                      RIGHT OUTER JOIN cfd ON cfd.docid = d.docid
+                      RIGHT OUTER JOIN cli c ON c.clienteid = d.clienteid
+                      RIGHT OUTER JOIN dom ON dom.clienteid = d.clienteid
+                      RIGHT OUTER JOIN per p ON p.perid = c.vendedorid
                     WHERE d.total > d.totalpagado";
     if($perid > 0){
       $getMor .=      " AND c.vendedorid = $perid
@@ -8025,7 +8108,7 @@ class Report {
         $position = 0;
 
         // TODO make validation for user: registrado, publico and add column for get price
-        $headers = ["#", "NUMERO", "CLIENTE", "FACTURA", "VENDEDOR", "DIAS VENCIDOS", "IMPORTE"];
+        $headers = ["#", "NUMERO", "CLIENTE", "FOLIO", "VENDEDOR", "DIAS VENCIDOS", "IMPORTE"];
         $classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
 
         echo '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
@@ -8133,6 +8216,43 @@ class Report {
     } catch (Exception $e){
       echo "Problema al listar la morosidad: " . $e->getMessage();
     }
+    $getConnection->close();
+  }
+
+  private function getDashBoardMesaQro($params) {
+    $paramDb = new Database();
+    $paramFunctions = new Util();
+    $getConnection = $paramDb->GetLink();
+    $_SESSION["codigoEspec"] = [];
+    $_SESSION["listaRuta"] = [];
+    $a = [];
+
+    // send JSON to get on js and process it request
+    $params = array("location"=>"addProduct-to-CFDIcart-partner",
+                    "url"=>"../php/shopping/shopping.php",
+                    "booleanResponse"=>true,
+                    "divResultID"=>"resultFindProductByCFDI");
+    $paramsSend = json_encode($params);
+
+    $print = "<div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 panel'>
+					      <div class='row'>";
+    $print .=     "<div class='col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3'>";
+    $print .= 		  "<input type='text' class='form-control text-center' id='findFolio' onChange='generalFunctionToRequest($paramsSend)' placeholder='Ingrese folio de factura'/></p>";
+    $print .= 		"</div>";
+    $print .=     "<div class='col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3'>
+                    <div id='espere' class='centrar' style='display:none;'>
+                      <p>Un momento por favor, estamos procesando su solicitud.<img src='../img/loading.gif' width='100'/>
+                    </div>
+                  </div>";
+		$print .=     "<div class='col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3'></div>";
+		$print .=     "<div class='col-12 col-sm-12 col-md-12 col-lg-3 col-xs-3'></div>";
+		$print .=		  "<div class='form-group col-md-12'>"; // result response
+		// display response ajax products, when user search by: code, key or title
+		$print .= 			"<div id='resultFindProductByCFDI'></div>";
+		$print .= 		"</div>";
+		$print .=	  "</div>
+				      </div>";
+    echo $print;
     $getConnection->close();
   }
 
@@ -10721,11 +10841,6 @@ class Report {
           $activo             = $row[22];
 
           $fichero_Solicitud  = $row[23];
-          $fichero_Politica   = $row[24];
-          $fichero_Fachada    = $row[25];
-          $fichero_Domicilio  = $row[26];
-          $fichero_INEFre     = $row[27];
-          $fichero_INERev     = $row[28];
 
           $observacion        = $row[36];
           $status             = $row[37];
@@ -10998,21 +11113,6 @@ class Report {
           if($fichero_Solicitud <> $buscarFotos){
             $print .=                 '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Solicitud.'" target="_blanck">Solicitud</a></li>';
           }
-          if($fichero_Politica <> $buscarFotos){
-            $print .=                 '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Politica  .'" target="_blanck">Política Comercial</a></li>';
-          }
-          if($fichero_Fachada <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Fachada.'" target="_blanck">Fachada</a></li>';
-          }
-          if($fichero_Domicilio <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_Domicilio.'" target="_blanck">Comprobante de Domicilio</a></li>';
-          }
-          if($fichero_INEFre <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INEFre.'" target="_blanck">Credencial de Elector frente</a></li>';
-          }
-          if($fichero_INERev <> $buscarFotos){
-            $print .=                  '<li><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERev.'" target="_blanck">Credencial de Elector reverso</a></li>';
-          }
           $print .=                 '</ul>
                                   </div>
                                   <div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9 charlaCard">
@@ -11147,11 +11247,6 @@ class Report {
           $activo             = $row[22];
 
           $fichero_Solicitud  = $row[23];
-          $fichero_Politica   = $row[24];
-          $fichero_Fachada    = $row[25];
-          $fichero_Domicilio  = $row[26];
-          $fichero_INEFre     = $row[27];
-          $fichero_INERev     = $row[28];
           
           $observacion        = $row[36];
           $status             = $row[37];
@@ -11436,21 +11531,6 @@ class Report {
             if($fichero_Solicitud <> $buscarFotos){
             $print .=                 '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Solicitud.'" target="_blanck">Solicitud</a></li>';
             }
-            if($fichero_Politica <> $buscarFotos){
-            $print .=                 '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Politica  .'" target="_blanck">Política Comercial</a></li>';
-            }
-            if($fichero_Fachada <> $buscarFotos){
-            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Fachada.'" target="_blanck">Fachada</a></li>';
-            }
-            if($fichero_Domicilio <> $buscarFotos){
-            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_Domicilio.'" target="_blanck">Comprobante de Domicilio</a></li>';
-            }
-            if($fichero_INEFre <> $buscarFotos){
-            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INEFre.'" target="_blanck">Credencial de Elector frente</a></li>';
-            }
-            if($fichero_INERev <> $buscarFotos){
-            $print .=                  '<li class="list-inline-item"><a class="nav-linkImg" href="../php/agregar/'.$fichero_INERev.'" target="_blanck">Credencial de Elector reverso</a></li>';
-            }
           $print .=                 '</ul>
                                   </div>
                                 </div>';
@@ -11728,40 +11808,10 @@ class Report {
                   </div>
                   <div class="row text-center">
                     <h4>Favor de subir imagenes preliminares para poder empezar con la verificación con el cliente y poder autorizar su línea de crédito</h4>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                       <div class="form-group">
                         <label>Solicitud</label>
                         <input type="file" class="btn btn-warning form-control-file" name="imgSolicitud" id="imgSolicitud" required>
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                      <div class="form-group">
-                        <label>Política Comercial</label>
-                        <input type="file" class="btn btn-warning form-control-file" name="imgPolitica" id="imgPolitica" required>
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                      <div class="form-group">
-                        <label>Fachada</label>
-                        <input type="file" class="btn btn-warning form-control-file" name="imgFachada" id="imgFachada" required>
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                      <div class="form-group">
-                        <label>Comprobante de Domicilio</label>
-                        <input type="file" class="btn btn-warning form-control-file" name="imgDomicilio" id="imgDomicilio" required>
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                      <div class="form-group">
-                        <label>Credencial de Elector frente</label>
-                        <input type="file" class="btn btn-warning form-control-file" name="imgINEFre" id="imgINEFre" required>
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                      <div class="form-group">
-                        <label>Credencial de Elector reverso</label>
-                        <input type="file" class="btn btn-warning form-control-file" name="imgINERev" id="imgINERev" required>
                       </div>
                     </div>
                   </div>

@@ -6,13 +6,13 @@ require_once("../class.database.php");
 require_once("../functions/util.php");
 
 $paramFunctions = new Util();
+$paramDb = new Database();
+$getConnection = $paramDb->GetLink();
+$mysqliCon      = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
 
 if((int)$_POST["vendedor"] > 0){
     $nombre = $paramFunctions->sanitize($_POST["nombre"]);
     $perid = (int)$_POST["vendedor"];
-    $paramDb = new Database();
-    $getConnection = $paramDb->GetLink();
-    $mysqliCon      = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
 
     $buscarVendedor = "SELECT nombre FROM per WHERE perid = $perid";
     $vendedorEncontrado = mysqli_query($getConnection, $buscarVendedor);
@@ -3021,6 +3021,14 @@ if((int)$_POST["vendedor"] > 0){
         $mail->Send();
     } catch (Exception $mail) {
     }
+}
+if($_POST["nombre"] == ''){
+    $mensaje = "No se tiene nigún dato para dar de alta, favor de revisar la información.  Recuerda que solo tienes 8 días para entregar la documentación original a Crédito y Cobranza, pasado el tiempo permitido el cliente se desactivará y se tendrá una penalización. No des de alta si no tienes los documentos en físico en tu poder.";
+    echo $mensaje;
+}else{
+    $nombre = $_POST["nombre"];
+    $mensaje = "Cliente dado de Alta Exitosamente y se envía email. Recuerda que solo tienes 8 días para entregar la documentación original a Crédito y Cobranza, pasado el tiempo permitido el cliente ".$nombre." se desactivará y se tendrá una penalización. No des de alta si no tienes los documentos en físico en tu poder. Se procede a verificación.";
+    echo $mensaje;
 }
 $getConnection->close();
 $mysqliCon->close();

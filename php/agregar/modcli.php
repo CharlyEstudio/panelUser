@@ -23,7 +23,6 @@ $mlocal         = $_POST["inputM2"];
 $tlocal         = utf8_decode($_POST["selectPropiedad"]);
 $ladode         = utf8_decode($_POST["textareaALado"]);
 $frentede       = utf8_decode($_POST["textareaFrente"]);
-$notas          = utf8_decode($_POST["textareaNota"]);
 
 $modificar      = "UPDATE nuevoscli SET NOMBRE = '$nombre', COMERCIAL = '$comercial', RFC = '$rfc',
                         DIRECCION = '$direccion', CP = $cp, COLONIA = '$colonia', CIUDAD = '$ciudad',
@@ -33,8 +32,8 @@ $modificar      = "UPDATE nuevoscli SET NOMBRE = '$nombre', COMERCIAL = '$comerc
 if($mysqliCon->query($modificar) === TRUE){
     header("location: ../../intranet/index.php");
 } else {
-    echo "Error: " . $modificar . "<br>" . $mysqliCon->error;
-    var_dump($_POST);
+    $mensaje = "Se genero un error al tratar de modificar el cliente, favor de anotar lo siguiente: Error: " . $modificar . "<br>" . $mysqliCon->error;
+    echo $mensaje;
 }
 $mysqliCon->close();
 ?>

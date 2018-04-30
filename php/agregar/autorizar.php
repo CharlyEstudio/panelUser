@@ -54,11 +54,6 @@ $notas              = utf8_encode($rowDatos[35]);
 $vendedorid         = $rowDatos[21];
 $activo             = $rowDatos[22];
 $fichero_Solicitud  = $rowDatos[23];
-$fichero_Politica   = $rowDatos[24];
-$fichero_Fachada    = $rowDatos[25];
-$fichero_Domicilio  = $rowDatos[26];
-$fichero_INEFre     = $rowDatos[27];
-$fichero_INERev     = $rowDatos[28];
 
 $observacion        = $rowDatos[36];
 $status             = $rowDatos[37];
@@ -1551,11 +1546,6 @@ $cuerpo = '
                                                         <tbody>
                                                             <tr>
                                                                 <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_Solicitud.'" target="_balnk">Solicitud</a></th>
-                                                                <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_Politica.'" target="_balnk">Pol&iacute;ca</a></th>
-                                                                <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_Fachada.'" target="_balnk">Fachada</a></th>
-                                                                <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_Domicilio.'" target="_balnk">Domicilio</a></th>
-                                                                <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_INEFre.'" target="_balnk">INE Frente</a></th>
-                                                                <th style="padding: 10px;text-align: center;"><a href="http://www.ferremayoristas.com.mx/tienda/login/php/agregar/'.$fichero_INERev.'" target="_balnk">INE Reverso</a></th>
                                                             </tr>
                                                         </tbody>
                                                     </table>

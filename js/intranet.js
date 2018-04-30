@@ -260,6 +260,75 @@ function deleteShoppinCarPartner() {
   });
 }
 
+function deleteProductCFDICarPartner(folio) {
+  if(typeof folio === 'undefined') return false;
+
+  var url = '../php/shopping/shopping.php';
+  var dataSend = {
+    data: 'empty',
+    location: 'deleteProductCFDICarPartner',
+    folio: parseInt(folio)
+  };
+
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    url: url,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      showInformation('dashBoardMesaQro');
+      // showMessage('success', 'Se ha Eliminado el producto seleccionado del carrito');
+      bootbox.alert({
+        message: "Se elimino correctamente el producto <b>#"+ dataSend.folio +"</b> a su lista de pedidos.",
+        backdrop: true
+      });
+    },
+    error: function(err) {
+      // showMessage('error', 'Ha ocurrido un error, intentar nuevamente ó contactar al administrador');
+      bootbox.alert({
+        message: "Ha ocurrido un error, intentar nuevamente ó contactar al administrador.",
+        backdrop: true
+      });
+    }
+  });
+}
+
+// delete all elements
+function deleteCFDICarPartner() {
+  var url = '../php/shopping/shopping.php';
+  var dataSend = {
+    data: 'empty',
+    location: 'deleteCFDICarPartner'
+  };
+
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    url: url,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      showInformation('dashBoardMesaQro');
+      bootbox.alert({
+        message: "Se elimino <b>toda</b> la lista correctamente.",
+        backdrop: true
+      });
+    },
+    error: function(err) {
+      showMessage('error', 'Ha ocurrido un error, intentar nuevamente ó contactar al administrador');
+    }
+  });
+}
+
 // NOTE first, catch enter and get id to identify request, then call function findElementByGeneral and send ID
 function findProductByEnter() {
   $(document).keypress(function (e) {
@@ -277,6 +346,10 @@ function findProductByEnter() {
             else if(element == 'findCrudUserBy') {
               findElementByGeneral('findCrudUserBy');
             }
+            // }
+            // else if(element == 'findProductByCFDI') {
+            //   findElementByGeneral('findProductByCFDI');
+            // }
           }
       }
   });
@@ -302,6 +375,9 @@ function findElementByGeneral(inputID) {
       case 'findCrudUserBy':
         params.location = 'find-userBy-crud';
         break;
+      // case 'findProductByCFDI':
+      //   params.location = 'addProduct-to-CFDIcart-partner';
+      //   break;
       default:
         return false;
     }
@@ -388,6 +464,15 @@ function generalFunctionToRequest(params) {
         backdrop: true
       });
       break;
+    case 'addProduct-to-CFDIcart-partner':
+      var findFolio = document.getElementById("findFolio").value;
+      // send empty value because that`s the logic to control workflow switch
+      dataSend.data = 'empty';
+      dataSend.location = params.location;
+      dataSend.productID = findFolio;
+      document.getElementById("findFolio").value = '';
+      document.getElementById("findFolio").focus;
+      break;
     case 'find-productBy-crud':
       dataSend.data = 'empty';
       dataSend.location = params.location;
@@ -414,6 +499,16 @@ function generalFunctionToRequest(params) {
 
       // TODO after callback, call function showInformation('shopping');
       break;
+    // case 'find-toAdd-product-to-CFDI-partner':
+    //   dataSend.data = 'empty';
+    //   dataSend.location = params.location;
+    //   params.url = '../php/shopping/shopping.php';
+    //   dataSend.findProductByCFDI = params.findElementBy;
+    //   params.booleanResponse = false;
+    //   params.divResultID = 'resultFindProductByCFDI';
+
+    //   // TODO after callback, call function showInformation('shopping');
+    //   break;
     case 'getProduct-to-update-crud':
       dataSend.data = 'empty';
       dataSend.location = params.location;
@@ -568,6 +663,10 @@ function generalFunctionToRequest(params) {
       if(params.booleanResponse) {
         switch(params.location) {
           case 'addProduct-to-shoppingcart-partner':
+            $('#' +  params.divResultID).html(data);
+            showMessageResponse(params);
+            break;
+          case 'addProduct-to-CFDIcart-partner':
             $('#' +  params.divResultID).html(data);
             showMessageResponse(params);
             break;
@@ -998,13 +1097,91 @@ function showDetailOrder(pedidoID, numPrecio) {
   });
 }
 
+function generarPDFRuta(paramsSend, paramsCodigo){
+  // console.log(paramsSend);
+
+  bootbox.prompt(
+    {
+      size: "small",
+      title: "Nombre del Chofer",
+      callback:
+      function(result){
+        var chofer = result;
+        bootbox.prompt(
+          {
+            size: "small",
+            title: "Cajas Abiertas",
+            callback:
+            function(result){
+              var abiertas = result;
+              bootbox.prompt(
+                {
+                  size: "small",
+                  title: "Cajas Negras",
+                  callback:
+                  function(result){
+                    var negras = result;
+                    bootbox.prompt(
+                      {
+                        size: "small",
+                        title: "Cajas Azules",
+                        callback:
+                        function(result) {
+                          var azules = result;
+                          bootbox.prompt(
+                            {
+                              size: "small",
+                              title: "Cajas Narajas Grandes",
+                              callback:
+                              function(result) {
+                                var narGrande = result;
+                                bootbox.prompt(
+                                  {
+                                    size: "small",
+                                    title: "Cajas Narajas Pequeñas",
+                                    callback:
+                                    function(result) {
+                                      var narPeque = result;
+                                      // console.log(chofer, abiertas, negras, azules, narGrande, narPeque);
+                                      $.post("../php/classes/generarPDF.php", {data: paramsSend, codigos: paramsCodigo, chofer: chofer, abiertas: abiertas, negras: negras, azules: azules, narGrande: narGrande, narPeque: narPeque}, function(mensaje){
+                                        bootbox.alert({
+                                          message: mensaje,
+                                          backdrop: true
+                                        });
+                                      });
+                                    }
+                                  }
+                                )
+                              }
+                            }
+                          )
+                        }
+                      }
+                    )
+                  }
+                }
+              )
+              // $.post("../php/classes/generarPDF.php", {data: paramsSend, codigos: paramsCodigo, chofer: chofer, cajas: cajas}, function(mensaje){
+              //   bootbox.alert({
+              //     message: mensaje,
+              //     backdrop: true
+              //   });
+              // });
+            }
+          }
+        )
+      }
+    }
+  );
+}
+
 function showPersonal(perID) {
   if(typeof perID === 'undefined') return false;
   //console.log("El id es ", perID);
   var url = '../php/report/report.php';
   var dataSend = {};
   dataSend.data = 'empty';
-  dataSend.location = 'getReporteVendedor';
+  dataSend.location = 'getDashBoardAsesor';
   dataSend.perID = perID;
   dataSend.section = 'reports-partner';
   // load data in div #information
@@ -1209,6 +1386,12 @@ function showInformation(location) {
       url = '../php/report/report.php';
       dataSend.data = 'empty';
       dataSend.location = 'getDashBoardComp';
+      dataSend.section = 'reports-partner';
+      break;
+    case 'dashBoardMesaQro':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getDashBoardMesaQro';
       dataSend.section = 'reports-partner';
       break;
     case 'shopping':

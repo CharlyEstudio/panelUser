@@ -9,17 +9,33 @@ class Shopping {
 	 $this->addProductToShoppingCartPartner($productID);
   }
 
-  public function getterDeleteProductShoppingCarPartner($productID) {
-	 $this->deleteProductShoppingCarPartner($productID);
+  public function getterAddProductToCFDICartPartner($productID) {
+	 $this->addProductToCFDICartPartner($productID);
   }
 
-  public function getterDeleteShoppingCarPartner() {
-	 $this->deleteShoppinCarPartner();
-  }
+	public function getterDeleteProductShoppingCarPartner($productID) {
+		$this->deleteProductShoppingCarPartner($productID);
+	}
+
+	public function getterDeleteShoppingCarPartner() {
+		$this->deleteShoppinCarPartner();
+	}
+
+	public function getterDeleteProductCFDICarPartner($folio) {
+		$this->deleteProductCFDICarPartner($folio);
+	}
+
+	public function getterDeleteCFDICarPartner() {
+		$this->deleteCFDICarPartner();
+	}
   // update content for shoppingCar partner, section div id=content-shoppingCar-partner
   // only that section, and not section where input is and where appears it history
   public function getterFindProduct($findProductBy) {
 	 $this->findProduct($findProductBy);
+  }
+
+  public function getterFindProductByCFDI($findProductByCFDI) {
+	 $this->findProductByCFDI($findProductByCFDI);
   }
 
   public function getterGetShoppingCarPublic($data) {
@@ -127,23 +143,256 @@ class Shopping {
 		$getConnection->close();
 	}
 
-  private function deleteProductShoppingCarPartner($productID) {
-	 $paramFunctions = new Util();
-	 $array = $_SESSION["shoppingCarPartner"];
-	 $_SESSION["shoppingCarPartner"] = [];
+	private function addProductToCFDICartPartner($paramProductID) {
+		$paramDb = new Database();
+		$paramFunctions = new Util();
+		$getConnection = $paramDb->GetLink();
 
-	 var_dump($_SESSION["shoppingCarPartner"]);
+		$paramProductID = $paramDb->SecureInput($paramProductID);
+		$rol = $_SESSION["data"]["rol"];
 
-	 // NOTE unset element inside function; return array to loop and push session
-	 $resultArray = $paramFunctions->deleteElementArray($array, $productID);
-	 foreach ($resultArray as $array) {
-		array_push($_SESSION["shoppingCarPartner"], $array);
-	 }
-  }
+		if(count($_SESSION["codigoEspec"]) == 0){
+			$inicia = true;
+		}else{
+			$inicia = false;
+		}
 
-  private function deleteShoppinCarPartner() {
-	 unset($_SESSION["shoppingCarPartner"]);
-  }
+		$getproduct = "SELECT cfd.folio, c.numero, d.nombre, d.direccion, d.colonia, d.ciudad, d.estado, p.nombre as vendedor,
+							doc.total
+						FROM doc
+							LEFT OUTER JOIN cfd
+								ON cfd.docid = doc.docid
+							LEFT OUTER JOIN cli c
+								ON c.clienteid = doc.clienteid
+							LEFT OUTER JOIN dom d
+								ON d.domid = c.domid
+							LEFT OUTER JOIN per p
+								ON p.perid = doc.vendedorid
+						WHERE cfd.folio = $paramProductID";
+		
+		$executeQuery = $paramDb->Query($getproduct);
+
+		try {
+			$numRow = $paramDb->NumRows();
+			$rows = $paramDb->Rows();
+
+			if($numRow > 0) {
+				foreach ($rows as $row) {
+					$folio = (int)$row["folio"];
+					$numero = $row["numero"];
+					$nombre = $row["nombre"];
+					$direccion = $row["direccion"];
+					$colonia = $row["colonia"];
+					$ciudad = $row["ciudad"];
+					$estado = $row["estado"];
+					$vendedor = $row["vendedor"];
+					$total = $row["total"];
+
+					$buscarTubos = "SELECT i.clvprov, d.desentregado
+										FROM inv i
+											LEFT OUTER JOIN des d
+												ON d.desartid = i.articuloid
+											LEFT OUTER JOIN cfd c
+												ON c.docid = d.desdocid
+										where c.folio = $folio
+											and (
+													clave LIKE 'TIN%'
+													or clave LIKE 'TAM0%'
+													or clave LIKE 'TUBP%'
+													or clave LIKE 'TUBM%'
+													or clave LIKE 'TUBC%'
+													or clave LIKE 'TUBO%'
+													or clave LIKE 'BAS0%'
+													or clave LIKE 'EXH%'
+													or clave LIKE 'CHAF%'
+												)";
+
+					$tubosEncontrados = mysqli_query($getConnection, $buscarTubos);
+					$especiales = [];
+
+					while($rowTub = mysqli_fetch_row($tubosEncontrados)){
+						$codigo 	= $rowTub[0];
+						$valCodigo 	= (int)$rowTub[0];
+						$entregado 	= (int)$rowTub[1];
+
+						if(array_key_exists($codigo,$_SESSION["codigoEspec"])){
+							$nuevo = $_SESSION["codigoEspec"][$codigo] + $entregado;
+							$cambio = array($codigo => $nuevo);
+							$_SESSION["codigoEspec"] = array_replace($_SESSION["codigoEspec"],$cambio);
+						}else{
+							// $especiales += [$codigo => $entregado];
+							$_SESSION["codigoEspec"] += [$codigo => $entregado];
+						}
+					}
+
+					$ruta = array(
+						"folio" => $folio,
+						"numero" => $numero,
+						"nombre" => $nombre,
+						"direccion" => $direccion,
+						"colonia" => $colonia,
+						"ciudad" => $ciudad,
+						"estado" => $estado,
+						"vendedor" => $vendedor,
+						"total" => $total
+					);
+					if(!isset($_SESSION["CFDIPartner"])) {
+						$_SESSION["CFDIPartner"] = [];
+						array_push($_SESSION["CFDIPartner"], $ruta);
+					} else {
+						// check if exist element on array, if exist don't push
+						$existElement = $paramFunctions->findElementOnArray($_SESSION["CFDIPartner"], $folio);
+						if(!$existElement) {
+							array_push($_SESSION["CFDIPartner"], $ruta);
+						}
+					}
+					array_push($_SESSION["listaRuta"], $ruta);
+					echo $this->getTableCFDICarPartner();
+					// call function
+				}
+			} else {
+				$message = "No se encontró producto con código : $paramProductID";
+				$paramFunctions->showDivMessage($message);
+			}
+		} catch (Exception $e) {
+			echo "Problema al listar pedidos: " . $e->getMessage();
+		}
+
+		// var_dump($_SESSION["codigoEspec"]);
+
+		// if($inicia == false){
+		// 	foreach($especiales as $claEsp => $cantEsp){
+		// 		foreach($_SESSION["codigoEspec"] as $clave => $cantidad){
+		// 			if($clave === $claEsp){
+		// 				$nuevaCantidad = $cantidad + $cantEsp;
+		// 				$modificar = array($clave => $nuevaCantidad);
+		// 				$_SESSION["codigoEspec"] = array_replace($_SESSION["codigoEspec"], $modificar);
+		// 			}
+		// 		}
+		// 	}
+		// 	}
+		// }
+
+		$getConnection->close();
+	}
+
+	private function deleteProductShoppingCarPartner($productID) {
+		$paramFunctions = new Util();
+		$array = $_SESSION["shoppingCarPartner"];
+		$_SESSION["shoppingCarPartner"] = [];
+
+		// var_dump($_SESSION["shoppingCarPartner"]);
+
+		// NOTE unset element inside function; return array to loop and push session
+		$resultArray = $paramFunctions->deleteElementArray($array, $productID);
+		foreach ($resultArray as $array) {
+			array_push($_SESSION["shoppingCarPartner"], $array);
+		}
+	}
+
+	private function deleteShoppinCarPartner() {
+		unset($_SESSION["shoppingCarPartner"]);
+	}
+
+	private function deleteProductCFDICarPartner($folio) {
+		$paramFunctions = new Util();
+		$array = $_SESSION["CFDIPartner"];
+		$_SESSION["CFDIPartner"] = [];
+
+		// var_dump($_SESSION["CFDIPartner"]);
+
+		// NOTE unset element inside function; return array to loop and push session
+		$resultArray = $paramFunctions->deleteElementArrayCFDI($array, $folio);
+		foreach ($resultArray as $array) {
+			array_push($_SESSION["CFDIPartner"], $array);
+		}
+	}
+
+	private function deleteCFDICarPartner() {
+		unset($_SESSION["CFDIPartner"]);
+		unset($_SESSION["codigoEspec"]);
+	}
+
+	// // TODO buscar en CFDI
+	// private function findProductByCFDI($findProductByCFDI) {
+	// 	$paramDb = new Database();
+	// 	$paramFunctions = new Util();
+	// 	$getConnection = $paramDb->GetLink();
+	// 	$findProductByCFDI = $paramDb->SecureInput($findProductByCFDI);
+	// 	$rol = $_SESSION["data"]["rol"];
+
+	// 	$buscarCFDI = "SELECT cfd.folio, c.numero, d.nombre, d.direccion, d.colonia, d.ciudad, d.estado, p.nombre as vendedor,
+	// 							doc.total
+	// 						FROM doc
+	// 							LEFT OUTER JOIN cfd
+	// 								ON cfd.docid = doc.docid
+	// 							LEFT OUTER JOIN cli c
+	// 								ON c.clienteid = doc.clienteid
+	// 							LEFT OUTER JOIN dom d
+	// 								ON d.clienteid = doc.clienteid
+	// 							LEFT OUTER JOIN per p
+	// 								ON p.perid = doc.vendedorid
+	// 						WHERE cfd.folio = '$findProductByCFDI'";
+	// 	$exeQuGetPagination = $paramDb->Query($buscarCFDI);
+	// 	if($exeQuGetPagination === false) {
+	// 		echo "error-query";
+	// 		return false;
+	// 	}
+
+	// 	$numRow = $paramDb->NumRows();
+	// 	$rows = $paramDb->Rows();
+
+	// 	// NOTE draw table header, only print header, the body it's on loop
+	// 	$print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 promo">
+	// 				<div class="row">';
+	// 	if($numRow > 0) {
+	// 		foreach($rows as $row) {
+	// 			$folio = $row["folio"];
+	// 			$numero = $row["numero"];
+	// 			$nombre = $row["nombre"];
+	// 			$direccion = $row["direccion"];
+	// 			$colonia = $row["colonia"];
+	// 			$ciudad = $row["ciudad"];
+	// 			$estado = $row["estado"];
+	// 			$vendedor = $row["vendedor"];
+	// 			$total = $row["total"];
+	// 		$print .=	'<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 text-center producto">
+	// 						<div class="row">
+	// 							<div class="col-12 col-sm-12 col-md-12 col-lg-1 col-xs-1 altura-def">
+	// 								<h5>'.$folio.'</h5>
+	// 							</div>
+	// 							<div class="col-12 col-sm-12 col-md-12 col-lg-1 col-xs-1">
+	// 								<p>'.$numero.'</p>
+	// 							</div>
+	// 							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xs-2">
+	// 								<p>'.$nombre.'</p>
+	// 							</div>
+	// 							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xs-2">
+	// 								<p>'.$direccion.', '.$colonia.'</p>
+	// 							</div>
+	// 							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xs-2">
+	// 								<p>'.$ciudad.', '.$estado.'</p>
+	// 							</div>
+	// 							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xs-2">
+	// 								<p>'.$vendedor.'</p>
+	// 							</div>
+	// 							<div class="col-12 col-sm-12 col-md-12 col-lg-1 col-xs-1">
+	// 								<p class="text-tomato"><b>$ '.number_format($total, 2, ".", ",").'</b></p>
+	// 							</div>
+	// 							<div class="col-12 col-sm-12 col-md-12 col-lg-1 col-xs-1">';
+	// 			$print .=			"<button type='button' class='btn btn-outline-success' onclick='generalFunctionToRequest()'>
+	// 									A Ruta
+	// 								</button>";
+	// 			$print .=		'</div>
+	// 						</div>
+	// 					</div>';
+	// 		}
+	// 		echo $print;
+	// 	}else {
+	// 		echo "<h4>No se encontro nada en la busqueda, por favor intente con otro nombre, código o clave. Gracias</h4>";
+	// 	}
+	// 	$getConnection->close();
+	// }
 
 	// TODO buscar en carrito
 	private function findProduct($findProductBy) {
@@ -191,7 +440,7 @@ class Shopping {
 
 		// NOTE draw table header, only print header, the body it's on loop
 		$print = '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xs-12 promo">
-			<div class="row">';
+					<div class="row">';
 		if($numRow > 0) {
 		foreach($rows as $row) {
 			$id = $row["articuloid"];
@@ -256,6 +505,120 @@ class Shopping {
   }
 
 
+	// general function to print data table, call in others functions from here
+	function getTableCFDICarPartner() {
+		$paramFunctions = new Util();
+		$paramDb = new Database();
+		$getConnection = $paramDb->GetLink();
+		$ruta = $_SESSION["CFDIPartner"];
+		$length = count($ruta);
+
+		if($length > 0) {
+			// $headers = ["Factura", "Cliente", "Nombre", "Domicilio", "Población", "Vendedor", "Importe", "Eliminar"];
+			// $classPerColumn = ["text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center", "text-center"];
+
+			$print = 		"<div class='rutas'>
+								<table class='table'>
+									<thead>
+										<tr>
+											<th scope='col' class='text-center'>Factura</th>
+											<th scope='col' class='text-center'>Cliente</th>
+											<th scope='col' class='text-left'>Nombre</th>
+											<th scope='col' class='text-left'>Domicilio</th>
+											<th scope='col' class='text-left'>Población</th>
+											<th scope='col' class='text-left'>Vendedor</th>
+											<th scope='col' class='text-right'>Importe</th>
+										</tr>
+									</thead>
+									<tbody>";
+									// <th scope='col' class='text-center'>Eliminar</th>
+			// NOTE draw table header, only print header, the body it's on loop
+			// $print .= $paramFunctions->drawTableHeader($headers, $classPerColumn);
+			$subtotal = 0;
+			$totalSum = 0;
+
+			for ($i=0; $i < $length; $i++) {
+				if(isset($ruta[$i])) {
+					$folio 		= $ruta[$i]["folio"];
+					$numero 	= $ruta[$i]["numero"];
+					$nombre 	= $ruta[$i]["nombre"];
+					$direccion	= $ruta[$i]["direccion"];
+					$colonia 	= $ruta[$i]["colonia"];
+					$ciudad 	= $ruta[$i]["ciudad"];
+					$estado 	= $ruta[$i]["estado"];
+					$vendedor 	= $ruta[$i]["vendedor"];
+					$total 		= $ruta[$i]["total"];
+
+					if($totalSum == 0){
+						$totalSum 	+= $total;
+						$mod = array("totalSum" => $totalSum);
+						// array_push($_SESSION["listaRuta"][1], $mod);
+						$_SESSION["listaRuta"] += ["totalSum" => $totalSum];
+					}else{
+						$totalSum 	+= $total;
+						unset($_SESSION["listaRuta"]["totalSum"]);
+						$_SESSION["listaRuta"] += ["totalSum" => $totalSum];
+					}
+
+
+					$formatoTotal 		= number_format($total, 2, ".", ",");
+
+					$print .=			"<tr>";
+					$print .= 				"<td class='text-center' style='font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;'>$folio</td>
+											<td class='text-center' style='font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;'>$numero</td>
+											<td class='text-left' style='font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;'>$nombre</td>
+											<td class='text-left' style='font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;'>$direccion, $colonia</td>
+											<td class='text-left' style='font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;'>$ciudad, $estado</td>
+											<td class='text-left' style='font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;'>$vendedor</td>
+											<td class='text-right' style='font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;'>$formatoTotal</td>";
+					$print .=			"</tr>";
+					// <td class='text-center' style='vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;'>
+					// 							<a onClick='deleteProductCFDICarPartner($folio)' style='cursor:pointer;'>
+					// 								<i class='far fa-trash-alt'></i>
+					// 							</a>
+					// 						</td>
+				}
+			}
+			$formatoTotalSum 	= number_format($totalSum, 2, ".", ",");
+					$print .= 			"<tr>
+											<td class='text-right' style='font-weight:bold;vertical-align:middle;font-size: .9em!important;padding: 0.3rem!important;' colspan='6'>Total</td>
+											<td class='text-right' style='font-weight:bold;vertical-align:middle;font-size: .9em!important;padding: 0.3rem!important;'>$formatoTotalSum</td>
+											<td class='text-center' style='font-weight:bold;vertical-align:middle;font-size: .9em!important;padding: 0.3rem!important;'></td>
+										</tr>";
+			$print .=				"</tbody>
+								</table>";
+			$print .= 		"</div>"; // overflow-x:auto
+
+			if(isset($_SESSION["CFDIPartner"]) && (count($_SESSION["CFDIPartner"])) > 0) {
+				// button to delete shopping car (session), and button to save on table
+				// pedidos loop products on session and save on table descripcionPedido
+				$print .= "<div class='row'>
+							<div class='col-md-6'>
+								<button type='button' class='btn btn-outline-success btn-lg btn-block' onclick='deleteCFDICarPartner()' data-toggle='tooltip' title='Eliminar todos los productos!'>
+									Nueva Ruta
+								</button>
+							</div>
+							<div class='col-md-6'>";
+						
+						$paramsSend = json_encode($_SESSION["listaRuta"]);
+						$paramsCodigo = json_encode($_SESSION["codigoEspec"]);
+						// var_dump($paramsSend);
+
+						$print .="<button type='button' class='btn btn-outline-warning btn-lg btn-block' onclick='generarPDFRuta($paramsSend, $paramsCodigo)' title='Procesar Ruta!'>
+								Procesar Ruta
+							</button>
+						</div>
+					</div>";
+			}
+		}else {  // validate length of array
+			$print ="<div class='row'>
+				<div class='col-md-12'>
+					<h4 style='font-weight:bold; color:red;'>Nada Solicitado</h4>
+				</div>
+			</div>";
+		}
+		return $print;
+	}
 	// general function to print data table, call in others functions from here
 	function getTableShoppingCarPartner() {
 		$paramFunctions = new Util();

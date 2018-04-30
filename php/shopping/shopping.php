@@ -17,6 +17,10 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $productID = $paramFunctions->sanitize($_POST["productID"]);
         $shopping->getterAddProductToShoppingCartPartner($productID);
         break;
+      case 'addProduct-to-CFDIcart-partner':
+        $productID = $paramFunctions->sanitize($_POST["productID"]);
+        $shopping->getterAddProductToCFDICartPartner($productID);
+        break;
       case 'getDashBoard':
         //TODO enlace para abrir el dashboard
         $shopping->getterGetDashBoardPartner();
@@ -28,6 +32,13 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
       case "deleteshoppingcarpartner":
         $shopping->getterDeleteShoppingCarPartner();
         break;
+      case "deleteProductCFDICarPartner":
+        $folio = $paramFunctions->sanitize($_POST["folio"]);
+        $shopping->getterDeleteProductCFDICarPartner($folio);
+        break;
+      case "deleteCFDICarPartner":
+        $shopping->getterDeleteCFDICarPartner();
+        break;
       case "find-toAdd-product-to-shoppingcart-partner":
         $findProductBy = $_POST["findProductBy"];
         $findProductBy = $paramFunctions->sanitize($findProductBy);
@@ -35,6 +46,13 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
 
         $shopping->getterFindProduct($findProductBy);
         break;
+      // case "find-toAdd-product-to-CFDI-partner":
+      //   $findProductByCFDI = $_POST["findProductByCFDI"];
+      //   $findProductByCFDI = $paramFunctions->sanitize($findProductByCFDI);
+      //   $findProductByCFDI = $paramFunctions->specialChars($findProductByCFDI);
+
+      //   $shopping->getterFindProductByCFDI($findProductByCFDI);
+      //   break;
       case "getshoppingpublic":
         // user public want to buy some products, that user doesn't logged
         $shopping->getterGetShoppingCarPublic($data);

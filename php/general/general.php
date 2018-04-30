@@ -40,6 +40,10 @@ if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
           $section = "dashBoardAsesor";
         } elseif($rol == "almacen") {
           $section = "dashBoardAlmacen";
+        } elseif($rol == "mesaQro") {
+          $section = "dashBoardMesaQro";
+        } elseif($rol == "mesaTx") {
+          $section = "dashBoardMesaQro";
         }
         echo $section;
         break;
