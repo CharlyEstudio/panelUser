@@ -1110,40 +1110,39 @@ function generarPDFRuta(paramsSend, paramsCodigo){
         bootbox.prompt(
           {
             size: "small",
-            title: "Cajas Abiertas",
+            title: "Cajas Abiertas/Café",
             callback:
             function(result){
               var abiertas = result;
               bootbox.prompt(
                 {
                   size: "small",
-                  title: "Cajas Negras",
+                  title: "Cajas Azules",
                   callback:
-                  function(result){
-                    var negras = result;
+                  function(result) {
+                    var azules = result;
                     bootbox.prompt(
                       {
                         size: "small",
-                        title: "Cajas Azules",
+                        title: "Cajas Narajas Grandes",
                         callback:
                         function(result) {
-                          var azules = result;
+                          var narGrande = result;
                           bootbox.prompt(
                             {
                               size: "small",
-                              title: "Cajas Narajas Grandes",
+                              title: "Cajas Narajas Pequeñas",
                               callback:
                               function(result) {
-                                var narGrande = result;
+                                var narPeque = result;
                                 bootbox.prompt(
                                   {
                                     size: "small",
-                                    title: "Cajas Narajas Pequeñas",
+                                    title: "Verifico",
                                     callback:
-                                    function(result) {
-                                      var narPeque = result;
-                                      // console.log(chofer, abiertas, negras, azules, narGrande, narPeque);
-                                      $.post("../php/classes/generarPDF.php", {data: paramsSend, codigos: paramsCodigo, chofer: chofer, abiertas: abiertas, negras: negras, azules: azules, narGrande: narGrande, narPeque: narPeque}, function(mensaje){
+                                    function(result){
+                                      var verifico = result;
+                                      $.post("../php/classes/generarPDF.php", {data: paramsSend, codigos: paramsCodigo, chofer: chofer, abiertas: abiertas, azules: azules, narGrande: narGrande, narPeque: narPeque, verifico: verifico}, function(mensaje){
                                         bootbox.alert({
                                           message: mensaje,
                                           backdrop: true
@@ -1151,22 +1150,16 @@ function generarPDFRuta(paramsSend, paramsCodigo){
                                       });
                                     }
                                   }
-                                )
+                                );
                               }
                             }
-                          )
+                          );
                         }
                       }
-                    )
+                    );
                   }
                 }
-              )
-              // $.post("../php/classes/generarPDF.php", {data: paramsSend, codigos: paramsCodigo, chofer: chofer, cajas: cajas}, function(mensaje){
-              //   bootbox.alert({
-              //     message: mensaje,
-              //     backdrop: true
-              //   });
-              // });
+              );
             }
           }
         )

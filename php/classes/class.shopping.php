@@ -196,15 +196,24 @@ class Shopping {
 												ON c.docid = d.desdocid
 										where c.folio = $folio
 											and (
-													clave LIKE 'TIN%'
-													or clave LIKE 'TAM0%'
-													or clave LIKE 'TUBP%'
-													or clave LIKE 'TUBM%'
-													or clave LIKE 'TUBC%'
-													or clave LIKE 'TUBO%'
-													or clave LIKE 'BAS0%'
-													or clave LIKE 'EXH%'
-													or clave LIKE 'CHAF%'
+													i.clave LIKE 'TIN0%'
+													or i.clave LIKE 'TAM0%'
+													or i.clave LIKE 'TUBP%'
+													or i.clave LIKE 'TUBM%'
+													or i.clave LIKE 'TUBC%'
+													or i.clave LIKE 'TUBO%'
+													or i.clave LIKE 'BAS0%'
+													or i.clave LIKE 'EXH%'
+													or i.clave LIKE 'CHAF%'
+													or i.clave LIKE 'SON0%'
+													or i.clave LIKE 'LAM0%'
+													or i.clave LIKE 'TUB0%'
+													or i.clave LIKE 'TIN0%'
+													or i.clave LIKE 'CALE%'
+													or i.clave LIKE 'PVC-0%'
+													or i.clave LIKE 'CV-00%'
+													or i.clave LIKE 'CPVC-00%'
+													or i.clave LIKE 'CC-00%'
 												)";
 
 					$tubosEncontrados = mysqli_query($getConnection, $buscarTubos);

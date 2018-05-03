@@ -79,10 +79,10 @@ $fecha = $nomDia." ".$numDia." de ".$mes." del ".date('Y')." ".date('h:i:s A');
 
 $chofer = $_POST["chofer"];
 $abiertas = $_POST["abiertas"];
-$negras = $_POST["negras"];
 $azules = $_POST["azules"];
 $narGrande = $_POST["narGrande"];
 $narPeque = $_POST["narPeque"];
+$verifico = $_POST["verifico"];
 
 $paramsSend = $_POST["data"];
 $params = json_encode($_POST["data"]);
@@ -100,27 +100,45 @@ $pdf->SetTitle('RUTA DEL DIA');
 
 $pdf->setPrintHeader(false); 
 $pdf->setPrintFooter(false);
-$pdf->SetMargins(2, 5, 1, false); 
+$pdf->SetMargins(1, 0, 0, false);
 $pdf->SetAutoPageBreak(true, 20); 
 $pdf->SetFont('Helvetica', '', 8);
 $pdf->SetFillColor(218, 218, 218);
 $pdf->addPage();
 
 // Encabezado texto centrado en una celda con cuadro 20*10 mm y salto de línea
-$pdf->Image('http://www.ferremayoristas.com.mx/images/logo-min.png',1,3,35,0,'PNG');
-$pdf->Cell(35,8,'',0,0,'L');
+$pdf->Image('http://www.ferremayoristas.com.mx/images/logo-min.png',0,0,30,0,'PNG');
+$pdf->Cell(35,10,'',0,0,'L');
 $pdf->SetFont('Helvetica', 'B', 12);
-$pdf->Cell(40,8,'RUTA DEL DIA',0,0,'C');
+$pdf->Cell(40,10,'RUTA DEL DIA',0,0,'L');
 $pdf->SetFont('Helvetica', 'B', 8);
-$pdf->Cell(60,8,$fecha,0,0,'C');
-$pdf->Cell(15,8,'CHOFER: ',0,0,'L');
-$pdf->Cell(20,8,$chofer,0,0,'L');
-$pdf->Cell(100,8,'[ABIERTAS:'.$abiertas.' NEGRAS:'.$negras.' AZULES:'.$azules.' NAR. GDE.:'.$narGrande.' NAR. PEQ.:'.$narPeque.']',0,0,'L');
-$pdf->Cell(20,8,$numPed.' Pedido(s)',0,0,'R');
+$pdf->Cell(13,10,'CHOFER: ',0,0,'L');
+$pdf->Cell(20,10,$chofer,0,0,'L');
+$pdf->Cell(13,10,'Verifico: ',0,0,'R');
+$pdf->Cell(20,10,$verifico,0,0,'L');
+$pdf->Cell(5,10,$numPed,0,0,'R');
+$pdf->Cell(28,10,' Pedido(s)',0,0,'L');
+$pdf->Cell(60,10,$fecha,0,0,'C');
+$pdf->Cell(60,10,'',0,1,'C');
+
+
+$pdf->Cell(13,10,'CAJAS: ',0,0,'L');
+
+if($abiertas > 0){
+  $pdf->Cell(20,10,'ABIERTAS: '.$abiertas,0,0,'L');
+}
+if($azules >0){
+  $pdf->Cell(20,10,'AZULES: '.$azules,0,0,'L');
+}
+if($narGrande > 0){
+  $pdf->Cell(20,10,'NAR. GDE.: '.$narGrande,0,0,'L');
+}
+if($narPeque > 0){
+  $pdf->Cell(20,10,'NAR. PEQ.: '.$narPeque,0,0,'L');
+}
 $pdf->SetFont('Helvetica', 'B', 8);
 
 // Salto de línea
-$pdf->Ln();
 $pdf->Ln();
 
 // Titulos texto centrado en una celda con cuadro 20*10 mm y salto de línea
@@ -168,25 +186,33 @@ $pdf->Ln();
 $pdf->Cell(25,5,'FIRMA DEL CHOFER',0,0,'L');
 $pdf->Cell(30,5,'',1,0,'C');
 $pdf->Cell(80,5,'',0,0,'C');
-$pdf->Cell(30,5,'IMPORTE DE COBRANZA: ',0,0,'C');
+$pdf->Cell(30,5,'IMPORTE DE COBRANZA',0,0,'C');
 $pdf->Cell(69,5,'',0,0,'C');
+$pdf->SetFont('Helvetica', 'B', 7);
 $pdf->Cell(20,5,'Total C.O.D.',0,1,'L');
+$pdf->SetFont('Helvetica', '', 6);
 
 $pdf->Cell(25,5,'FIRMA DE C X C',0,0,'L');
 $pdf->Cell(30,5,'',1,0,'C');
 $pdf->Cell(80,5,'',0,0,'C');
 $pdf->Cell(30,5,'',1,0,'C');
 $pdf->Cell(69,5,'',0,0,'C');
+$pdf->SetFont('Helvetica', 'B', 7);
 $pdf->Cell(20,5,'Total Crédito',0,0,'L');
+$pdf->SetFont('Helvetica', 'B', 8);
 $pdf->Cell(40,5,$formatoTotalSum,1,1,'R');
+$pdf->SetFont('Helvetica', '', 6);
 
 $pdf->Cell(25,5,'',0,0,'C');
 $pdf->Cell(30,5,'',0,0,'C');
 $pdf->Cell(80,5,'',0,0,'C');
 $pdf->Cell(30,5,'',0,0,'C');
 $pdf->Cell(69,5,'',0,0,'C');
+$pdf->SetFont('Helvetica', 'B', 7);
 $pdf->Cell(20,5,'Total de Guía: $',0,0,'L');
+$pdf->SetFont('Helvetica', 'B', 8);
 $pdf->Cell(40,5,$formatoTotalSum,1,1,'R');
+$pdf->SetFont('Helvetica', '', 6);
 
 // Códigos Especiales
 if(isset($_POST["codigos"])){
@@ -199,9 +225,8 @@ if(isset($_POST["codigos"])){
         $rowClave = mysqli_fetch_row($claveEnc);
         $titulo = $rowClave[0];
 
-        // $pdf->MultiCell(80,5,'','B','L',true);
         $pdf->SetFont('Helvetica', '', 8);
-        $pdf->Cell(80,5,$clave.' - '.$titulo.': ',1,0,'L');
+        $pdf->Cell(80,5,$clave.' - '.$titulo,1,0,'L');
         $pdf->SetFont('Helvetica', 'B', 8);
         $pdf->Cell(8,5,$cantidad,1,1,'C');
     }

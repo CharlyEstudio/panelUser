@@ -140,13 +140,12 @@ class Report {
               <h4 class="display-4 text-center">LINEA DE TIEM<span class="text-tomato">PO DEL ASESOR</span></h4>
               <div class="row paddingT">
                 <div class="col-12 text-center paddingB">
-                <button type="button" class="btn btn-outline-primary text-center" onClick="'.$linkActualizar.'">Actualizar</button>
+                  <button type="button" class="btn btn-outline-primary text-center" onClick="'.$linkActualizar.'">Actualizar</button>
                 </div>
                 <div class="col-12 text-center paddingB">
                   <h4 class="h4">ZONA 1</h4>
                   <ul class="list-inline">
                     <li class="list-inline-item">CD: Clientes del Día</li>
-                    <li class="list-inline-item">PD: Pedidos del Día</li>
                     <li class="list-inline-item">C: Clientes</li>
                     <li class="list-inline-item">P: Pedidos</li>
                   </ul>
@@ -158,7 +157,7 @@ class Report {
                   <span>CLIENTES DEL DIA</span>
                 </div>
                 <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
-                  <span>PEDIDOS</span>
+                  <span>CLIENTES DE OTRO DIA</span>
                 </div>
                 <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>8:00 - 9:00</span>
@@ -192,9 +191,6 @@ class Report {
                 </div>
                 <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>18:00 - 19:00</span>
-                </div>
-                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
-                  <span>19:00 - 20:00</span>
                 </div>';
     $indice = 0;
     while($rowVenZona1 = mysqli_fetch_row($venEncontradoZona1)){
@@ -202,33 +198,50 @@ class Report {
       $perid = $rowVenZona1[0];
       $nombre = $rowVenZona1[1];
       $dia = date('Y-m-d');
+
       $print .= '<span id="per'.$indice.'" style="display: none;">'.$perid.'</span>';
 
       $indice++;
 
       $linkFunctionPersonal = "showPersonal(".$perid.")";
 
+      $buscarCDTotFil = "SELECT count(c.clienteid)
+                        FROM cli c
+                        where c.vendedorid = ".$perid."
+                          and c.diavis LIKE '%".$diaVis."%'";
+      $encontradoCDTotFil = mysqli_query($getConnection, $buscarCDTotFil);
+      $rowCDTotFil = mysqli_fetch_row($encontradoCDTotFil);
+      $nCDTotFil = $rowCDTotFil[0];
+
       $print .= '<div class="colTime centrar" style="border-left: 1px solid #d7d7d7;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <a class="nav-link text-truncate" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'" data-toggle="tooltip" data-placement="top" title="'.$nombre.'"><span class="text-truncate" style="font-size: .6em;">'.$nombre.'</span></a>
+                  <div style="width: 100%">
+                    <div>
+                      <a class="nav-link text-truncate" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'" data-toggle="tooltip" data-placement="top" title="'.$nombre.'"><span class="text-truncate" style="font-size: .6em;">'.$nombre.'</span></a>
+                    </div>
+                    <div style="text-align:center;font-size:.8em;">
+                      CD:<span class="text-green" id="totalDia'.$perid.'">'.$nCDTotFil.'</span>
+                    </div>
+                  </div>
                 </div>';
 
       $print .= '<div class="colTime">
                   <div class="row">';
 
-      $buscarCDTotFil = "SELECT count(c.clienteid)
-                        FROM cli c
+      $buscarCTotFil = "SELECT c.clienteid
+                        from doc d
+                          left outer join cli c on c.clienteid = d.clienteid
                         where c.vendedorid = ".$perid."
-                          and (
-                                c.diavis LIKE '$diaVis'
-                                OR c.diavis LIKE '%".$diaVis."'
-                                OR c.diavis LIKE '".$diaVis."%'
-                                OR c.diavis LIKE '%".$diaVis."%'
-                              )";
-      $encontradoCDTotFil = mysqli_query($getConnection, $buscarCDTotFil);
-      $rowCDTotFil = mysqli_fetch_row($encontradoCDTotFil);
-      $nCDTotFil = $rowCDTotFil[0];
+                          and d.fecha = '".$dia."'
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'
+                          and c.diavis LIKE '%".$diaVis."%'
+                          group by c.clienteid
+                          order by c.clienteid";
+      $encontradoCTTotFil = mysqli_query($getConnection, $buscarCTotFil);
+      $rowCTTotFil = mysqli_num_rows($encontradoCTTotFil);
+
       $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                      CD:<span class="text-green" id="totalDia'.$perid.'">'.$nCDTotFil.'</span>
+                      C:<span class="text-green">'.$rowCTTotFil.'</span>
                     </div>';
       
       $buscarPDTotFil = "SELECT d.docid
@@ -238,17 +251,12 @@ class Report {
                           and d.fecha = '".$dia."'
                           and c.vendedor NOT LIKE 'OF'
                           and d.tipo = 'C'
-                          and (
-                                c.diavis LIKE '$diaVis'
-                                OR c.diavis LIKE '%".$diaVis."'
-                                OR c.diavis LIKE '".$diaVis."%'
-                                OR c.diavis LIKE '%".$diaVis."%'
-                              )";
+                          and c.diavis LIKE '%".$diaVis."%'";
       $encontradoPDTotFil = mysqli_query($getConnection, $buscarPDTotFil);
       $rowPDTotFil = mysqli_num_rows($encontradoPDTotFil);
 
       $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                      PD:<span class="text-green">'.$rowPDTotFil.'</span>
+                      P:<span class="text-green">'.$rowPDTotFil.'</span>
                     </div>';
       
       $print .=   '</div>
@@ -263,12 +271,7 @@ class Report {
                           where c.vendedorid = ".$perid."
                             and d.fecha = '".$dia."'
                             and c.vendedor NOT LIKE 'OF'
-                            and (
-                              c.diavis NOT LIKE '".$diaVis."'
-                              OR c.diavis NOT LIKE '%".$diaVis."'
-                              OR c.diavis NOT LIKE '".$diaVis."%'
-                              OR c.diavis NOT LIKE '%".$diaVis."%'
-                            )
+                            and c.diavis NOT LIKE '%".$diaVis."%'
                           group by d.clienteid";
       $encontradoCTotFil = mysqli_query($getConnection, $buscarCTotFil);
       $rowCTotFil = mysqli_num_rows($encontradoCTotFil);
@@ -284,12 +287,7 @@ class Report {
                               and c.vendedorid = ".$perid."
                               and c.vendedor NOT LIKE 'OF'
                               and d.tipo = 'C'
-                              and (
-                                c.diavis NOT LIKE '".$diaVis."'
-                                OR c.diavis NOT LIKE '%".$diaVis."'
-                                OR c.diavis NOT LIKE '".$diaVis."%'
-                                OR c.diavis NOT LIKE '%".$diaVis."%'
-                              )";
+                              and c.diavis NOT LIKE '%".$diaVis."%'";
       $encontradoSumTotFil = mysqli_query($getConnection, $buscarSumTotFil);
       $rowSumTotFil = mysqli_fetch_row($encontradoSumTotFil);
       $sumaTotFil = $rowSumTotFil[0];
@@ -553,29 +551,6 @@ class Report {
                 </div>';
         }
       }
-
-      $buscar19A20 = "SELECT count(d.docid)
-                      FROM doc d
-                        left outer join cli c on c.clienteid = d.clienteid
-                      where d.fecha = '".$dia."'
-                        and (d.hora >= '19:00' and d.hora <= '20:00')
-                        and c.vendedorid = ".$perid."
-                        and c.vendedor NOT LIKE 'OF'
-                        and d.tipo = 'C'";
-      $encontrado19A20 = mysqli_query($getConnection, $buscar19A20);
-
-      while($row19A20 = mysqli_fetch_row($encontrado19A20)){
-        $n19A20 = $row19A20[0];
-        if($n19A20 > 0){
-      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span id="n19A20'.$perid.'">'.$n19A20.'</span>
-                </div>';
-        }else{
-      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span id="n19A20'.$perid.'">'.$n19A20.'</span>
-                </div>';
-        }
-      }
     }
 
     $buscarTotalPedDia = "SELECT count(d.docid)
@@ -585,12 +560,7 @@ class Report {
                             where d.fecha = '".$dia."'
                               and d.tipo = 'C'
                               and c.vendedor NOT LIKE 'OF'
-                              and (
-                                c.diavis LIKE '$diaVis'
-                                OR c.diavis LIKE '%".$diaVis."'
-                                OR c.diavis LIKE '".$diaVis."%'
-                                OR c.diavis LIKE '%".$diaVis."%'
-                              )
+                              and c.diavis LIKE '%".$diaVis."%'
                               and p.sermov = 1";
     $enconTotalPedDia = mysqli_query($getConnection, $buscarTotalPedDia);
     $rowTotalPedDia = mysqli_fetch_row($enconTotalPedDia);
@@ -602,14 +572,9 @@ class Report {
                                 left OUTER JOIN per p ON p.perid = D.vendedorid
                               where d.fecha = '".$dia."'
                                 and p.sermov = 1
+                                and d.tipo = 'C'
                                 and c.vendedor NOT LIKE 'OF'
-                                and (
-                                  c.diavis NOT LIKE '$diaVis'
-                                  OR c.diavis NOT LIKE '%".$diaVis."'
-                                  OR c.diavis NOT LIKE '".$diaVis."%'
-                                  OR c.diavis NOT LIKE '%".$diaVis."%'
-                                )
-                              group by c.clienteid";
+                                and c.diavis NOT LIKE '%".$diaVis."%'";
     $enconTotalPedDiaVis = mysqli_query($getConnection, $buscarTotalPedDiaVis);
     $rowTotalPedDiaVis = mysqli_num_rows($enconTotalPedDiaVis);
 
@@ -811,23 +776,6 @@ class Report {
                   <span>'.$nTotal18a19.'</span>
                 </div>';
 
-    $totalCol19a20 = "SELECT count(doc.docid)
-                      FROM doc
-                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
-                        left outer join cli c on c.clienteid = doc.clienteid
-                      where doc.fecha ='".$dia."'
-                        and (doc.hora >= '19:00' and doc.hora <= '20:00')
-                        and doc.tipo = 'C'
-                        and c.vendedor NOT LIKE 'OF'
-                        and p.sermov = 1";
-    $totalEncontradoCol19a20 = mysqli_query($getConnection, $totalCol19a20);
-    $rowTotalCol19a20 = mysqli_fetch_row($totalEncontradoCol19a20);
-    $nTotal19a20 = $rowTotalCol19a20[0];
-
-    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span>'.$nTotal19a20.'</span>
-                </div>';
-
     $print .= '</div>
             </div>
             <div class="col-12 paddingT paddingB">
@@ -842,7 +790,7 @@ class Report {
                   <span>CLIENTES DEL DIA</span>
                 </div>
                 <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
-                  <span>PEDIDOS</span>
+                  <span>CLIENTES DE OTRO DIA</span>
                 </div>
                 <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>8:00 - 9:00</span>
@@ -876,9 +824,6 @@ class Report {
                 </div>
                 <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                   <span>18:00 - 19:00</span>
-                </div>
-                <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
-                  <span>19:00 - 20:00</span>
                 </div>';
         
     // Se busca a los vendedores
@@ -901,27 +846,43 @@ class Report {
 
       $linkFunctionPersonal = "showPersonal(".$perid.")";
 
+      $buscarCDTotFil = "SELECT count(c.clienteid)
+                          FROM cli c
+                          where c.vendedorid = ".$perid."
+                            and c.diavis LIKE '%".$diaVis."%'";
+      $encontradoCDTotFil = mysqli_query($getConnection, $buscarCDTotFil);
+      $rowCDTotFil = mysqli_fetch_row($encontradoCDTotFil);
+      $nCDTotFil = $rowCDTotFil[0];
+
       $print .= '<div class="colTime centrar" style="border-left: 1px solid #d7d7d7;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <a class="nav-link text-truncate" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'" data-toggle="tooltip" data-placement="top" title="'.$nombre.'"><span class="text-truncate" style="font-size: .6em;">'.$nombre.'</span></a>
+                  <div style="width: 100%">
+                    <div>
+                      <a class="nav-link text-truncate" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'" data-toggle="tooltip" data-placement="top" title="'.$nombre.'"><span class="text-truncate" style="font-size: .6em;">'.$nombre.'</span></a>
+                    </div>
+                    <div style="text-align:center;font-size:.8em;">
+                      CD:<span class="text-green" id="totalDia'.$perid.'">'.$nCDTotFil.'</span>
+                    </div>
+                  </div>
                 </div>';
 
       $print .= '<div class="colTime">
                   <div class="row">';
 
-      $buscarCDTotFil = "SELECT count(c.clienteid)
-                          FROM cli c
-                          where c.vendedorid = ".$perid."
-                            and (
-                                  c.diavis LIKE '$diaVis'
-                                  OR c.diavis LIKE '%".$diaVis."'
-                                  OR c.diavis LIKE '".$diaVis."%'
-                                  OR c.diavis LIKE '%".$diaVis."%'
-                                )";
-      $encontradoCDTotFil = mysqli_query($getConnection, $buscarCDTotFil);
-      $rowCDTotFil = mysqli_fetch_row($encontradoCDTotFil);
-      $nCDTotFil = $rowCDTotFil[0];
+      $buscarCTotFil = "SELECT c.clienteid
+                        from doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where c.vendedorid = ".$perid."
+                          and d.fecha = '".$dia."'
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'
+                          and c.diavis LIKE '%".$diaVis."%'
+                          group by c.clienteid
+                          order by c.clienteid";
+      $encontradoCTTotFil = mysqli_query($getConnection, $buscarCTotFil);
+      $rowCTTotFil = mysqli_num_rows($encontradoCTTotFil);
+
       $print .=     '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                      CD:<span class="text-green" id="totalDia'.$perid.'">'.$nCDTotFil.'</span>
+                      C:<span class="text-green">'.$rowCTTotFil.'</span>
                     </div>';
 
       $buscarPDTotFil = "SELECT d.docid
@@ -931,12 +892,7 @@ class Report {
                           and d.fecha = '".$dia."'
                           and c.vendedor NOT LIKE 'OF'
                           and d.tipo = 'C'
-                          and (
-                                c.diavis LIKE '$diaVis'
-                                OR c.diavis LIKE '%".$diaVis."'
-                                OR c.diavis LIKE '".$diaVis."%'
-                                OR c.diavis LIKE '%".$diaVis."%'
-                              )";
+                          and c.diavis LIKE '%".$diaVis."%'";
       $encontradoPDTotFil = mysqli_query($getConnection, $buscarPDTotFil);
       $rowPDTotFil = mysqli_num_rows($encontradoPDTotFil);
 
@@ -956,12 +912,7 @@ class Report {
                           where c.vendedorid = ".$perid."
                             and d.fecha = '".$dia."'
                             and c.vendedor NOT LIKE 'OF'
-                            and (
-                              c.diavis NOT LIKE '".$diaVis."'
-                              OR c.diavis NOT LIKE '%".$diaVis."'
-                              OR c.diavis NOT LIKE '".$diaVis."%'
-                              OR c.diavis NOT LIKE '%".$diaVis."%'
-                            )
+                            and c.diavis NOT LIKE '%".$diaVis."%'
                           group by c.clienteid";
       $encontradoCTotFil = mysqli_query($getConnection, $buscarCTotFil);
       $rowCTotFil = mysqli_num_rows($encontradoCTotFil);
@@ -977,12 +928,7 @@ class Report {
                               and c.vendedorid = ".$perid."
                               and c.vendedor NOT LIKE 'OF'
                               and d.tipo = 'C'
-                              and (
-                                c.diavis NOT LIKE '".$diaVis."'
-                                OR c.diavis NOT LIKE '%".$diaVis."'
-                                OR c.diavis NOT LIKE '".$diaVis."%'
-                                OR c.diavis NOT LIKE '%".$diaVis."%'
-                              )";
+                              and c.diavis NOT LIKE '%".$diaVis."%'";
       $encontradoSumTotFil = mysqli_query($getConnection, $buscarSumTotFil);
       $rowSumTotFil = mysqli_fetch_row($encontradoSumTotFil);
       $sumaTotFil = $rowSumTotFil[0];
@@ -1246,29 +1192,6 @@ class Report {
                 </div>';
         }
       }
-
-      $buscar19A20 = "SELECT count(d.docid)
-                      FROM doc d
-                        left outer join cli c on c.clienteid = d.clienteid
-                      where d.fecha = '".$dia."'
-                        and (d.hora >= '19:00' and d.hora <= '20:00')
-                        and c.vendedorid = ".$perid."
-                        and c.vendedor NOT LIKE 'OF'
-                        and d.tipo = 'C'";
-      $encontrado19A20 = mysqli_query($getConnection, $buscar19A20);
-
-      while($row19A20 = mysqli_fetch_row($encontrado19A20)){
-        $n19A20 = $row19A20[0];
-        if($n19A20 > 0){
-      $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span id="n19A20'.$perid.'">'.$n19A20.'</span>
-                </div>';
-        }else{
-      $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span id="n19A20'.$perid.'">'.$n19A20.'</span>
-                </div>';
-        }
-      }
     }
 
     $buscarTotalPedDia = "SELECT count(d.docid)
@@ -1278,31 +1201,21 @@ class Report {
                             where d.fecha = '".$dia."'
                               and d.tipo = 'C'
                               and c.vendedor NOT LIKE 'OF'
-                              and (
-                                c.diavis LIKE '$diaVis'
-                                OR c.diavis LIKE '%".$diaVis."'
-                                OR c.diavis LIKE '".$diaVis."%'
-                                OR c.diavis LIKE '%".$diaVis."%'
-                              )
+                              and c.diavis LIKE '%".$diaVis."%'
                               and p.sermov = 2";
     $enconTotalPedDia = mysqli_query($getConnection, $buscarTotalPedDia);
     $rowTotalPedDia = mysqli_fetch_row($enconTotalPedDia);
     $totalPedDia = $rowTotalPedDia[0];
-
+    // REVISAR TOTAL DE CLIENTES QUE NO SON DEL DIA
     $buscarTotalPedDiaVis = "SELECT c.clienteid
                               from doc d
                                 left outer join cli c on c.clienteid = d.clienteid
                                 left OUTER JOIN per p ON p.perid = D.vendedorid
                               where d.fecha = '".$dia."'
                                 and p.sermov = 2
+                                and d.tipo = 'C'
                                 and c.vendedor NOT LIKE 'OF'
-                                and (
-                                  c.diavis NOT LIKE '$diaVis'
-                                  OR c.diavis NOT LIKE '%".$diaVis."'
-                                  OR c.diavis NOT LIKE '".$diaVis."%'
-                                  OR c.diavis NOT LIKE '%".$diaVis."%'
-                                )
-                              group by c.clienteid";
+                                and c.diavis NOT LIKE '%".$diaVis."%'";
     $enconTotalPedDiaVis = mysqli_query($getConnection, $buscarTotalPedDiaVis);
     $rowTotalPedDiaVis = mysqli_num_rows($enconTotalPedDiaVis);
 
@@ -1502,23 +1415,6 @@ class Report {
 
     $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                   <span>'.$nTotal18a19.'</span>
-                </div>';
-
-    $totalCol19a20 = "SELECT count(doc.docid)
-                      FROM doc
-                        LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
-                        left outer join cli c on c.clienteid = doc.clienteid
-                      where doc.fecha ='".$dia."'
-                        and (doc.hora >= '19:00' and doc.hora <= '20:00')
-                        and doc.tipo = 'C'
-                        and c.vendedor NOT LIKE 'OF'
-                        and p.sermov = 2";
-    $totalEncontradoCol19a20 = mysqli_query($getConnection, $totalCol19a20);
-    $rowTotalCol19a20 = mysqli_fetch_row($totalEncontradoCol19a20);
-    $nTotal19a20 = $rowTotalCol19a20[0];
-
-    $print .=   '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                  <span>'.$nTotal19a20.'</span>
                 </div>';
 
     $print .= '</div>
@@ -1565,7 +1461,7 @@ class Report {
                     <span>CLIENTES DEL DIA</span>
                   </div>
                   <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
-                    <span>PEDIDOS</span>
+                    <span>CLIENTES DE OTRO DIA</span>
                   </div>
                   <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">|
                     <span>8:00 - 9:00</span>
@@ -1599,9 +1495,6 @@ class Report {
                   </div>
                   <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
                     <span>18:00 - 19:00</span>
-                  </div>
-                  <div class ="colTime text-center text-tomato centrar" style="border: 1px solid tomato;">
-                    <span>19:00 - 20:00</span>
                   </div>';
     $indice = 0;
     while($rowVenZona1 = mysqli_fetch_row($venEncontradoZona1)){
@@ -1615,27 +1508,43 @@ class Report {
 
       $linkFunctionPersonal = "showPersonal(".$perid.")";
 
+      $buscarCDTotFil = "SELECT count(c.clienteid)
+                          FROM cli c
+                          where c.vendedorid = ".$perid."
+                            and c.diavis LIKE '%".$diaVis."%'";
+      $encontradoCDTotFil = mysqli_query($getConnection, $buscarCDTotFil);
+      $rowCDTotFil = mysqli_fetch_row($encontradoCDTotFil);
+      $nCDTotFil = $rowCDTotFil[0];
+
       $print .=   '<div class="colTime centrar" style="border-left: 1px solid #d7d7d7;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                    <a class="nav-link text-truncate" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'" data-toggle="tooltip" data-placement="top" title="'.$nombre.'"><span class="text-truncate" style="font-size: .6em;">'.$nombre.'</span></a>
+                    <div style="width: 100%">
+                      <div>
+                        <a class="nav-link text-truncate" style="color: white!important" href="#" onclick="'.$linkFunctionPersonal.'" data-toggle="tooltip" data-placement="top" title="'.$nombre.'"><span class="text-truncate" style="font-size: .6em;">'.$nombre.'</span></a>
+                      </div>
+                      <div style="text-align:center;font-size:.8em;">
+                        CD:<span class="text-green" id="totalDia'.$perid.'">'.$nCDTotFil.'</span>
+                      </div>
+                    </div>
                   </div>';
 
       $print .=   '<div class="colTime">
                     <div class="row">';
 
-      $buscarCDTotFil = "SELECT count(c.clienteid)
-                          FROM cli c
-                          where c.vendedorid = ".$perid."
-                            and (
-                                  c.diavis LIKE '$diaVis'
-                                  OR c.diavis LIKE '%".$diaVis."'
-                                  OR c.diavis LIKE '".$diaVis."%'
-                                  OR c.diavis LIKE '%".$diaVis."%'
-                                )";
-      $encontradoCDTotFil = mysqli_query($getConnection, $buscarCDTotFil);
-      $rowCDTotFil = mysqli_fetch_row($encontradoCDTotFil);
-      $nCDTotFil = $rowCDTotFil[0];
+      $buscarCTotFil = "SELECT c.clienteid
+                        from doc d
+                          left outer join cli c on c.clienteid = d.clienteid
+                        where c.vendedorid = ".$perid."
+                          and d.fecha = '".$dia."'
+                          and c.vendedor NOT LIKE 'OF'
+                          and d.tipo = 'C'
+                          and c.diavis LIKE '%".$diaVis."%'
+                          group by c.clienteid
+                          order by c.clienteid";
+      $encontradoCTTotFil = mysqli_query($getConnection, $buscarCTotFil);
+      $rowCTTotFil = mysqli_num_rows($encontradoCTTotFil);
+
       $print .=       '<div class ="text-center centrar" style="font-size:.8em;position:relative; width:100%; min-height:1px;padding: .5rem 1rem; -ms-flex: 0 0 100%; flex: 0 0 100%; max-width: 100%;border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                        CD:<span class="text-green" id="totalDia'.$perid.'">'.$nCDTotFil.'</span>
+                        C:<span class="text-green">'.$rowCTTotFil.'</span>
                       </div>';
 
       $buscarPDTotFil = "SELECT c.clienteid
@@ -1643,14 +1552,8 @@ class Report {
                             left outer join cli c on c.clienteid = d.clienteid
                           where d.vendedorid = ".$perid."
                             and d.fecha = '".$dia."'
-                            and (
-                                  c.diavis LIKE '$diaVis'
-                                  OR c.diavis LIKE '%".$diaVis."'
-                                  OR c.diavis LIKE '".$diaVis."%'
-                                  OR c.diavis LIKE '%".$diaVis."%'
-                                )
-                            and c.vendedor NOT LIKE 'OF'
-                          group by c.clienteid";
+                            and c.diavis LIKE '%".$diaVis."%'
+                            and c.vendedor NOT LIKE 'OF'";
       $encontradoPDTotFil = mysqli_query($getConnection, $buscarPDTotFil);
       $rowPDTotFil = mysqli_num_rows($encontradoPDTotFil);
 
@@ -1948,29 +1851,6 @@ class Report {
                   </div>';
         }
       }
-
-      $buscar19A20 = "SELECT count(d.docid)
-                        FROM doc d
-                          left outer join cli c on c.clienteid = d.clienteid
-                        where d.fecha = '".$dia."'
-                          and (d.hora >= '19:00' and d.hora <= '20:00')
-                          and d.vendedorid = ".$perid."
-                          and c.vendedor NOT LIKE 'OF'
-                          and d.tipo = 'C'";
-      $encontrado19A20 = mysqli_query($getConnection, $buscar19A20);
-
-      while($row19A20 = mysqli_fetch_row($encontrado19A20)){
-        $n19A20 = $row19A20[0];
-        if($n19A20 > 0){
-        $print .= '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                    <span id="n19A20'.$perid.'">'.$n19A20.'</span>
-                  </div>';
-        }else{
-        $print .= '<div class ="colTime text-center centrar" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                    <span id="n19A20'.$perid.'">'.$n19A20.'</span>
-                  </div>';
-        }
-      }
     }
 
     $buscarTotalPedDia = "SELECT count(d.docid)
@@ -1988,12 +1868,12 @@ class Report {
     $buscarTotalPedDiaVis = "SELECT c.clienteid
                               from doc d
                                 left outer join cli c on c.clienteid = d.clienteid
-                                LEFT OUTER JOIN per p ON p.perid = D.vendedorid
+                                left OUTER JOIN per p ON p.perid = D.vendedorid
                               where d.fecha = '".$dia."'
-                                and c.diavis = '$diaVis'
                                 and p.sermov = $sermov
+                                and d.tipo = 'C'
                                 and c.vendedor NOT LIKE 'OF'
-                              group by c.clienteid";
+                                and c.diavis NOT LIKE '%".$diaVis."%'";
     $enconTotalPedDiaVis = mysqli_query($getConnection, $buscarTotalPedDiaVis);
     $rowTotalPedDiaVis = mysqli_num_rows($enconTotalPedDiaVis);
 
@@ -2193,23 +2073,6 @@ class Report {
 
     $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
                     <span>'.$nTotal18a19.'</span>
-                  </div>';
-
-    $totalCol19a20 = "SELECT count(doc.docid)
-                        FROM doc
-                          LEFT OUTER JOIN per p ON p.perid = doc.vendedorid
-                          left outer join cli c on c.clienteid = doc.clienteid
-                        where doc.fecha ='".$dia."'
-                          and (doc.hora >= '19:00' and doc.hora <= '20:00')
-                          and doc.tipo = 'C'
-                          and c.vendedor NOT LIKE 'OF'
-                          and p.sermov = $sermov";
-    $totalEncontradoCol19a20 = mysqli_query($getConnection, $totalCol19a20);
-    $rowTotalCol19a20 = mysqli_fetch_row($totalEncontradoCol19a20);
-    $nTotal19a20 = $rowTotalCol19a20[0];
-
-    $print .=     '<div class ="colTime text-center centrar text-yellow" style="border-right: 1px solid #d7d7d7;border-bottom: 1px solid #d7d7d7">
-                    <span>'.$nTotal19a20.'</span>
                   </div>';
 
     $print .=   '</div>
@@ -2469,6 +2332,54 @@ class Report {
                             </tr>
                           </tbody>
                         </table>
+                        <table class="table table-bordered">
+                          <thead>
+                            <tr>
+                              <th scope="col"></th>
+                              <th scope="col">8:00-9:00</th>
+                              <th scope="col">9:00-10:00</th>
+                              <th scope="col">10:00-11:00</th>
+                              <th scope="col">11:00-12:00</th>
+                              <th scope="col">12:00-13:00</th>
+                              <th scope="col">13:00-14:00</th>
+                              <th scope="col">14:00-15:00</th>
+                              <th scope="col">15:00-16:00</th>
+                              <th scope="col">16:00-17:00</th>
+                              <th scope="col">17:00-18:00</th>
+                              <th scope="col">18:00-19:00</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>Cotizados</td>
+                              <td><span id="totalct8a9">-</span></td>
+                              <td><span id="totalct9a10">-</span></td>
+                              <td><span id="totalct10a11">-</span></td>
+                              <td><span id="totalct11a12">-</span></td>
+                              <td><span id="totalct12a13">-</span></td>
+                              <td><span id="totalct13a14">-</span></td>
+                              <td><span id="totalct14a15">-</span></td>
+                              <td><span id="totalct15a16">-</span></td>
+                              <td><span id="totalct16a17">-</span></td>
+                              <td><span id="totalct17a18">-</span></td>
+                              <td><span id="totalct18a19">-</span></td>
+                            </tr>
+                            <tr>
+                              <td>Facturados</td>
+                              <td><span id="total8a9">-</span></td>
+                              <td><span id="total9a10">-</span></td>
+                              <td><span id="total10a11">-</span></td>
+                              <td><span id="total11a12">-</span></td>
+                              <td><span id="total12a13">-</span></td>
+                              <td><span id="total13a14">-</span></td>
+                              <td><span id="total14a15">-</span></td>
+                              <td><span id="total15a16">-</span></td>
+                              <td><span id="total16a17">-</span></td>
+                              <td><span id="total17a18">-</span></td>
+                              <td><span id="total18a19">-</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                       <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                         <a class="btn btn-secondary btn-enl btn-block" href="javascript:location.reload(true)">Borrar Historial</a>
@@ -2637,6 +2548,362 @@ class Report {
                           });
                         }
                         setInterval(pedidosDiaCancelacion, 2000);
+
+                        // Colocar funciones de pedidos cotizados totales por hora
+
+                        function totalct8a9(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct8a9.php",
+                            success: function(tct8a9) {
+                              if(tct8a9 > 0){
+                                $("#totalct8a9").text(tct8a9);
+                                $("#totalct8a9").addClass("text-green");
+                              }else{
+                                $("#totalct8a9").text(tct8a9);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(totalct8a9, 2000);
+                        
+                        function totalct9a10(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct9a10.php",
+                            success: function(tct9a10) {
+                              if(tct9a10 > 0){
+                                $("#totalct9a10").text(tct9a10);
+                                $("#totalct9a10").addClass("text-green");
+                              }else{
+                                $("#totalct9a10").text(tct9a10);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(totalct9a10, 2000);
+
+                        function totalct10a11(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct10a11.php",
+                            success: function(tct10a11) {
+                              if(tct10a11 > 0){
+                                $("#totalct10a11").text(tct10a11);
+                                $("#totalct10a11").addClass("text-green");
+                              }else{
+                                $("#totalct10a11").text(tct10a11);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(totalct10a11, 2000);
+
+                        function totalct11a12(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct11a12.php",
+                            success: function(tct11a12) {
+                              if(tct11a12 > 0){
+                                $("#totalct11a12").text(tct11a12);
+                                $("#totalct11a12").addClass("text-green");
+                              }else{
+                                $("#totalct11a12").text(tct11a12);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(totalct11a12, 2000);
+
+                        function totalct12a13(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct12a13.php",
+                            success: function(tct12a13) {
+                              if(tct12a13 > 0){
+                                $("#totalct12a13").text(tct12a13);
+                                $("#totalct12a13").addClass("text-green");
+                              }else{
+                                $("#totalct12a13").text(tct12a13);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(totalct12a13, 2000);
+
+                        function totalct13a14(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct13a14.php",
+                            success: function(tct13a14) {
+                              if(tct13a14 > 0){
+                                $("#totalct13a14").text(tct13a14);
+                                $("#totalct13a14").addClass("text-green");
+                              }else{
+                                $("#totalct13a14").text(tct13a14);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(totalct13a14, 2000);
+
+                        function totalct14a15(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct14a15.php",
+                            success: function(tct14a15) {
+                              if(tct14a15 > 0){
+                                $("#totalct14a15").text(tct14a15);
+                                $("#totalct14a15").addClass("text-green");
+                              }else{
+                                $("#totalct14a15").text(tct14a15);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(totalct14a15, 2000);
+
+                        function totalct15a16(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct15a16.php",
+                            success: function(tct15a16) {
+                              if(tct15a16 > 0){
+                                $("#totalct15a16").text(tct15a16);
+                                $("#totalct15a16").addClass("text-green");
+                              }else{
+                                $("#totalct15a16").text(tct15a16);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(totalct15a16, 2000);
+
+                        function totalct16a17(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct16a17.php",
+                            success: function(tct16a17) {
+                              if(tct16a17 > 0){
+                                $("#totalct16a17").text(tct16a17);
+                                $("#totalct16a17").addClass("text-green");
+                              }else{
+                                $("#totalct16a17").text(tct16a17);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(totalct16a17, 2000);
+
+                        function totalct17a18(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct17a18.php",
+                            success: function(tct17a18) {
+                              if(tct17a18 > 0){
+                                $("#totalct17a18").text(tct17a18);
+                                $("#totalct17a18").addClass("text-green");
+                              }else{
+                                $("#totalct17a18").text(tct17a18);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(totalct17a18, 2000);
+
+                        function totalct18a19(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct18a19.php",
+                            success: function(tct18a19) {
+                              if(tct18a19 > 0){
+                                $("#totalct18a19").text(tct18a19);
+                                $("#totalct18a19").addClass("text-green");
+                              }else{
+                                $("#totalct18a19").text(tct18a19);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(totalct18a19, 2000);
+
+                        // Colocar funciones de pedidos totales por hora
+
+                        function total8a9(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total8a9.php",
+                            success: function(t8a9) {
+                              if(t8a9 > 0){
+                                $("#total8a9").text(t8a9);
+                                $("#total8a9").addClass("text-green");
+                              }else{
+                                $("#total8a9").text(t8a9);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(total8a9, 2000);
+                        
+                        function total9a10(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total9a10.php",
+                            success: function(t9a10) {
+                              if(t9a10 > 0){
+                                $("#total9a10").text(t9a10);
+                                $("#total9a10").addClass("text-green");
+                              }else{
+                                $("#total9a10").text(t9a10);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(total9a10, 2000);
+
+                        function total10a11(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total10a11.php",
+                            success: function(t10a11) {
+                              if(t10a11 > 0){
+                                $("#total10a11").text(t10a11);
+                                $("#total10a11").addClass("text-green");
+                              }else{
+                                $("#total10a11").text(t10a11);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(total10a11, 2000);
+
+                        function total11a12(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total11a12.php",
+                            success: function(t11a12) {
+                              if(t11a12 > 0){
+                                $("#total11a12").text(t11a12);
+                                $("#total11a12").addClass("text-green");
+                              }else{
+                                $("#total11a12").text(t11a12);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(total11a12, 2000);
+
+                        function total12a13(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total12a13.php",
+                            success: function(t12a13) {
+                              if(t12a13 > 0){
+                                $("#total12a13").text(t12a13);
+                                $("#total12a13").addClass("text-green");
+                              }else{
+                                $("#total12a13").text(t12a13);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(total12a13, 2000);
+
+                        function total13a14(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total13a14.php",
+                            success: function(t13a14) {
+                              if(t13a14 > 0){
+                                $("#total13a14").text(t13a14);
+                                $("#total13a14").addClass("text-green");
+                              }else{
+                                $("#total13a14").text(t13a14);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(total13a14, 2000);
+
+                        function total14a15(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total14a15.php",
+                            success: function(t14a15) {
+                              if(t14a15 > 0){
+                                $("#total14a15").text(t14a15);
+                                $("#total14a15").addClass("text-green");
+                              }else{
+                                $("#total14a15").text(t14a15);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(total14a15, 2000);
+
+                        function total15a16(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total15a16.php",
+                            success: function(t15a16) {
+                              if(t15a16 > 0){
+                                $("#total15a16").text(t15a16);
+                                $("#total15a16").addClass("text-green");
+                              }else{
+                                $("#total15a16").text(t15a16);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(total15a16, 2000);
+
+                        function total16a17(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total16a17.php",
+                            success: function(t16a17) {
+                              if(t16a17 > 0){
+                                $("#total16a17").text(t16a17);
+                                $("#total16a17").addClass("text-green");
+                              }else{
+                                $("#total16a17").text(t16a17);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(total16a17, 2000);
+
+                        function total17a18(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total17a18.php",
+                            success: function(t17a18) {
+                              if(t17a18 > 0){
+                                $("#total17a18").text(t17a18);
+                                $("#total17a18").addClass("text-green");
+                              }else{
+                                $("#total17a18").text(t17a18);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(total17a18, 2000);
+
+                        function total18a19(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total18a19.php",
+                            success: function(t18a19) {
+                              if(t18a19 > 0){
+                                $("#total18a19").text(t18a19);
+                                $("#total18a19").addClass("text-green");
+                              }else{
+                                $("#total18a19").text(t18a19);
+                              }
+                            }
+                          });
+                        }
+                        setInterval(total18a19, 2000);
                       });
                     } else {
                       console.log("Fuera de Línea");
@@ -2718,6 +2985,362 @@ class Report {
                           });
                         }
                         setTimeout(pedidosDiaCancelacion, 1000);
+
+                        // Colocar funciones de pedidos cotizados totales por hora
+
+                        function totalct8a9(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct8a9.php",
+                            success: function(tct8a9) {
+                              if(tct8a9 > 0){
+                                $("#totalct8a9").text(tct8a9);
+                                $("#totalct8a9").addClass("text-green");
+                              }else{
+                                $("#totalct8a9").text(tct8a9);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(totalct8a9, 1000);
+                        
+                        function totalct9a10(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct9a10.php",
+                            success: function(tct9a10) {
+                              if(tct9a10 > 0){
+                                $("#totalct9a10").text(tct9a10);
+                                $("#totalct9a10").addClass("text-green");
+                              }else{
+                                $("#totalct9a10").text(tct9a10);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(totalct9a10, 1000);
+
+                        function totalct10a11(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct10a11.php",
+                            success: function(tct10a11) {
+                              if(tct10a11 > 0){
+                                $("#totalct10a11").text(tct10a11);
+                                $("#totalct10a11").addClass("text-green");
+                              }else{
+                                $("#totalct10a11").text(tct10a11);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(totalct10a11, 1000);
+
+                        function totalct11a12(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct11a12.php",
+                            success: function(tct11a12) {
+                              if(tct11a12 > 0){
+                                $("#totalct11a12").text(tct11a12);
+                                $("#totalct11a12").addClass("text-green");
+                              }else{
+                                $("#totalct11a12").text(tct11a12);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(totalct11a12, 1000);
+
+                        function totalct12a13(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct12a13.php",
+                            success: function(tct12a13) {
+                              if(tct12a13 > 0){
+                                $("#totalct12a13").text(tct12a13);
+                                $("#totalct12a13").addClass("text-green");
+                              }else{
+                                $("#totalct12a13").text(tct12a13);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(totalct12a13, 1000);
+
+                        function totalct13a14(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct13a14.php",
+                            success: function(tct13a14) {
+                              if(tct13a14 > 0){
+                                $("#totalct13a14").text(tct13a14);
+                                $("#totalct13a14").addClass("text-green");
+                              }else{
+                                $("#totalct13a14").text(tct13a14);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(totalct13a14, 1000);
+
+                        function totalct14a15(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct14a15.php",
+                            success: function(tct14a15) {
+                              if(tct14a15 > 0){
+                                $("#totalct14a15").text(tct14a15);
+                                $("#totalct14a15").addClass("text-green");
+                              }else{
+                                $("#totalct14a15").text(tct14a15);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(totalct14a15, 1000);
+
+                        function totalct15a16(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct15a16.php",
+                            success: function(tct15a16) {
+                              if(tct15a16 > 0){
+                                $("#totalct15a16").text(tct15a16);
+                                $("#totalct15a16").addClass("text-green");
+                              }else{
+                                $("#totalct15a16").text(tct15a16);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(totalct15a16, 1000);
+
+                        function totalct16a17(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct16a17.php",
+                            success: function(tct16a17) {
+                              if(tct16a17 > 0){
+                                $("#totalct16a17").text(tct16a17);
+                                $("#totalct16a17").addClass("text-green");
+                              }else{
+                                $("#totalct16a17").text(tct16a17);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(totalct16a17, 1000);
+
+                        function totalct17a18(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct17a18.php",
+                            success: function(tct17a18) {
+                              if(tct17a18 > 0){
+                                $("#totalct17a18").text(tct17a18);
+                                $("#totalct17a18").addClass("text-green");
+                              }else{
+                                $("#totalct17a18").text(tct17a18);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(totalct17a18, 1000);
+
+                        function totalct18a19(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/totalct18a19.php",
+                            success: function(tct18a19) {
+                              if(tct18a19 > 0){
+                                $("#totalct18a19").text(tct18a19);
+                                $("#totalct18a19").addClass("text-green");
+                              }else{
+                                $("#totalct18a19").text(tct18a19);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(totalct18a19, 1000);
+
+                        // Colocar funciones de pedidos totales por hora
+
+                        function total8a9(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total8a9.php",
+                            success: function(t8a9) {
+                              if(t8a9 > 0){
+                                $("#total8a9").text(t8a9);
+                                $("#total8a9").addClass("text-green");
+                              }else{
+                                $("#total8a9").text(t8a9);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(total8a9, 1000);
+                        
+                        function total9a10(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total9a10.php",
+                            success: function(t9a10) {
+                              if(t9a10 > 0){
+                                $("#total9a10").text(t9a10);
+                                $("#total9a10").addClass("text-green");
+                              }else{
+                                $("#total9a10").text(t9a10);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(total9a10, 1000);
+
+                        function total10a11(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total10a11.php",
+                            success: function(t10a11) {
+                              if(t10a11 > 0){
+                                $("#total10a11").text(t10a11);
+                                $("#total10a11").addClass("text-green");
+                              }else{
+                                $("#total10a11").text(t10a11);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(total10a11, 1000);
+
+                        function total11a12(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total11a12.php",
+                            success: function(t11a12) {
+                              if(t11a12 > 0){
+                                $("#total11a12").text(t11a12);
+                                $("#total11a12").addClass("text-green");
+                              }else{
+                                $("#total11a12").text(t11a12);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(total11a12, 1000);
+
+                        function total12a13(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total12a13.php",
+                            success: function(t12a13) {
+                              if(t12a13 > 0){
+                                $("#total12a13").text(t12a13);
+                                $("#total12a13").addClass("text-green");
+                              }else{
+                                $("#total12a13").text(t12a13);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(total12a13, 1000);
+
+                        function total13a14(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total13a14.php",
+                            success: function(t13a14) {
+                              if(t13a14 > 0){
+                                $("#total13a14").text(t13a14);
+                                $("#total13a14").addClass("text-green");
+                              }else{
+                                $("#total13a14").text(t13a14);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(total13a14, 1000);
+
+                        function total14a15(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total14a15.php",
+                            success: function(t14a15) {
+                              if(t14a15 > 0){
+                                $("#total14a15").text(t14a15);
+                                $("#total14a15").addClass("text-green");
+                              }else{
+                                $("#total14a15").text(t14a15);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(total14a15, 1000);
+
+                        function total15a16(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total15a16.php",
+                            success: function(t15a16) {
+                              if(t15a16 > 0){
+                                $("#total15a16").text(t15a16);
+                                $("#total15a16").addClass("text-green");
+                              }else{
+                                $("#total15a16").text(t15a16);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(total15a16, 1000);
+
+                        function total16a17(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total16a17.php",
+                            success: function(t16a17) {
+                              if(t16a17 > 0){
+                                $("#total16a17").text(t16a17);
+                                $("#total16a17").addClass("text-green");
+                              }else{
+                                $("#total16a17").text(t16a17);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(total16a17, 1000);
+
+                        function total17a18(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total17a18.php",
+                            success: function(t17a18) {
+                              if(t17a18 > 0){
+                                $("#total17a18").text(t17a18);
+                                $("#total17a18").addClass("text-green");
+                              }else{
+                                $("#total17a18").text(t17a18);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(total17a18, 1000);
+
+                        function total18a19(){
+                          $.ajax({
+                            type: "POST",
+                            url: "../php/atiempo/total18a19.php",
+                            success: function(t18a19) {
+                              if(t18a19 > 0){
+                                $("#total18a19").text(t18a19);
+                                $("#total18a19").addClass("text-green");
+                              }else{
+                                $("#total18a19").text(t18a19);
+                              }
+                            }
+                          });
+                        }
+                        setTimeout(total18a19, 1000);
                       });
                     }
                   </script>
@@ -5108,6 +5731,8 @@ class Report {
                           FROM doc
                           WHERE fecha = '$dia'
                             AND tipo = 'F'
+                            AND tipo NOT LIKE 'CH'
+                            AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQueryDia = mysqli_query($getConnection, $queryVtaDia);
     $qVtaDia = mysqli_fetch_array($resultQueryDia);
@@ -5123,7 +5748,7 @@ class Report {
                       FROM doc d
                       WHERE d.fecha = '".$dia."'
                         AND (tipo = 'C' OR tipo = 'N' OR tipo = 'F')
-                        AND tipo NOT LIKE 'CH'
+                        AND d.tipo NOT LIKE 'CH'
                         AND d.subtotal2 > 0
                         AND d.FECCAN = 0";
     $resultQueryPedDia = $getConnection->query($queryPedDia);
@@ -5163,6 +5788,7 @@ class Report {
                                 AND fecha >= '$primerDia' 
                                 )
                             AND tipo = 'F'
+                            AND serie NOT LIKE 'CH'
                             AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQuerySemana = $getConnection->query($queryVtaSemana);
@@ -5185,7 +5811,8 @@ class Report {
                               AND fecha >= '$primerDiaMes' 
                               )
                         AND tipo = 'F'
-                        AND serie NOT LIKE 'CH'";
+                        AND serie NOT LIKE 'CH'
+							          AND subtotal2 > 0";
     $resultQueryMes = $getConnection->query($queryVtaMes);
     $qVtaMes = mysqli_fetch_array($resultQueryMes);
     if($qVtaMes === NULL){
@@ -5208,7 +5835,8 @@ class Report {
                                 AND fecha >= '$primerDiaTrimestre' 
                                 )
                             AND tipo = 'F'
-                            AND subtotal2 > 0
+                            AND serie NOT LIKE 'CH'
+							              AND subtotal2 > 0
                             AND FECCAN = 0";
     $resultQueryTrimestre = $getConnection->query($queryVtaTrimestre);
     $qVtaTrimestre = mysqli_fetch_array($resultQueryTrimestre);
@@ -5297,7 +5925,8 @@ class Report {
                                   WHERE fecha >= '".$fecAnteIni."'
                                     AND fecha <= '".$fecAnteFin."'
                                     AND tipo = 'F'
-                                    AND subtotal2 > 0
+                                    AND serie NOT LIKE 'CH'
+							                      AND subtotal2 > 0
                                     AND FECCAN = 0";
     $resultQueryvtdAnt = $getConnection->query($queryVtaTotalDiaAnt);
     $qVtDAnt = mysqli_fetch_array($resultQueryvtdAnt);
@@ -5335,6 +5964,8 @@ class Report {
                                       AND fecha >= '".${'fecIniQ'.$y}."'
                                     )
                               AND tipo = 'F'
+                              AND serie NOT LIKE 'CH'
+							                AND subtotal2 > 0
                               AND FECCAN = 0";
       $buscandoMes = $getConnection->query($buscandoAnual);
       $mesEnc = mysqli_fetch_row($buscandoMes);
@@ -5377,6 +6008,8 @@ class Report {
                                       AND fecha >= '".${'fecIniQ'.$y}."'
                                     )
                               AND tipo = 'F'
+                              AND serie NOT LIKE 'CH'
+							                AND subtotal2 > 0
                               AND FECCAN = 0";
       $buscandoMes = $getConnection->query($buscandoAnual);
       $mesEnc = mysqli_fetch_row($buscandoMes);
@@ -5418,6 +6051,8 @@ class Report {
                                       fecha <= '".${'fecFinQ'.$y}."'
                                       AND fecha >= '".${'fecIniQ'.$y}."'
                                     )
+                                AND serie NOT LIKE 'CH'
+							                  AND subtotal2 > 0
                                 AND FECCAN = 0";
       $buscandoMes = $getConnection->query($buscandoAnual);
       $mesEnc = mysqli_fetch_row($buscandoMes);
@@ -5434,17 +6069,18 @@ class Report {
     //Reporte Mejor Mes
     $vMejor = 0;
     $anioAnterior = date('Y')-1;
-    for($mAnt = 1; $mAnt <= 12; $mAnt++){
+    $mesBusc = $month - 1;
+    for($mAnt = 1; $mAnt <= $mesBusc; $mAnt++){
 
       if($diasTotalMes < 30){
-        ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
-        ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-28');
+        ${'fecIniQ'.$mAnt} = date('Y-'.$mAnt.'-01');
+        ${'fecFinQ'.$mAnt} = date('Y-'.$mAnt.'-28');
       } else if($diasTotalMes > 30){
-        ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
-        ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-31');
+        ${'fecIniQ'.$mAnt} = date('Y-'.$mAnt.'-01');
+        ${'fecFinQ'.$mAnt} = date('Y-'.$mAnt.'-31');
       } else {
-        ${'fecIniQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-01');
-        ${'fecFinQ'.$mAnt} = date(''.$anioAnterior.'-'.$mAnt.'-30');
+        ${'fecIniQ'.$mAnt} = date('Y-'.$mAnt.'-01');
+        ${'fecFinQ'.$mAnt} = date('Y-'.$mAnt.'-30');
       }
 
       $buscandoAnual= "SELECT (
@@ -5461,6 +6097,8 @@ class Report {
                                       AND fecha >= '".${'fecIniQ'.$mAnt}."'
                                     )
                               AND tipo = 'F'
+                              AND serie NOT LIKE 'CH'
+							                AND subtotal2 > 0
                               AND FECCAN = 0";
       $buscandoMes = $getConnection->query($buscandoAnual);
       $mesEnc = mysqli_fetch_row($buscandoMes);
@@ -5777,7 +6415,7 @@ class Report {
                                 <span class="text-green">
                                   Ventas del Mejor Mes<br /><b style="font-size: 2em;">$ '.number_format($vMejor, 2, ".", ",").'</b>
                                 </span>
-                                <p class="text-green" style="font-weight:bold">'.$mesMej.' '.$anioAnterior.'</p>
+                                <p class="text-green" style="font-weight:bold">'.$mesMej.' '.date("Y").'</p>
                               </div>
                             </div>
                             <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
