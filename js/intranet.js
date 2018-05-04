@@ -1225,6 +1225,154 @@ function showPedidosDia(tipoPedido) {
   });
 }
 
+function addInv() {
+  var url = '../php/report/report.php';
+  var dataSend = {};
+  dataSend.data = 'empty';
+  dataSend.location = 'getAddInv';
+  dataSend.section = 'reports-partner';
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    url: url,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      $('#page-wrapper').html(data);
+    },
+    error: function(err) {
+      showMessage('error', 'Ha ocurrido un error, intentar nuevamente ó contactar al administrador');
+    }
+  });
+}
+
+function modInv(codigo) {
+  var url = '../php/report/report.php';
+  var dataSend = {};
+  dataSend.data = 'empty';
+  dataSend.location = 'getModInv';
+  dataSend.codigo = codigo;
+  dataSend.section = 'reports-partner';
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    url: url,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      $('#page-wrapper').html(data);
+    },
+    error: function(err) {
+      showMessage('error', 'Ha ocurrido un error, intentar nuevamente ó contactar al administrador');
+    }
+  });
+}
+
+function AddProdInv(){
+  var codigo = document.getElementById("codigo").value;
+  var ide = document.getElementById("ide").value;
+  var tx = parseInt(document.getElementById("tx").value);
+  var qro = parseInt(document.getElementById("qro").value);
+  var tipo = parseInt(document.getElementById("tipo").value);
+
+  var params = [codigo,ide,tx,qro,tipo];
+
+  bootbox.confirm({ 
+    size: "small",
+    message: "El siguiente producto se va actualizar, Autoriza?", 
+    callback: function(result){
+      if(result){
+        // console.log(codigo, ide, tx, qro, tipo);
+        $.post("../php/agregar/addProdInv.php", {data:params}, function(confirmacion){
+          bootbox.alert({
+            size: "small",
+            message: confirmacion, 
+            callback: function(){
+              addInv();
+            }
+          })
+        });
+      }
+    }
+  });
+}
+
+function ModProdInv(codigo){
+  var codigo = codigo;
+  var ide = document.getElementById("ide").value;
+  var tx = parseInt(document.getElementById("tx").value);
+  var qro = parseInt(document.getElementById("qro").value);
+  var tipo = parseInt(document.getElementById("tipo").value);
+
+  var params = [codigo,ide,tx,qro,tipo];
+
+  bootbox.confirm({ 
+    size: "small",
+    message: "El siguiente producto se va actualizar, Autoriza?", 
+    callback: function(result){
+      if(result){
+        // console.log(codigo, ide, tx, qro, tipo);
+        $.post("../php/agregar/modProdInv.php", {data:params}, function(confirmacion){
+          bootbox.alert({ 
+            size: "small",
+            message: confirmacion, 
+            callback: function(){
+              showInformation('resumenInvTub');
+            }
+          })
+        });
+      }
+    }
+  });
+}
+
+function BuscarProdInvIde(e){
+  if (e.keyCode == 13) {
+    var tb = document.getElementById("scriptBox");
+    eval(tb.value);
+    return false;
+  }
+  
+  var codigo = parseInt(document.getElementById("codigo").value);
+
+  $.ajax({
+    type: 'post',
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      $.post("../php/busquedas/buscarIdeProdInv.php", {codigo:codigo}, function(ide){
+        $("#ide").text(ide);
+        // document.getElementById("ide").style.color = "#4fe675";
+      });
+    }
+  });
+
+  // $.post("../php/busquedas/buscarIdeProdInv.php", {codigo:codigo}, function(ide){
+  //   $("#ide").text(ide);
+  //   document.getElementById("ide").style.color = "#4fe675";
+  // });
+  // $.post("../php/busquedas/buscarTxProdInv.php", {codigo:codigo}, function(tx){
+  //   ("#tx").text(tx);
+  //   document.getElementById("tx").style.color = "#4fe675";
+  // });
+  // $.post("../php/busquedas/buscarQroProdInv.php", {codigo:codigo}, function(qro){
+  //   ("#qro").text(qro);
+  //   document.getElementById("qro").style.color = "#4fe675";
+  // });
+}
+
 function newCustomer(perid) {
   // console.log("Ingresamos a Clientes Nuevos");
   var url = '../php/report/report.php';
@@ -1381,6 +1529,12 @@ function showInformation(location) {
       dataSend.location = 'getDashBoardComp';
       dataSend.section = 'reports-partner';
       break;
+    case 'resumenInvTub':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getResumenInvTub';
+      dataSend.section = 'reports-partner';
+      break;
     case 'dashBoardMesaQro':
       url = '../php/report/report.php';
       dataSend.data = 'empty';
@@ -1419,6 +1573,12 @@ function showInformation(location) {
       url = '../php/report/report.php';
       dataSend.data = 'empty';
       dataSend.location = 'getDashBoardAlamcen';
+      dataSend.section = 'reports-partner';
+      break;
+    case 'outPipes':
+      url = '../php/report/report.php';
+      dataSend.data = 'empty';
+      dataSend.location = 'getOutPipes';
       dataSend.section = 'reports-partner';
       break;
     case 'reportService':

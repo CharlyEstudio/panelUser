@@ -12,6 +12,10 @@ class Report {
     $this->getDashBoardComp($params);
   }
 
+  public function getterResumenInvTub($params) {
+    $this->getResumenInvTub($params);
+  }
+
   public function getterDashBoardMesaQro($params) {
     $this->getDashBoardMesaQro($params);
   }
@@ -26,6 +30,10 @@ class Report {
 
   public function getterDashBoardAlamcen($params) {
     $this->getDashBoardAlamcen($params);
+  }
+
+  public function getterOutPipes($params) {
+    $this->getOutPipes($params);
   }
 
   public function getterDashBoardDireccion($params) {
@@ -90,6 +98,14 @@ class Report {
 
   public function getterNuevosClientes($params){
     $this->NuevosClientes($params);
+  }
+
+  public function getterGetAddInv($params){
+    $this->getAddInv($params);
+  }
+
+  public function getterGetModInv($params){
+    $this->getModInv($params);
   }
 
   public function getterGetNewCustomer($params){
@@ -2240,6 +2256,50 @@ class Report {
               </div>';
     echo $print;
     $getConnection->close();
+  }
+
+  private function getOutPipes($params) {
+    $paramFunctions   = new Util();
+    $paramDb          = new Database();
+    $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+
+    $print =  '<div class="container paddingT paddingB">
+                <div class="row">
+                  <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                    <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                    <img src="../img/barrafmo2.gif" width="200"/>
+                  </div>
+                  <div class="col-12 text-center">
+                    <h1 class="display-4">CODIGOS <span class="text-tomato">ESPECIALES</span></h1>
+                  </div>
+                  <div class="col-12">
+                    <form>
+                      <div class="form-group">
+                        <input style="text-align: center;" type="number" class="form-control" name="codigo" id="codigo" placeholder="Ingrese el código" required onkeypress="return BuscarProdInvIde(event)" >
+                      </div>
+                      <div class="form-group text-center">
+                        <p class="input-falsoComers" id="ide" style="height: 25px;"></p>
+                      </div>
+                      <div class="row">
+                        <div class="col-6">
+                          <div class="form-group">
+                            <p class="input-falsoComers" id="tx" style="height: 25px;"></p>
+                          </div>
+                        </div>
+                        <div class="col-6">
+                          <div class="form-group">
+                            <p class="input-falsoComers" id="qro" style="height: 25px;"></p>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>';
+
+    echo $print;
+
+    $mysqliCon->close();
   }
 
   private function getDashBoardAlamcen($params) {
@@ -5333,44 +5393,59 @@ class Report {
     //                     AND des.destipo REGEXP 'C'";
 
     // Buscando Back Order General del año anterior
-    $buscandoAnualAnt= "SELECT 
-                              if(
-                                  d.desdescuento > 0, (d.desdescuento * d.desventa), 0
-                                ) as ImpoDesc,
-                              if(
-                                  d.desentregado < d.descantidad, d.descantidad - d.desentregado, 0
-                                ) as BackOrder,
-                              d.desventa
-                                              FROM desinvdocalm d
+    // $buscandoAnualAnt= "SELECT 
+    //                           if(
+    //                               d.desdescuento > 0, (d.desdescuento * d.desventa), 0
+    //                             ) as ImpoDesc,
+    //                           if(
+    //                               d.desentregado < d.descantidad, d.descantidad - d.desentregado, 0
+    //                             ) as BackOrder,
+    //                           d.desventa
+    //                                           FROM desinvdocalm d
                                     
-                                              WHERE (
-                                                      d.desfecha <= '".$yearAnt."-12-31'
-                                                      AND d.desfecha >= '".$yearAnt."-01-01'
-                                                    )
-                                                AND (d.descantidad - d.desentregado) > 0
-                                                AND d.destipo REGEXP 'C'";
-    $AnualAntEncontrado = $getConnection->query($buscandoAnualAnt);
-    $a = 0;
-    $b = 0;
-    $c = 0;
-    $d = 0;
-    while($anualAn = mysqli_fetch_row($AnualAntEncontrado)){
-      $ImpoDesc = $anualAn[0];
-      $BackOrder = $anualAn[1];
-      $desventa = $anualAn[2];
+    //                                           WHERE (
+    //                                                   d.desfecha <= '".$yearAnt."-12-31'
+    //                                                   AND d.desfecha >= '".$yearAnt."-01-01'
+    //                                                 )
+    //                                             AND (d.descantidad - d.desentregado) > 0
+    //                                             AND d.destipo REGEXP 'C'";
+    // $AnualAntEncontrado = $getConnection->query($buscandoAnualAnt);
+    // $a = 0;
+    // $b = 0;
+    // $c = 0;
+    // $d = 0;
+    // while($anualAn = mysqli_fetch_row($AnualAntEncontrado)){
+    //   $ImpoDesc = $anualAn[0];
+    //   $BackOrder = $anualAn[1];
+    //   $desventa = $anualAn[2];
 
-      if($ImpoDesc > 0){
-        $impoFin = $desventa - $ImpoDesc;
-        $impo = $BackOrder * $impoFin;
-        $d += $impo;
-      }else{
-        $impo = $BackOrder * $desventa;
-        $d += $impo;
-      }
-      $a+=$ImpoDesc;
-      $b+=$BackOrder;
-      $c+=$desventa;
-    }
+    //   if($ImpoDesc > 0){
+    //     $impoFin = $desventa - $ImpoDesc;
+    //     $impo = $BackOrder * $impoFin;
+    //     $d += $impo;
+    //   }else{
+    //     $impo = $BackOrder * $desventa;
+    //     $d += $impo;
+    //   }
+    //   $a+=$ImpoDesc;
+    //   $b+=$BackOrder;
+    //   $c+=$desventa;
+    // }
+
+    $backOrderAntAnio = "SELECT sum(((des.descantidad - des.desentregado) * (des.desventa - ((des.desventa * des.desdescuento) / 100)))) as precioBackOrderDesc
+                          FROM des
+                            LEFT OUTER JOIN doc
+                              ON doc.docid = des.desdocid
+                          WHERE (
+                            des.desfecha <= '".$yearAnt."-12-31'
+                            AND des.desfecha >= '".$yearAnt."-01-01'
+                          )
+                          AND doc.tipo = 'C'
+                          AND (des.descantidad - des.desentregado) > 0
+                          AND doc.estado NOT LIKE 'C'";
+    $backOrderAntAnioEnc = mysqli_query($getConnection,$backOrderAntAnio);
+    $backOrderAA = mysqli_fetch_array($backOrderAntAnioEnc);
+    $precioBackOrderDesc = (float)$backOrderAA["precioBackOrderDesc"];
 
     // Buscando Back Order General del año actual
     $buscandoAnualAct= "SELECT 
@@ -5411,6 +5486,21 @@ class Report {
       $f+=$BackOrderAct;
       $g+=$desventaAct;
     }
+
+    $backOrderAct = "SELECT sum(((des.descantidad - des.desentregado) * (des.desventa - ((des.desventa * des.desdescuento) / 100)))) as precioBackOrderDesc
+                          FROM des
+                            LEFT OUTER JOIN doc
+                              ON doc.docid = des.desdocid
+                          WHERE (
+                            des.desfecha <= '".date('Y-12-31')."'
+                            AND des.desfecha >= '".date('Y-01-01')."'
+                          )
+                          AND doc.tipo = 'C'
+                          AND (des.descantidad - des.desentregado) > 0
+                          AND doc.estado NOT LIKE 'C'";
+    $backOrderActEnc = mysqli_query($getConnection,$backOrderAct);
+    $backOrderActAn = mysqli_fetch_array($backOrderActEnc);
+    $precioBackOrderDescAct = (float)$backOrderActAn["precioBackOrderDesc"];
 
     // $buscandoAnualAct= "SELECT sum((des.descantidad - des.desentregado) * ((des.desventa) - ((des.desventa) * (des.desdescuento / 100)))) as BackOrderAnioActual
     //                   FROM des
@@ -5476,11 +5566,11 @@ class Report {
                           <div class="row infoCard">
                             <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                               <h3 class="display-4">Reporte de BackOrder Global</h3>
-                              <h4><b>'.date("Y").' <em style="font-size: 0.5em;">Vs</em> '.$yearAnt.'</b></h4>
+                              <h4><b>'.$yearAnt.' <em style="font-size: 0.5em;">Vs</em> '.date("Y").'</b></h4>
                             </div>
                             <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
-                              <p id="totalYearAnterior" style="display: none;">'.$d.'</p>
-                              <p id="totalAnualActual" style="display: none;">'.$h.'</p>
+                              <p id="totalYearAnterior" style="display: none;">'.$precioBackOrderDesc.'</p>
+                              <p id="totalAnualActual" style="display: none;">'.$precioBackOrderDescAct.'</p>
                               <canvas id="areaChartAnualBackOrder" style="height:250px"></canvas>
                               <script src="../intranet/js/Chart.js"></script>
                               <script src="../intranet/js/backorder.js"></script>
@@ -5488,10 +5578,10 @@ class Report {
                             <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
                               <div class="row">
                                 <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                                  <p class="lead text-redGraf"><b style="font-size: 1em;">BackOrder '.$yearAnt.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($d,2,".",",").'</b></p>
+                                  <p class="lead text-redGraf"><b style="font-size: 1em;">BackOrder '.$yearAnt.'</b><br /><b style="font-size: 1.5em;">$ '.number_format($precioBackOrderDesc,2,".",",").'</b></p>
                                 </div>
                                 <div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-                                  <p class="lead" style="color:#3adcf4"><b style="font-size: 1em;">BackOrder '.date("Y").'</b><br /><b style="font-size: 1.5em;">$ '.number_format($h, 2,".", ",").'</b></p>
+                                  <p class="lead" style="color:#3adcf4"><b style="font-size: 1em;">BackOrder '.date("Y").'</b><br /><b style="font-size: 1.5em;">$ '.number_format($precioBackOrderDescAct, 2,".", ",").'</b></p>
                                 </div>
                               </div>
                               <p class="text-center lead">La información mostrada es de solo carácter informativo.</p>
@@ -5747,10 +5837,7 @@ class Report {
     $queryPedDia = "SELECT d.docid
                       FROM doc d
                       WHERE d.fecha = '".$dia."'
-                        AND (tipo = 'C' OR tipo = 'N' OR tipo = 'F')
-                        AND d.tipo NOT LIKE 'CH'
-                        AND d.subtotal2 > 0
-                        AND d.FECCAN = 0";
+                        AND tipo = 'C'";
     $resultQueryPedDia = $getConnection->query($queryPedDia);
     if($resultQueryPedDia === ''){
       $qPediDia = 0;
@@ -6303,98 +6390,13 @@ class Report {
                           <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 graficosBarra">
                             <p id="diasTotalMes" style="display: none;">'.$diasTotalMes.'</p>
                             <p id="mesActual" style="display: none;">'.$totalVentaMes.'</p>
-                            <p id="mesAnterior" style="display: none;">'.$vAnt.'</p>
+                            <p id="mAnterior" style="display: none;">'.$vAnt.'</p>
                             <p id="mejorMes" style="display: none;">'.$vMejor.'</p>
                             <p id="mesMej" style="display: none;">'.$mesMej.'</p>
                             <canvas id="areaChart" style="max-height:350px;"></canvas>
                           </div>
                           <script src="../intranet/js/Chart.js"></script>
-                          <script src="../intranet/js/graficas.js"></script>
-                          <script type="text/javascript">
-                            var f=new Date();
-                            $.ajax({
-                              type: "POST",
-                              url: "../php/busquedas/ventamesgraf.php",
-                              success: function(ventames) {
-                                $(document).ready(function() {
-                                  function ventasMes(){
-                                    var hora=f.getHours();
-                                    if(hora < 20 || hora > 8){
-                                      // console.log(hora);
-                                      $("#mesActual").text(ventames);
-                                      var mActual = parseFloat(ventames);
-                                      if(document.getElementById("mesAnterior") != null){
-                                        var mAnterior = parseFloat(document.getElementById("mesAnterior").innerHTML);
-                                      }
-                                      if(document.getElementById("mejorMes") != null){
-                                        var mejorMes = parseFloat(document.getElementById("mejorMes").innerHTML);
-                                      }
-                                      if($("#areaChart").get(0) != null){
-                                        var barChartCanvas = $("#areaChart").get(0).getContext("2d");
-                                        var barChart       = new Chart(barChartCanvas);
-                                        var areaChartData = {
-                                          labels  : [""],
-                                          datasets: [
-                                            {
-                                              label               : "Mes Anterior",
-                                              fillColor           : "rgba(225, 49, 90, 1)",
-                                              strokeColor         : "rgba(225, 49, 90, 1)",
-                                              pointColor          : "rgba(225, 49, 90, 1)",
-                                              pointStrokeColor    : "#c1c7d1",
-                                              pointHighlightFill  : "#fff",
-                                              pointHighlightStroke: "rgba(220,220,220,1)",
-                                              data                : [mAnterior]
-                                            },
-                                            {
-                                              label               : "Mes Actual",
-                                              fillColor           : "rgba(95, 124, 250, 1)",
-                                              strokeColor         : "rgba(95, 124, 250, 1)",
-                                              pointColor          : "rgba(95, 124, 250, 1)",
-                                              pointStrokeColor    : "#c1c7d1",
-                                              pointHighlightFill  : "#fff",
-                                              pointHighlightStroke: "rgba(220,220,220,1)",
-                                              data                : [mActual]
-                                            },
-                                            {
-                                              label               : "Mejor Mes",
-                                              fillColor           : "rgba(49, 225, 111, 1)",
-                                              strokeColor         : "rgba(49, 225, 111, 1)",
-                                              pointColor          : "rgba(49, 225, 111, 1)",
-                                              pointStrokeColor    : "#c1c7d1",
-                                              pointHighlightFill  : "#fff",
-                                              pointHighlightStroke: "rgba(220,220,220,1)",
-                                              data                : [mejorMes]
-                                            }
-                                          ]
-                                        };
-                                        var barChartData                     = areaChartData;
-                                        var barChartOptions                  = {
-                                          animation               : false,
-                                          scaleBeginAtZero        : true,
-                                          scaleShowGridLines      : true,
-                                          scaleGridLineColor      : "rgba(0,0,0,.05)",
-                                          scaleGridLineWidth      : 1,
-                                          scaleShowHorizontalLines: true,
-                                          scaleShowVerticalLines  : true,
-                                          barShowStroke           : true,
-                                          barStrokeWidth          : 2,
-                                          barValueSpacing         : 5,
-                                          barDatasetSpacing       : 1,
-                                          responsive              : true,
-                                          maintainAspectRatio     : true
-                                        };
-                                        barChartOptions.datasetFill = false;
-                                        barChart.Bar(barChartData, barChartOptions);
-                                      }
-                                    } else {
-                                      console.log("Fuera de Línea");
-                                    }
-                                  }
-                                  setInterval(ventasMes, 3000);
-                                });
-                              }
-                            });
-                          </script>';
+                          <script src="../intranet/js/graficas.js"></script>';
     $print .=           '</div>
                       </div>
                       <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
@@ -8892,6 +8894,133 @@ class Report {
 				      </div>";
     echo $print;
     $getConnection->close();
+  }
+
+  private function getResumenInvTub($params) {
+    $paramDb = new Database();
+    $paramFunctions = new Util();
+    $getConnection = $paramDb->GetLink();
+    $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+
+    $buscarInvTub = "SELECT * FROM controlinv WHERE tipo = 1";
+    $tubosEncTub = mysqli_query($mysqliCon,$buscarInvTub);
+
+    $buscarInvPol = "SELECT * FROM controlinv WHERE tipo = 2";
+    $tubosEncPol = mysqli_query($mysqliCon,$buscarInvPol);
+
+    $print =  '<div class="col-12 paddingT paddingB">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
+                <h1 class="display-4 text-center">Inventario</h1>
+                <div class="row">
+                  <div class="col-12 text-center">
+                    <button class="btn btn-primary" onClick="addInv();">Nuevo</button>
+                  </div>
+                  <div class="col-6 text-center paddingT paddingB">
+                    <div class="row">
+                      <div class="col-12 text-center">
+                        <h3>RESUMEN DE TUBOS</h3>
+                      </div>
+                      <div class="col-10">
+                        <table class="table table-bordered">
+                          <thead>
+                            <tr>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">CODIGO</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">IDENTIFICACION</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">PRODUCTO</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">TEQUIS</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">QUERETARO</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">MODIFICAR</th>
+                            </tr>
+                          </thead>
+                          <tbody>';
+    while($rowTub = mysqli_fetch_row($tubosEncTub)){
+      $codigo = $rowTub[1];
+      $iden = $rowTub[2];
+      $tx = $rowTub[3];
+      $qro = $rowTub[4];
+
+      $linkEditarProd = "modInv($codigo)";
+
+      $buscarNomPro = "SELECT descripcio FROM inv WHERE clvprov = $codigo";
+      $prodEnc = mysqli_query($getConnection,$buscarNomPro);
+      $rowNom = mysqli_fetch_row($prodEnc);
+      $nombre = $rowNom[0];
+      $print .=             '<tr>
+                              <th scope="row" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$codigo.'</th>
+                              <td style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$iden.'</td>
+                              <td style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$nombre.'</td>
+                              <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$tx.'</td>
+                              <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$qro.'</td>
+                              <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;"><a class="nav-linkImg" href="#" onClick="'.$linkEditarProd.'">Editar</a></td>
+                            </tr>';
+    }
+    $print .=             '</tbody>
+                        </table>
+                      </div>
+                      <div class="col-2 text-center">
+                        <table class="table table-bordered">
+                          <thead>
+                            <tr>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">MAXIMO QUERETARO</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <th class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">1</th>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6 text-center paddingT paddingB">
+                    <h3>RESUMEN DE POLVOS</h3>
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">CODIGO</th>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">IDENTIFICACION</th>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">PRODUCTO</th>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">TEQUIS</th>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">QUERETARO</th>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">MODIFICAR</th>
+                        </tr>
+                      </thead>
+                      <tbody>';
+    while($rowTubPol = mysqli_fetch_row($tubosEncPol)){
+      $codigoPol = $rowTubPol[1];
+      $idenPol = $rowTubPol[2];
+      $txPol = $rowTubPol[3];
+      $qroPol = $rowTubPol[4];
+
+      $linkEditarProd = "modInv($codigoPol)";
+
+      $buscarNomProPol = "SELECT descripcio FROM inv WHERE clvprov = $codigoPol";
+      $prodEncPol = mysqli_query($getConnection,$buscarNomProPol);
+      $rowNomPol = mysqli_fetch_row($prodEncPol);
+      $nombrePol = $rowNomPol[0];
+      
+      $print .=         '<tr>
+                          <th scope="row" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$codigoPol.'</th>
+                          <td style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$idenPol.'</td>
+                          <td style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$nombrePol.'</td>
+                          <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$txPol.'</td>
+                          <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$qroPol.'</td>
+                          <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;"><a class="nav-linkImg" href="#" onClick="'.$linkEditarProd.'">Editar</a></td>
+                        </tr>';
+    }
+    $print .=         '</tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>';
+
+    echo $print;
+    $getConnection->close();
+    $mysqliCon->close();
   }
 
   private function getDashBoardComp($params) {
@@ -12231,13 +12360,104 @@ class Report {
       if($rol <> "cartera"){
         $print .= '<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center paddingB">
                   <button type="button" class="btn btn-outline-success" onClick="'.$linkFunctionPersonal.'">Nuevo Cliente</button>
-                </div>
-';
+                </div>';
       }
       $print .= '</div>';
     }
     echo $print;
     $getConnection->close();
+    $mysqliCon->close();
+  }
+
+  private function getModInv($params){
+    $paramDb = new Database();
+    $paramFunctions = new Util();
+    $mysqliCon      = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+
+    $codigo = $paramDb->SecureInput($params["codigo"]);
+    $linkFunctionCancelar = "showInformation('resumenInvTub')";
+
+    $buscarProdMod = "SELECT *
+                        FROM controlinv
+                        WHERE codigo = $codigo";
+    $prodEncoMod = mysqli_query($mysqliCon,$buscarProdMod);
+    $rowProMod = mysqli_fetch_row($prodEncoMod);
+
+    $ide = $rowProMod[2];
+    $tx = $rowProMod[3];
+    $qro = $rowProMod[4];
+    $tipo = $rowProMod[5];
+    if($tipo == 1){
+      $type = "Detalle para Tubos";
+    }else if($tipo == 2){
+      $type = "Detalle para Polvos";
+    }
+
+    $print =  '<div class="container paddingT paddingB">
+                <h1 class="display-4 text-center paddingB">Modificar <span class="text-tomato">Código</span></h1>
+                <form>
+                  <div class="form-group">
+                    <input class="form-control" style="text-align: center!important;" type="number" value="'.$codigo.'" readonly>
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control" style="text-align: center!important;" type="text" id="ide" name="identificacion" value="'.$ide.'">
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control" style="text-align: center!important;" type="number" id="tx" name="tequis" value="'.$tx.'">
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control" style="text-align: center!important;" type="number" id="qro" name="qro" value="'.$qro.'">
+                  </div>
+                  <div class="form-group">
+                    <select class="form-control" name="tipo" id="tipo">
+                      <option value="'.$tipo.'">'.$type.'</option>
+                      <option value="1">Detalle para Tubos</option>
+                      <option value="2">Detalle para Polvos</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <button type="button" class="btn btn-primary btn-lg btn-block" onClick="ModProdInv('.$codigo.')">MODIFICAR</button>
+                    <button type="button" class="btn btn-success btn-lg btn-block" onClick="'.$linkFunctionCancelar.'">Cancelar</button>
+                  </div>
+                </form>
+              </div>';
+
+    echo $print;
+    $mysqliCon->close();
+  }
+
+  private function getAddInv($params){
+    $mysqliCon      = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+    $linkFunctionCancelar = "showInformation('resumenInvTub')";
+    $print =  '<div class="container paddingT paddingB">
+                <h1 class="display-4 text-center paddingB">Agregar <span class="text-tomato">Código</span></h1>
+                <form>
+                  <div class="form-group">
+                    <input class="form-control" style="text-align: center!important;" type="number" id="codigo" name="codigo" placeholder="Ingrese el Código" autocomplete="off" required>
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control" style="text-align: center!important;" type="text" id="ide" name="identificacion" placeholder="Ingrese una identificación" autocomplete="off" required>
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control" style="text-align: center!important;" type="number" id="tx" name="tequis" placeholder="Cantidad a Tequis" autocomplete="off" required>
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control" style="text-align: center!important;" type="number" id="qro" name="qro" placeholder="Cantidad a Qro" autocomplete="off" required>
+                  </div>
+                  <div class="form-group">
+                    <select class="form-control" name="tipo" required>
+                      <option value="">Seleccione tipo de Producto</option>
+                      <option value="1">Detalle para Tubos</option>
+                      <option value="2">Detalle para Polvos</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <button type="button" class="btn btn-primary btn-lg btn-block" onClick="AddProdInv()">Guardar</button>
+                    <button type="button" class="btn btn-success btn-lg btn-block" onClick="'.$linkFunctionCancelar.'">Cancelar</button>
+                  </div>
+                </form>
+              </div>';
+    echo $print;
     $mysqliCon->close();
   }
 

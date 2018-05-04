@@ -20,6 +20,10 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $session = $_SESSION["data"];
         $report->getterDashBoardComp($session);
         break;
+      case"getResumenInvTub":
+        $session = $_SESSION["data"];
+        $report->getterResumenInvTub($session);
+        break;
       case"getDashBoardMesaQro":
         $session = $_SESSION["data"];
         $report->getterDashBoardMesaQro($session);
@@ -39,6 +43,10 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
       case"getDashBoardAlamcen":
         $session = $_SESSION["data"];
         $report->getterDashBoardAlamcen($session);
+        break;
+      case"getOutPipes":
+        $session = $_SESSION["data"];
+        $report->getterOutPipes($session);
         break;
       case"getDashBoardDireccion":
         $session = $_SESSION["data"];
@@ -114,6 +122,18 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $session = $_SESSION["data"];
         $params = array("session"=> $session);
         $report->getterGetClientesNuevosMes($params);
+        break;
+      case"getAddInv":
+        $session = $_SESSION["data"];
+        $params = array("session"=> $session);
+        $report->getterGetAddInv($params);
+        break;
+      case"getModInv":
+        $codigo = $paramFunctions->sanitize($_POST["codigo"]);
+        $session = $_SESSION["data"];
+        $params = array("session"=> $session,
+                        "codigo" => $codigo);
+        $report->getterGetModInv($params);
         break;
       case"getNewCustomer":
         $perid = $paramFunctions->sanitize($_POST["perid"]);
