@@ -124,7 +124,7 @@ class Util {
       $clase = $row["clase"];
       $linkFunction = $funcion . "('$parametro')";
 
-      if($user == 'admin' || $user == 'supervisor1' || $user == 'supervisor2' || $user == 'pedidos' || $user == 'direccion' || $user == 'cartera' || $user == 'vendedores' || $user == 'compras' || $user == 'almacen'){
+      if($user == 'admin' || $user == 'supervisor1' || $user == 'supervisor2' || $user == 'pedidos' || $user == 'direccion' || $user == 'cartera' || $user == 'vendedores' || $user == 'compras' || $user == 'almacen' || $user = 'mesa'){
           $nav .='<li class="nav-item" role="'.$seccion.'" data-toggle="tooltip" data-placement="top" title="'.$seccion.'">';
           $nav .=  '<a class="nav-link navMenu" href="#" onclick="'.$linkFunction.'">';
           $nav .=    '<i class="'.$clase.'"></i>';

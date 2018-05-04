@@ -1250,6 +1250,31 @@ function addInv() {
   });
 }
 
+function getOutPipes(){
+  var url = '../php/report/report.php';
+  var dataSend = {};
+  dataSend.data = 'empty';
+  dataSend.location = 'getOutPipes';
+  dataSend.section = 'reports-partner';
+  $.ajax({
+    type: 'post',
+    data: dataSend,
+    url: url,
+    beforeSend: function(){
+      $('#procesando').show();
+    },
+    complete: function(){
+      $('#procesando').hide();
+    },
+    success: function(data) {
+      $('#page-wrapper').html(data);
+    },
+    error: function(err) {
+      showMessage('error', 'Ha ocurrido un error, intentar nuevamente ó contactar al administrador');
+    }
+  });
+}
+
 function modInv(codigo) {
   var url = '../php/report/report.php';
   var dataSend = {};
@@ -1334,43 +1359,30 @@ function ModProdInv(codigo){
   });
 }
 
-function BuscarProdInvIde(e){
-  if (e.keyCode == 13) {
-    var tb = document.getElementById("scriptBox");
-    eval(tb.value);
-    return false;
-  }
-  
+function guardarPedInv(){
   var codigo = parseInt(document.getElementById("codigo").value);
+  var vendedor = document.getElementById("vendedor").value;
+  var cliente = document.getElementById("cliente").value;
+  var cantidad = parseInt(document.getElementById("cantidad").value);
+  var almacen = parseInt(document.getElementById("almacen").value);
 
-  $.ajax({
-    type: 'post',
-    beforeSend: function(){
-      $('#procesando').show();
-    },
-    complete: function(){
-      $('#procesando').hide();
-    },
-    success: function(data) {
-      $.post("../php/busquedas/buscarIdeProdInv.php", {codigo:codigo}, function(ide){
-        $("#ide").text(ide);
-        // document.getElementById("ide").style.color = "#4fe675";
-      });
-    }
-  });
-
-  // $.post("../php/busquedas/buscarIdeProdInv.php", {codigo:codigo}, function(ide){
-  //   $("#ide").text(ide);
-  //   document.getElementById("ide").style.color = "#4fe675";
-  // });
-  // $.post("../php/busquedas/buscarTxProdInv.php", {codigo:codigo}, function(tx){
-  //   ("#tx").text(tx);
-  //   document.getElementById("tx").style.color = "#4fe675";
-  // });
-  // $.post("../php/busquedas/buscarQroProdInv.php", {codigo:codigo}, function(qro){
-  //   ("#qro").text(qro);
-  //   document.getElementById("qro").style.color = "#4fe675";
-  // });
+  if(almacen == 1){
+    $.post("../php/agregar/descAlma.php", {codigo: codigo, cantidad: cantidad, almacen: almacen, vendedor: vendedor, cliente: cliente}, function(mensaje){
+      bootbox.alert({
+        size: "small",
+        message: mensaje
+      })
+    });
+    showInformation('outPipes');
+  }else if(almacen == 2){
+    $.post("../php/agregar/descAlma.php", {codigo: codigo, cantidad: cantidad, almacen: almacen, vendedor: vendedor, cliente: cliente}, function(mensaje){
+      bootbox.alert({
+        size: "small",
+        message: mensaje
+      })
+    });
+    showInformation('outPipes');
+  }
 }
 
 function newCustomer(perid) {
@@ -1575,10 +1587,10 @@ function showInformation(location) {
       dataSend.location = 'getDashBoardAlamcen';
       dataSend.section = 'reports-partner';
       break;
-    case 'outPipes':
+    case 'dashBoardMesa':
       url = '../php/report/report.php';
       dataSend.data = 'empty';
-      dataSend.location = 'getOutPipes';
+      dataSend.location = 'getDashBoardMesa';
       dataSend.section = 'reports-partner';
       break;
     case 'reportService':

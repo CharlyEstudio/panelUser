@@ -44,6 +44,10 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         $session = $_SESSION["data"];
         $report->getterDashBoardAlamcen($session);
         break;
+      case"getDashBoardMesa":
+        $session = $_SESSION["data"];
+        $report->getterDashBoardMesa($session);
+        break;
       case"getOutPipes":
         $session = $_SESSION["data"];
         $report->getterOutPipes($session);

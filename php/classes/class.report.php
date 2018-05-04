@@ -32,6 +32,10 @@ class Report {
     $this->getDashBoardAlamcen($params);
   }
 
+  public function getterDashBoardMesa($params) {
+    $this->getDashBoardMesa($params);
+  }
+
   public function getterOutPipes($params) {
     $this->getOutPipes($params);
   }
@@ -2273,26 +2277,28 @@ class Report {
                     <h1 class="display-4">CODIGOS <span class="text-tomato">ESPECIALES</span></h1>
                   </div>
                   <div class="col-12">
-                    <form>
-                      <div class="form-group">
-                        <input style="text-align: center;" type="number" class="form-control" name="codigo" id="codigo" placeholder="Ingrese el código" required onkeypress="return BuscarProdInvIde(event)" >
-                      </div>
-                      <div class="form-group text-center">
-                        <p class="input-falsoComers" id="ide" style="height: 25px;"></p>
-                      </div>
-                      <div class="row">
-                        <div class="col-6">
-                          <div class="form-group">
-                            <p class="input-falsoComers" id="tx" style="height: 25px;"></p>
-                          </div>
-                        </div>
-                        <div class="col-6">
-                          <div class="form-group">
-                            <p class="input-falsoComers" id="qro" style="height: 25px;"></p>
-                          </div>
-                        </div>
-                      </div>
-                    </form>
+                    <div class="form-group">
+                      <input style="text-align: center;" type="number" class="form-control" id="codigo" placeholder="Ingrese el código" required >
+                    </div>
+                    <div class="form-group">
+                      <input style="text-align: center;" class="form-control" id="vendedor" type="text" placeholder="Ingrese el vendedor" required >
+                    </div>
+                    <div class="form-group">
+                      <input style="text-align: center;" class="form-control" id="cliente" type="number" placeholder="Ingrese el cliente" required >
+                    </div>
+                    <div class="form-group">
+                      <input style="text-align: center;" class="form-control" id="cantidad" type="text" placeholder="Ingrese la cantidad a solicitar" required >
+                    </div>
+                    <div class="form-group">
+                      <select class="form-control" id="almacen" required>
+                        <option value="">Seleccione un almacén de salida</option>
+                        <option value="1">Querétaro</option>
+                        <option value="2">Tequisquiapan</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <input type="button" class="btn btn-primary btn-lg btn-block" onClick="guardarPedInv();" value="APARTAR">
+                    </div>
                   </div>
                 </div>
               </div>';
@@ -2519,9 +2525,9 @@ class Report {
                           }
 
                           if(typeof(bandera) === "undefined"){
-                            console.log("Por Surtir(","Hora:", tiempo, " Porcentaje: ", res, "% )");
+                            // console.log("Por Surtir(","Hora:", tiempo, " Porcentaje: ", res, "% )");
                           }else{
-                            console.log("Por Surtir(","Hora:", tiempo, " Porcentaje: ", res, "%  Bandera: ", bandera, ")");
+                            // console.log("Por Surtir(","Hora:", tiempo, " Porcentaje: ", res, "%  Bandera: ", bandera, ")");
                           }
                           
                           if(tiempo > "17:29" && tiempo < "18:30"){
@@ -8896,6 +8902,117 @@ class Report {
     $getConnection->close();
   }
 
+  private function getDashBoardMesa($params) {
+    $paramDb = new Database();
+    $paramFunctions = new Util();
+    $getConnection = $paramDb->GetLink();
+    $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+
+    $buscarInvTub = "SELECT * FROM controlinv WHERE tipo = 1";
+    $tubosEncTub = mysqli_query($mysqliCon,$buscarInvTub);
+
+    $buscarInvPol = "SELECT * FROM controlinv WHERE tipo = 2";
+    $tubosEncPol = mysqli_query($mysqliCon,$buscarInvPol);
+
+    $print =  '<div class="col-12 paddingT paddingB">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
+                <h1 class="display-4 text-center">Inventario</h1>
+                <div class="row">
+                  <div class="col-6 text-center paddingT paddingB">
+                    <div class="row">
+                      <div class="col-12 text-center">
+                        <h3>RESUMEN DE TUBOS</h3>
+                      </div>
+                      <div class="col-12">
+                        <table class="table table-bordered">
+                          <thead>
+                            <tr>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">CODIGO</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">IDENTIFICACION</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">PRODUCTO</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">TEQUIS</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">QUERETARO</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">SOLICITAR</th>
+                            </tr>
+                          </thead>
+                          <tbody>';
+    while($rowTub = mysqli_fetch_row($tubosEncTub)){
+      $codigo = $rowTub[1];
+      $iden = $rowTub[2];
+      $tx = $rowTub[3];
+      $qro = $rowTub[4];
+
+      $linkEditarProd = "getOutPipes()";
+
+      $buscarNomPro = "SELECT descripcio FROM inv WHERE clvprov = $codigo";
+      $prodEnc = mysqli_query($getConnection,$buscarNomPro);
+      $rowNom = mysqli_fetch_row($prodEnc);
+      $nombre = $rowNom[0];
+      $print .=             '<tr>
+                              <th scope="row" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$codigo.'</th>
+                              <td style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$iden.'</td>
+                              <td style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$nombre.'</td>
+                              <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$tx.'</td>
+                              <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$qro.'</td>
+                              <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;"><a class="nav-linkImg" href="#" onClick="'.$linkEditarProd.'">Pedir</a></td>
+                            </tr>';
+    }
+    $print .=             '</tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6 text-center paddingT paddingB">
+                    <h3>RESUMEN DE POLVOS</h3>
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">CODIGO</th>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">IDENTIFICACION</th>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">PRODUCTO</th>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">TEQUIS</th>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">QUERETARO</th>
+                          <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">SOLICITAR</th>
+                        </tr>
+                      </thead>
+                      <tbody>';
+    while($rowTubPol = mysqli_fetch_row($tubosEncPol)){
+      $codigoPol = $rowTubPol[1];
+      $idenPol = $rowTubPol[2];
+      $txPol = $rowTubPol[3];
+      $qroPol = $rowTubPol[4];
+
+      $linkEditarProd = "getOutPipes()";
+
+      $buscarNomProPol = "SELECT descripcio FROM inv WHERE clvprov = $codigoPol";
+      $prodEncPol = mysqli_query($getConnection,$buscarNomProPol);
+      $rowNomPol = mysqli_fetch_row($prodEncPol);
+      $nombrePol = $rowNomPol[0];
+      
+      $print .=         '<tr>
+                          <th scope="row" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$codigoPol.'</th>
+                          <td style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$idenPol.'</td>
+                          <td style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$nombrePol.'</td>
+                          <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$txPol.'</td>
+                          <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$qroPol.'</td>
+                          <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;"><a class="nav-linkImg" href="#" onClick="'.$linkEditarProd.'">Pedir</a></td>
+                        </tr>';
+    }
+    $print .=         '</tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>';
+
+    echo $print;
+
+    $mysqliCon->close();
+    $getConnection->close();
+  }
+
   private function getResumenInvTub($params) {
     $paramDb = new Database();
     $paramFunctions = new Util();
@@ -8923,7 +9040,7 @@ class Report {
                       <div class="col-12 text-center">
                         <h3>RESUMEN DE TUBOS</h3>
                       </div>
-                      <div class="col-10">
+                      <div class="col-12">
                         <table class="table table-bordered">
                           <thead>
                             <tr>
@@ -8933,6 +9050,8 @@ class Report {
                               <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">TEQUIS</th>
                               <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">QUERETARO</th>
                               <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">MODIFICAR</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">MAXIMO QRO</th>
+                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">SOLICITAR</th>
                             </tr>
                           </thead>
                           <tbody>';
@@ -8941,6 +9060,9 @@ class Report {
       $iden = $rowTub[2];
       $tx = $rowTub[3];
       $qro = $rowTub[4];
+      $maxqro = $rowTub[6];
+
+      $pedir = $maxqro - $qro;
 
       $linkEditarProd = "modInv($codigo)";
 
@@ -8954,24 +9076,17 @@ class Report {
                               <td style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$nombre.'</td>
                               <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$tx.'</td>
                               <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$qro.'</td>
-                              <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;"><a class="nav-linkImg" href="#" onClick="'.$linkEditarProd.'">Editar</a></td>
-                            </tr>';
+                              <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;"><a class="nav-linkImg" href="#" onClick="'.$linkEditarProd.'">Editar</a></td>';
+      if($maxqro === NULL){
+        $print .=             '<td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;"></td>
+                              <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;"></td>';
+      }else{
+        $print .=             '<td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$maxqro.'</td>
+                              <td class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">'.$pedir.'</td>';
+      }                              
+      $print .=             '</tr>';
     }
     $print .=             '</tbody>
-                        </table>
-                      </div>
-                      <div class="col-2 text-center">
-                        <table class="table table-bordered">
-                          <thead>
-                            <tr>
-                              <th scope="col" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">MAXIMO QUERETARO</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <th class="text-green" style="font-weight:bold;vertical-align:middle;font-size: .7em!important;padding: 0.3rem!important;">1</th>
-                            </tr>
-                          </tbody>
                         </table>
                       </div>
                     </div>
@@ -9029,6 +9144,10 @@ class Report {
     $getConnection = $paramDb->GetLink();
 
     $print =  '<div class="container paddingT paddingB">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
                 <h4 class="display-4 text-center">BUSQUEDA DE <span class="text-tomato">CODIGOS 8</span></h4>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 paddingT">
                   <div class="form-group">
@@ -12394,6 +12513,10 @@ class Report {
     }
 
     $print =  '<div class="container paddingT paddingB">
+                <div id="procesando" class="alert alert-success text-center" role="alert" style="max-width: 600px;width: 100%;margin: 0 auto;position: fixed;left: 0;right: 0;top: 100px;padding: 20px;border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,.4);z-index:999999;display: flex;align-items: center;justify-content: center;flex-direction: column;margin-top: 200px;">
+                  <h2 class="alert-heading">Cargando toda la información necesaria, espere un momento por favor. Gracias.</h2>
+                  <img src="../img/barrafmo2.gif" width="200"/>
+                </div>
                 <h1 class="display-4 text-center paddingB">Modificar <span class="text-tomato">Código</span></h1>
                 <form>
                   <div class="form-group">
