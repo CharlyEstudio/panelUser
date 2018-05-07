@@ -50,7 +50,10 @@ if(!empty($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQU
         break;
       case"getOutPipes":
         $session = $_SESSION["data"];
-        $report->getterOutPipes($session);
+        $codigo = $paramFunctions->sanitize($_POST["codigo"]);
+        $params = array("session" => $session,
+                        "codigo" => $codigo);
+        $report->getterOutPipes($params);
         break;
       case"getDashBoardDireccion":
         $session = $_SESSION["data"];

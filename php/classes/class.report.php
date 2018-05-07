@@ -2266,6 +2266,7 @@ class Report {
     $paramFunctions   = new Util();
     $paramDb          = new Database();
     $mysqliCon = new mysqli("67.227.237.109", "zizaram1_datosaF", "dwzyGskl@@.W", "zizaram1_datosa", 3306);
+    $codigo        = $paramDb->SecureInput($params["codigo"]);
 
     $print =  '<div class="container paddingT paddingB">
                 <div class="row">
@@ -2278,7 +2279,7 @@ class Report {
                   </div>
                   <div class="col-12">
                     <div class="form-group">
-                      <input style="text-align: center;" type="number" class="form-control" id="codigo" placeholder="Ingrese el código" required >
+                      <input style="text-align: center;" type="number" class="form-control" id="codigo" value="'.$codigo.'" readonly >
                     </div>
                     <div class="form-group">
                       <input style="text-align: center;" class="form-control" id="vendedor" type="text" placeholder="Ingrese el vendedor" required >
@@ -8945,7 +8946,7 @@ class Report {
       $tx = $rowTub[3];
       $qro = $rowTub[4];
 
-      $linkEditarProd = "getOutPipes()";
+      $linkEditarProd = "getOutPipes('$codigo')";
 
       $buscarNomPro = "SELECT descripcio FROM inv WHERE clvprov = $codigo";
       $prodEnc = mysqli_query($getConnection,$buscarNomPro);

@@ -1250,10 +1250,11 @@ function addInv() {
   });
 }
 
-function getOutPipes(){
+function getOutPipes(codigo){
   var url = '../php/report/report.php';
   var dataSend = {};
   dataSend.data = 'empty';
+  dataSend.codigo = codigo;
   dataSend.location = 'getOutPipes';
   dataSend.section = 'reports-partner';
   $.ajax({
